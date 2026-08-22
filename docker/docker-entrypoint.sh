@@ -1,6 +1,17 @@
 #!/bin/sh
 set -eu
 
+is_installed() {
+    [ -f /var/www/html/config/settings_db ] || [ -f /var/www/html/config/settings/dbSettings ]
+}
+
+lock_installer() {
+    if is_installed; then
+        touch /var/www/html/install/.locked
+        chmod 700 /var/www/html/install || true
+    fi
+}
+
 seed_dir() {
     dir="$1"
     target="/var/www/html/$dir"
@@ -29,11 +40,7 @@ mkdir -p \
 
 touch /var/www/html/log/php_error.log
 
-if [ -f /var/www/html/config/settings_db ] || [ -f /var/www/html/config/settings/dbSettings ]; then
-    touch /var/www/html/install/.locked
-    printf '%s\n' 'Require all denied' > /var/www/html/install/.htaccess
-    chmod 700 /var/www/html/install || true
-fi
+lock_installer
 
 chown -R www-data:www-data \
     /var/www/html/config \
@@ -45,5 +52,17 @@ chown -R www-data:www-data \
 
 chmod 700 /var/www/html/config /var/www/html/log /var/www/html/uploads /var/www/html/pdfs || true
 chmod 755 /var/www/html/resources /var/www/html/attachements || true
+
+if [ "${EFACLOUD_AUTO_INSTALL:-0}" = "1" ] && ! is_installed; then
+    docker-php-entrypoint apache2-foreground &
+    apache_pid=$!
+    if ! efacloud-bootstrap-install; then
+        kill "$apache_pid" 2>/dev/null || true
+        wait "$apache_pid" 2>/dev/null || true
+        exit 1
+    fi
+    wait "$apache_pid"
+    exit $?
+fi
 
 exec docker-php-entrypoint "$@"

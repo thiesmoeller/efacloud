@@ -3,10 +3,10 @@ services:
     image: mariadb:11.4
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: efacloud
-      MARIADB_USER: efacloud
-      MARIADB_PASSWORD: efacloud_dev_password
-      MARIADB_ROOT_PASSWORD: efacloud_root_dev_password
+      MARIADB_DATABASE: ${EFACLOUD_DB_NAME:-efacloud}
+      MARIADB_USER: ${EFACLOUD_DB_USER:-efacloud}
+      MARIADB_PASSWORD: ${EFACLOUD_DB_PASSWORD:-efacloud_dev_password}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-efacloud_root_dev_password}
     volumes:
       - efacloud-db:/var/lib/mysql
     healthcheck:
@@ -23,8 +23,22 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
+    env_file:
+      - .env
     environment:
-      TZ: Europe/Berlin
+      TZ: ${TZ:-Europe/Berlin}
+      EFACLOUD_AUTO_INSTALL: ${EFACLOUD_AUTO_INSTALL:-0}
+      EFACLOUD_BASE_URL: ${EFACLOUD_BASE_URL:-http://127.0.0.1}
+      EFACLOUD_DB_HOST: ${EFACLOUD_DB_HOST:-db}
+      EFACLOUD_DB_NAME: ${EFACLOUD_DB_NAME:-efacloud}
+      EFACLOUD_DB_USER: ${EFACLOUD_DB_USER:-efacloud}
+      EFACLOUD_DB_PASSWORD: ${EFACLOUD_DB_PASSWORD:-efacloud_dev_password}
+      EFACLOUD_ADMIN_FIRST: ${EFACLOUD_ADMIN_FIRST:-Club}
+      EFACLOUD_ADMIN_LAST: ${EFACLOUD_ADMIN_LAST:-Admin}
+      EFACLOUD_ADMIN_EMAIL: ${EFACLOUD_ADMIN_EMAIL:-admin@example.test}
+      EFACLOUD_ADMIN_ID: ${EFACLOUD_ADMIN_ID:-1142}
+      EFACLOUD_ADMIN_NAME: ${EFACLOUD_ADMIN_NAME:-clubadmin}
+      EFACLOUD_ADMIN_PASSWORD: ${EFACLOUD_ADMIN_PASSWORD:-123Test!}
     volumes:
       - efacloud-config:/var/www/html/config
       - efacloud-log:/var/www/html/log

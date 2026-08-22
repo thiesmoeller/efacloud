@@ -44,7 +44,6 @@ if (file_exists("../install.php"))
     unlink("../install.php");
 // block access to install folder
 touch("../install/.locked");
-file_put_contents("../install/.htaccess", "Require all denied\n");
 chmod("../install", 0700);
 
 // === PAGE OUTPUT ===================================================================

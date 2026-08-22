@@ -7,6 +7,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY docker/apache-efacloud.conf /etc/apache2/conf-available/efacloud.conf
+COPY docker/bootstrap-install.sh /usr/local/bin/efacloud-bootstrap-install
 RUN a2enconf efacloud
 
 COPY docker/docker-entrypoint.sh /usr/local/bin/efacloud-entrypoint
@@ -21,7 +22,7 @@ RUN set -eux; \
         fi; \
     done; \
     rm -f /var/www/html/config/settings_db /var/www/html/config/settings/dbSettings; \
-    chmod +x /usr/local/bin/efacloud-entrypoint; \
+    chmod +x /usr/local/bin/efacloud-entrypoint /usr/local/bin/efacloud-bootstrap-install; \
     chown -R www-data:www-data /var/www/html /opt/efacloud-defaults
 
 WORKDIR /var/www/html

@@ -29,6 +29,7 @@
 // be changed to "no access" - even better: or the form deleted from the site.
 
 require_once __DIR__ . "/install_guard.php";
+require_once __DIR__ . "/env_defaults.php";
 
 // ===== initialize toolbox
 include_once "../classes/init_i18n.php"; // not part of init for setup, api, logout and error
@@ -46,10 +47,9 @@ include_once '../classes/tfyh_socket.php';
 $socket = new Tfyh_socket($toolbox);
 
 // ===== define default values for configuration
-$cfg_db_default["db_host"] = "rdbms.hoster.xyz";
-$cfg_db_default["db_name"] = "efacloudDB";
-$cfg_db_default["db_user"] = "dbUser";
-$cfg_db_default["db_up"] = "dbPassword";
+$cfg_db_default = efacloud_install_db_defaults(["db_host" => "rdbms.hoster.xyz","db_name" => "efacloudDB",
+        "db_user" => "dbUser","db_up" => "dbPassword"
+]);
 
 // ===== define display text for field in configuration form
 $cfg_db_description["db_host"] = "der Server, auf dem die Datenbank gehostet wird";

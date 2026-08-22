@@ -6,22 +6,68 @@ Upstream reference: [tfyh/efacloud](https://github.com/tfyh/efacloud)
 
 ## Quick start (local)
 
+Copy the example environment file and adjust values:
+
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:8080/` and complete the installer.
+Open `http://localhost:8080/`.
 
-Local database settings:
+With `EFACLOUD_AUTO_INSTALL=1` in `.env`, the container runs the installer automatically on first start. With `EFACLOUD_AUTO_INSTALL=0`, complete the web installer manually. Form fields are prefilled from the same environment variables.
+
+Default local database settings when using `.env.example`:
 
 ```text
-db_host: db
-db_name: efacloud
-db_user: efacloud
-db_up: efacloud_dev_password
+EFACLOUD_DB_HOST=db
+EFACLOUD_DB_NAME=efacloud
+EFACLOUD_DB_USER=efacloud
+EFACLOUD_DB_PASSWORD=<your-password>
 ```
 
-Change the default admin credentials immediately after install.
+Change the admin credentials from the example defaults before production use.
+
+## Environment variables
+
+Set these in CapRover under **App Config → Environment Variables** (or in `.env` for local compose).
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `EFACLOUD_AUTO_INSTALL` | No | Set to `1` to auto-run the installer on first start |
+| `EFACLOUD_BASE_URL` | No | Bootstrap target URL (default `http://127.0.0.1` inside the container) |
+| `EFACLOUD_DB_HOST` | Yes\* | Database host, e.g. `srv-captain--efacloud-db` |
+| `EFACLOUD_DB_NAME` | Yes\* | Database name |
+| `EFACLOUD_DB_USER` | Yes\* | Database user |
+| `EFACLOUD_DB_PASSWORD` | Yes\* | Database password |
+| `EFACLOUD_ADMIN_FIRST` | Yes\* | Admin first name |
+| `EFACLOUD_ADMIN_LAST` | Yes\* | Admin last name |
+| `EFACLOUD_ADMIN_EMAIL` | Yes\* | Admin email |
+| `EFACLOUD_ADMIN_ID` | Yes\* | Numeric efaCloud login ID |
+| `EFACLOUD_ADMIN_NAME` | Yes\* | Admin username (must not be `admin`) |
+| `EFACLOUD_ADMIN_PASSWORD` | Yes\* | Admin password (must pass efaCloud password rules) |
+| `TZ` | No | Container timezone (default `Europe/Berlin`) |
+
+\*Required when `EFACLOUD_AUTO_INSTALL=1`. When auto-install is off, the same variables prefill the web installer forms.
+
+Example CapRover configuration:
+
+```text
+EFACLOUD_AUTO_INSTALL=1
+EFACLOUD_DB_HOST=srv-captain--efacloud-db
+EFACLOUD_DB_NAME=efacloud
+EFACLOUD_DB_USER=efacloud
+EFACLOUD_DB_PASSWORD=<from MariaDB app>
+EFACLOUD_ADMIN_FIRST=Max
+EFACLOUD_ADMIN_LAST=Mustermann
+EFACLOUD_ADMIN_EMAIL=admin@your-club.example
+EFACLOUD_ADMIN_ID=1142
+EFACLOUD_ADMIN_NAME=clubadmin
+EFACLOUD_ADMIN_PASSWORD=<strong-password>
+TZ=Europe/Berlin
+```
+
+Auto-install runs only when `config/settings_db` does not yet exist. After a successful run, the installer is locked and later redeploys reuse the persisted `/var/www/html/config` volume.
 
 ## Deploy on CapRover
 
@@ -43,14 +89,15 @@ Create two apps:
    - `/var/www/html/attachements`
    - `/var/www/html/pdfs`
    - `/var/www/html/resources`
-6. Optional environment:
-   - `TZ=Europe/Berlin`
+6. Set the environment variables from the table above. Use `EFACLOUD_AUTO_INSTALL=1` for unattended first-time setup.
 
 ### Database app (`efacloud-db`)
 
-Use CapRover's MariaDB app and note database name, user, and password.
+Use CapRover's MariaDB app and note database name, user, and password. Use the same values for `EFACLOUD_DB_*` on the web app.
 
-During the web installer use:
+If you prefer manual setup instead of auto-install, set `EFACLOUD_AUTO_INSTALL=0` and enter the same values in the web installer. The forms are prefilled from the environment variables.
+
+Legacy manual-only mapping:
 
 ```text
 db_host: srv-captain--efacloud-db

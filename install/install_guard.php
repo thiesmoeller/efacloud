@@ -1,12 +1,11 @@
 <?php
 /**
- * Block web-based installer scripts after the application is configured.
+ * Block web-based installer scripts after installation is finished.
  */
 
 function efacloud_install_is_allowed(): bool
 {
-    return ! file_exists(__DIR__ . "/../config/settings_db") &&
-            ! file_exists(__DIR__ . "/../config/settings/dbSettings");
+    return ! file_exists(__DIR__ . "/.locked");
 }
 
 if (! efacloud_install_is_allowed()) {
