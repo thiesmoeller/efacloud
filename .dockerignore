@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+*.zip
+docker-compose.yml
+README.md
+captain-definition.json
+Dockerfile
+.dockerignore
+
+# Never bake environment-specific database credentials into the image.
+config/settings_db
+config/settings/dbSettings

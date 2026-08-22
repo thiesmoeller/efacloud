@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: efacloud
+      MARIADB_USER: efacloud
+      MARIADB_PASSWORD: efacloud_dev_password
+      MARIADB_ROOT_PASSWORD: efacloud_root_dev_password
+    volumes:
+      - efacloud-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      TZ: Europe/Berlin
+    volumes:
+      - efacloud-config:/var/www/html/config
+      - efacloud-log:/var/www/html/log
+      - efacloud-uploads:/var/www/html/uploads
+      - efacloud-attachements:/var/www/html/attachements
+      - efacloud-pdfs:/var/www/html/pdfs
+      - efacloud-resources:/var/www/html/resources
+
+volumes:
+  efacloud-db:
+  efacloud-config:
+  efacloud-log:
+  efacloud-uploads:
+  efacloud-attachements:
+  efacloud-pdfs:
+  efacloud-resources:
