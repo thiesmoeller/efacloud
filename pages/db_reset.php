@@ -29,8 +29,9 @@
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
-$do_reset_full = (strcmp($_GET["do_reset"], "full") == 0);
-$do_reset_wo_users = (strcmp($_GET["do_reset"], "wo_users") == 0);
+$reset_mode = (isset($_GET["do_reset"])) ? strval($_GET["do_reset"]) : "";
+$do_reset_full = (strcmp($reset_mode, "full") == 0);
+$do_reset_wo_users = (strcmp($reset_mode, "wo_users") == 0);
 $do_reset = ($do_reset_full || $do_reset_wo_users);
 if ($do_reset) {
     // ===== create data base

@@ -233,6 +233,16 @@ class Tfyh_socket
     }
 
     /**
+     * Reject identifiers that must not be interpolated into SQL backtick quotes.
+     */
+    private function assert_safe_sql_identifier (String $name): ?String
+    {
+        if (preg_match('/^[A-Za-z][A-Za-z0-9_]{0,63}$/', $name) !== 1)
+            return i("lTNFEv|Not allowed.") . " (" . $name . ")";
+        return null;
+    }
+
+    /**
      * Add a post-read-transaction listener to the socket. If a trigger of that name already exists, it is
      * replaced.
      * 
@@ -1071,6 +1081,9 @@ class Tfyh_socket
      */
     public function delete_record_matched (String $appUserID, String $table_name, array $matching)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return $identifier_error;
         // trigger pre-write-modification checks
         foreach ($this->triggers as $name => $trigger) {
             if ($this->debug_on)
@@ -1253,6 +1266,9 @@ class Tfyh_socket
     public function find_records_sorted_matched (String $table_name, array $matching, int $max_rows, 
             String $condition, String $sort_key, bool $sort_ascending, int $start_row = 0)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return false;
         // compile command parts: columns to choose
         $col_names = $this->get_column_names($table_name);
         $col_indicators = "";

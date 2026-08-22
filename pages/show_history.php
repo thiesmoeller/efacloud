@@ -8,9 +8,13 @@
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
+include_once "../classes/efa_tables.php";
 
-$ecrid = (isset($_GET["ecrid"])) ? $_GET["ecrid"] : false;
-$tablename = (isset($_GET["table"])) ? $_GET["table"] : false;
+$ecrid = (isset($_GET["ecrid"])) ? strval($_GET["ecrid"]) : false;
+$tablename = (isset($_GET["table"])) ? strval($_GET["table"]) : false;
+if ($tablename === false || ! Efa_tables::is_safe_table_name($tablename) || $ecrid === false ||
+         ! Efa_tables::is_ecrid($ecrid))
+    $toolbox->display_error(i("VhNoKp|Not allowed."), i("lTNFEv|Not allowed."), $user_requested_file);
 $restore = (isset($_GET["restore_version"])) ? intval($_GET["restore_version"]) : 0;
 $record = $socket->find_record($tablename, "ecrid", $ecrid);
 $modify_result = "";

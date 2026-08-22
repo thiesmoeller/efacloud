@@ -26,6 +26,6 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 echo "<div class='w3-container'><h3><br><br><br><br><br>" . i("u7mzai|Maintenance") . "</h3>";
 echo "<p>" . i("O31g1E|Die Anwendiung ist aktuell in Wartung bis etwa");
-echo "<br><b>" . $_GET["until"];
+echo "<br><b>" . htmlspecialchars($_GET["until"] ?? "", ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
 echo "</b><br>" . i("FwRbeh|Tut uns leid, wir bitten um Geduld") . "<br><br><br><br>&nbsp;</p></div>";
 echo file_get_contents('../config/snippets/page_03_footer');

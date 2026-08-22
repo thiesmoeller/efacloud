@@ -39,7 +39,9 @@ include_once "../classes/efa_record.php";
 // Finally the tablename and ecrid may be passed as GET-Parameter.
 $def = (isset($_GET["def"])) ? $_GET["def"] : false;
 $ecrid = (isset($_GET["ecrid"])) ? $_GET["ecrid"] : false;
-$tablename = (isset($_GET["table"])) ? $_GET["table"] : false;
+$tablename = (isset($_GET["table"])) ? strval($_GET["table"]) : false;
+if ($tablename !== false && ! Efa_tables::is_safe_table_name($tablename))
+    $toolbox->display_error(i("VhNoKp|Not allowed."), i("lTNFEv|Not allowed."), $user_requested_file);
 $missing_key_error = [i("mDzsS8|Key missing") => i("V8fLMV|Unfortunately, the recor...")
 ];
 $valid_at = 0;

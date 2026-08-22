@@ -28,6 +28,8 @@
 // ===== THIS SHALL ONLY BE USED during application configuration, then access rights shall
 // be changed to "no access" - even better: or the form deleted from the site.
 
+require_once __DIR__ . "/install_guard.php";
+
 // ===== initialize toolbox
 include_once "../classes/init_i18n.php"; // not part of init for setup, api, logout and error
 include_once '../classes/tfyh_toolbox.php';
