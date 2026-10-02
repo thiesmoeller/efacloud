@@ -74,13 +74,19 @@ if ($done > 0) {
             if (! $tmp_upload_file)
                 $form_errors .= i("a5koMa|Unknown error during upl...");
             else {
-                $_SESSION["getps"][$fs_id]["io_file"] = $_FILES['userfile']["name"];
+                $_SESSION["getps"][$fs_id]["io_file"] = basename((string) $_FILES['userfile']["name"]);
+                if ($_SESSION["getps"][$fs_id]["io_file"] === '' ||
+                        $_SESSION["getps"][$fs_id]["io_file"] === '.' ||
+                        $_SESSION["getps"][$fs_id]["io_file"] === '..') {
+                    $form_errors .= i("a5koMa|Unknown error during upl...");
+                } else {
                 $result = file_put_contents($cdir . "/" . $_SESSION["getps"][$fs_id]["io_file"], 
                         $tmp_upload_file);
                 $uploadResult = ($result === false) ? i("w2qoFy|Unknown error while uplo...", 
                         $cdir . "/" . $_SESSION["getps"][$fs_id]["io_file"]) : i(
                         "Tu6j0f|%1 Bytes were uploaded.", $result);
                 $todo = $done + 1;
+                }
             }
         }
     }

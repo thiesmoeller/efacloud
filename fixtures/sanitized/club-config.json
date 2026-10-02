@@ -1,0 +1,31 @@
+{
+  "source": "Sampled from local club configuration.efa2config; values only, no PII",
+  "keys": {
+    "BoatListSortBySeats": true,
+    "BoatListSortByRigger": false,
+    "BoatListSortByType": false,
+    "ReservationLookAheadTime": 120,
+    "InputWarnOnlyCriticalBoatDamages": false,
+    "StartSessionMustSelectDestination": true,
+    "MustEnterDistance": false,
+    "StartSessionTimeAdd": 5,
+    "FinishSessionTimeSubstract": 5,
+    "BoatCaptainShow": true,
+    "BoatCaptainAutoSelect": true,
+    "BoatCaptainDefault": "BOW",
+    "InputMustSelectBoatCaptain": false,
+    "InputAllowOnlyMaxCrewNumber": true,
+    "InputCheckMinGroupPersonsInBoat": true,
+    "AllowEnterEndDate": true,
+    "BoatListShowOnMultiDayOrRegattaBoatsAsNotAvailable": true,
+    "BoatListShowReservedBoatsAsNotAvailable": false,
+    "BoatDamageEnableReporting": true,
+    "NameFormat": "FIRSTLAST",
+    "LocaleDefaultDistanceUnit": "km",
+    "SessionTypeDefault": "NORMAL"
+  },
+  "notes": {
+    "MustEnterDistance": "Parameter label is 'Erlaube Fahrten ohne Entfernungsangabe'; false means distance required on finish",
+    "InputWarnOnlyCriticalBoatDamages": "Misnamed key; false means do NOT also warn for FULLYUSEABLE (non-critical)"
+  }
+}

@@ -1,0 +1,153 @@
+captainVersion: 4
+
+services:
+  $$cap_appname-db:
+    image: mariadb:$$cap_mariadb_version
+    volumes:
+      - $$cap_appname-db-data:/var/lib/mysql
+    restart: always
+    environment:
+      MARIADB_DATABASE: $$cap_db_name
+      MARIADB_USER: $$cap_db_user
+      MARIADB_PASSWORD: $$cap_db_password
+      MARIADB_ROOT_PASSWORD: $$cap_db_root_password
+      MYSQL_DATABASE: $$cap_db_name
+      MYSQL_USER: $$cap_db_user
+      MYSQL_PASSWORD: $$cap_db_password
+      MYSQL_ROOT_PASSWORD: $$cap_db_root_password
+    caproverExtra:
+      notExposeAsWebApp: "true"
+
+  $$cap_appname:
+    image: $$cap_web_image
+    volumes:
+      - $$cap_appname-config:/var/www/html/config
+      - $$cap_appname-log:/var/www/html/log
+      - $$cap_appname-uploads:/var/www/html/uploads
+      - $$cap_appname-attachements:/var/www/html/attachements
+      - $$cap_appname-pdfs:/var/www/html/pdfs
+      - $$cap_appname-resources:/var/www/html/resources
+    depends_on:
+      - $$cap_appname-db
+    restart: always
+    environment:
+      TZ: $$cap_tz
+      EFACLOUD_AUTO_INSTALL: $$cap_auto_install
+      EFACLOUD_BASE_URL: $$cap_base_url
+      EFACLOUD_DB_HOST: srv-captain--$$cap_appname-db
+      EFACLOUD_DB_NAME: $$cap_db_name
+      EFACLOUD_DB_USER: $$cap_db_user
+      EFACLOUD_DB_PASSWORD: $$cap_db_password
+      EFACLOUD_ADMIN_FIRST: $$cap_admin_first
+      EFACLOUD_ADMIN_LAST: $$cap_admin_last
+      EFACLOUD_ADMIN_EMAIL: $$cap_admin_email
+      EFACLOUD_ADMIN_ID: $$cap_admin_id
+      EFACLOUD_ADMIN_NAME: $$cap_admin_name
+      EFACLOUD_ADMIN_PASSWORD: $$cap_admin_password
+    caproverExtra:
+      containerHttpPort: "80"
+
+caproverOneClickApp:
+  displayName: efaCloud
+  isOfficial: false
+  description: efaCloud web app with a dedicated MariaDB 11 service (staging-oriented).
+  documentation: https://github.com/thiesmoeller/efacloud
+  variables:
+    - id: "$$cap_web_image"
+      label: Web image (GHCR preferred)
+      defaultValue: ghcr.io/thiesmoeller/efacloud:feature-caprover
+      description: Prefer immutable ghcr.io/thiesmoeller/efacloud:sha-<short> (or @sha256:…) from GitHub Actions for staging and the same ref for production promote. Branch tags move; do not promote branch tips. See docs/deploy/image-promote.md. Until GHCR publish exists you may temporarily use nginx:alpine then switch.
+      validRegex: "/^.+[:@].+$/"
+    - id: "$$cap_mariadb_version"
+      label: MariaDB image tag
+      defaultValue: "11.4"
+      description: Official MariaDB tag (https://hub.docker.com/_/mariadb).
+      validRegex: "/^.+$/"
+    - id: "$$cap_tz"
+      label: Timezone
+      defaultValue: Europe/Berlin
+      validRegex: "/^.+$/"
+    - id: "$$cap_auto_install"
+      label: Auto-install on first start
+      defaultValue: "1"
+      description: Set to 1 for unattended first bring-up. Skips when install is already complete.
+      validRegex: "/^[01]$/"
+    - id: "$$cap_base_url"
+      label: Public efaCloud base URL
+      defaultValue: https://$$cap_appname.$$cap_root_domain
+      description: Public HTTPS URL used by bootstrap and generated links. Update if you attach a custom domain.
+      validRegex: "/^https?:\\/\\/.+$/"
+    - id: "$$cap_db_name"
+      label: Database name
+      defaultValue: efacloud
+      validRegex: "/^[A-Za-z0-9_]+$/"
+    - id: "$$cap_db_user"
+      label: Database user
+      defaultValue: efacloud
+      validRegex: "/^[A-Za-z0-9_]+$/"
+    - id: "$$cap_db_password"
+      label: Database password
+      defaultValue: $$cap_gen_random_hex(32)
+      description: Shared by MariaDB user and EFACLOUD_DB_PASSWORD on the web app.
+      validRegex: "/^[a-f0-9]{32,}$/"
+    - id: "$$cap_db_root_password"
+      label: MariaDB root password
+      defaultValue: $$cap_gen_random_hex(32)
+      description: Root password for the MariaDB container only (not used by the web app).
+      validRegex: "/^[a-f0-9]{32,}$/"
+    - id: "$$cap_admin_first"
+      label: Admin first name
+      defaultValue: Club
+      validRegex: "/^.+$/"
+    - id: "$$cap_admin_last"
+      label: Admin last name
+      defaultValue: Admin
+      validRegex: "/^.+$/"
+    - id: "$$cap_admin_email"
+      label: Admin email
+      defaultValue: admin@your-club.example
+      validRegex: "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/"
+    - id: "$$cap_admin_id"
+      label: Admin member id
+      defaultValue: "1142"
+      validRegex: "/^[0-9]+$/"
+    - id: "$$cap_admin_name"
+      label: Admin login name
+      defaultValue: clubadmin
+      validRegex: "/^[A-Za-z0-9._-]+$/"
+    - id: "$$cap_admin_password"
+      label: Admin password
+      defaultValue: $$cap_gen_random_hex(24)
+      description: First efaCloud admin password. Store it outside the repo (password manager).
+      validRegex: "/^[a-f0-9]{24,}$/"
+  instructions:
+    start: |-
+      This one-click app creates two CapRover apps:
+      - $$cap_appname (web; prefer GHCR sha-* image — docs/deploy/image-promote.md)
+      - $$cap_appname-db (MariaDB, not exposed as a web app)
+
+      Recommended staging app name: efacloud-staging
+      Do not use this template to create production until staging acceptance passes.
+
+      Never set EFACLOUD_PORTAL_FIXTURES on CapRover (fixtures are local-only).
+    end: |-
+      Apps created. Next steps:
+
+      1. Enable HTTPS / Force HTTPS on $$cap_appname.
+      2. Set the web app image to an immutable GHCR tag from Actions, e.g.
+         ghcr.io/thiesmoeller/efacloud:sha-<short>
+         (same digest for staging → production promote).
+         See docs/deploy/image-promote.md.
+      3. From the thiesmoeller-efacloud repo root (after caprover login):
+         ./scripts/caprover-staging-bootstrap.sh
+         # default: local-dir deploy (cwd tarball; includes uncommitted work)
+         # optional: ./scripts/caprover-staging-bootstrap.sh --branch <name>
+         # optional provision: ./scripts/caprover-staging-bootstrap.sh --auto-create
+      4. Confirm health:
+         $$cap_base_url/portal/
+         $$cap_base_url/api/portal/v1/session
+         $$cap_base_url/forms/login.php
+         $$cap_base_url/install/  (403 once install is complete)
+
+      Persist volumes are already mounted for config, log, uploads, attachements,
+      pdfs, and resources. Database host is srv-captain--$$cap_appname-db.

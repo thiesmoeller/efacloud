@@ -1,0 +1,46 @@
+{
+  "purpose": "Sanitized fixtures for dockside PWA parity tests",
+  "derived_from": "Structural patterns in local club backup (seat categories, multi-variant history, damage severities, config keys). No club person names or real BoatIds.",
+  "seat_categories_covered": [
+    "1/Einer",
+    "2/Zweier (incl 2X)",
+    "3/Dreier",
+    "4/Vierer (incl 4X)",
+    "8/Achter"
+  ],
+  "multi_variant_boats": [
+    "Biber (2;2X)",
+    "Cirrus (3;4X)"
+  ],
+  "status_views": [
+    "AVAILABLE",
+    "ONTHEWATER",
+    "NOTAVAILABLE"
+  ],
+  "damage_severities": [
+    "NOTUSEABLE",
+    "LIMITEDUSEABLE",
+    "FULLYUSEABLE",
+    "fixed"
+  ],
+  "ids": {
+    "boat_einer": "11111111-1111-4111-a111-111111111101",
+    "boat_zweier_dual": "11111111-1111-4111-a111-111111111102",
+    "boat_dreier_4x": "11111111-1111-4111-a111-111111111103",
+    "boat_vierer_sweep": "11111111-1111-4111-a111-111111111104",
+    "boat_4x": "11111111-1111-4111-a111-111111111105",
+    "boat_achter": "11111111-1111-4111-a111-111111111106",
+    "boat_damaged": "11111111-1111-4111-a111-111111111107",
+    "boat_hidden_hist": "11111111-1111-4111-a111-111111111108",
+    "person_anna": "22222222-2222-4222-a222-222222222201",
+    "person_ben": "22222222-2222-4222-a222-222222222202",
+    "person_carla": "22222222-2222-4222-a222-222222222203",
+    "person_dirk": "22222222-2222-4222-a222-222222222204",
+    "person_emma": "22222222-2222-4222-a222-222222222205",
+    "person_trainer": "22222222-2222-4222-a222-222222222206",
+    "dest_kanal": "33333333-3333-4333-a333-333333333301",
+    "dest_elbe": "33333333-3333-4333-a333-333333333302",
+    "dest_unknown_dist": "33333333-3333-4333-a333-333333333303",
+    "group_trainers": "44444444-4444-4444-a444-444444444401"
+  }
+}

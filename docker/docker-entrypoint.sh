@@ -1,14 +1,33 @@
 #!/bin/sh
 set -eu
 
-is_installed() {
+# Complete install: setup_finish wrote install/.locked and/or config/.install_complete.
+# Incomplete: settings_db may exist without those markers — recoverable, must not skip bootstrap.
+is_complete() {
+    [ -f /var/www/html/install/.locked ] || [ -f /var/www/html/config/.install_complete ]
+}
+
+is_db_configured() {
     [ -f /var/www/html/config/settings_db ] || [ -f /var/www/html/config/settings/dbSettings ]
 }
 
-lock_installer() {
-    if is_installed; then
+sync_install_lock() {
+    if [ -f /var/www/html/config/.install_complete ] && [ ! -f /var/www/html/install/.locked ]; then
         touch /var/www/html/install/.locked
+    fi
+    if [ -f /var/www/html/install/.locked ] && [ ! -f /var/www/html/config/.install_complete ]; then
+        touch /var/www/html/config/.install_complete
+    fi
+}
+
+lock_installer() {
+    sync_install_lock
+    if is_complete; then
         chmod 700 /var/www/html/install || true
+    else
+        # Ensure interrupted installs remain reachable for recovery.
+        chmod 755 /var/www/html/install || true
+        rm -f /var/www/html/install/.locked
     fi
 }
 
@@ -48,12 +67,20 @@ chown -R www-data:www-data \
     /var/www/html/uploads \
     /var/www/html/attachements \
     /var/www/html/pdfs \
-    /var/www/html/resources
+    /var/www/html/resources \
+    /var/www/html/install
 
 chmod 700 /var/www/html/config /var/www/html/log /var/www/html/uploads /var/www/html/pdfs || true
 chmod 755 /var/www/html/resources /var/www/html/attachements || true
 
-if [ "${EFACLOUD_AUTO_INSTALL:-0}" = "1" ] && ! is_installed; then
+if [ "${EFACLOUD_AUTO_INSTALL:-0}" = "1" ] && ! is_complete; then
+    if is_db_configured; then
+        echo "efacloud-entrypoint: incomplete installation detected; resuming bootstrap"
+    else
+        echo "efacloud-entrypoint: starting fresh auto-install"
+    fi
+    # Apache is started for local installer POSTs only; apache-efacloud.conf
+    # returns 403 for non-/install/ paths until install/.locked exists.
     docker-php-entrypoint apache2-foreground &
     apache_pid=$!
     if ! efacloud-bootstrap-install; then

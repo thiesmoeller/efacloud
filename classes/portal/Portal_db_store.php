@@ -1,0 +1,522 @@
+<?php
+/**
+ * DB-backed portal store using Tfyh_socket. Used when installation is complete.
+ */
+
+declare(strict_types=1);
+
+class Portal_db_store implements Portal_store
+{
+    private $socket;
+    private $toolbox;
+    private string $idempotencyDir;
+    private string $acksDir;
+    private string $logbookName;
+    private array $configCache = [];
+
+    public function __construct($socket, $toolbox, ?string $logbookName = null)
+    {
+        $this->socket = $socket;
+        $this->toolbox = $toolbox;
+        $root = dirname(__DIR__, 2);
+        $this->idempotencyDir = $root . '/log/portal_idempotency';
+        $this->acksDir = $root . '/log/portal_acks';
+        if (!is_dir($this->idempotencyDir)) {
+            @mkdir($this->idempotencyDir, 0755, true);
+        }
+        if (!is_dir($this->acksDir)) {
+            @mkdir($this->acksDir, 0755, true);
+        }
+        $this->logbookName = $logbookName ?? date('Y');
+        $this->load_config_cache();
+    }
+
+    private function load_config_cache(): void
+    {
+        $path = dirname(__DIR__, 2) . '/fixtures/sanitized/club-config.json';
+        // Prefer live efa config if available later; fall back to known keys file for boathouse defaults.
+        if (is_file($path)) {
+            $j = json_decode((string) file_get_contents($path), true);
+            if (isset($j['keys']) && is_array($j['keys'])) {
+                $this->configCache = $j['keys'];
+            }
+        }
+        // Overlay from client-uploaded config if present.
+        $cfgDir = dirname(__DIR__, 2) . '/config/efaCloud';
+        if (is_dir($cfgDir)) {
+            foreach (glob($cfgDir . '/*.json') ?: [] as $f) {
+                $data = json_decode((string) file_get_contents($f), true);
+                if (!is_array($data)) {
+                    continue;
+                }
+                foreach (['efaConfig', 'efa2config', 'keys'] as $bucket) {
+                    if (isset($data[$bucket]) && is_array($data[$bucket])) {
+                        foreach ($data[$bucket] as $k => $v) {
+                            if (is_scalar($v) || is_bool($v)) {
+                                $this->configCache[$k] = $v;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** Upper bound for "load all rows" portal reads (fleet-sized). */
+    private const MAX_ROWS = 100000;
+
+    private function rows(string $table, array $matching = []): array
+    {
+        $res = $this->socket->find_records_matched($table, $matching, self::MAX_ROWS);
+        if ($res === false || !is_array($res)) {
+            return [];
+        }
+        return $res;
+    }
+
+    public function all_boats(): array
+    {
+        return $this->rows('efa2boats');
+    }
+
+    public function boat_by_id(string $boatId, ?int $atMillis = null): ?array
+    {
+        $at = $atMillis ?? (int) (microtime(true) * 1000);
+        $all = $this->socket->find_records_matched('efa2boats', ['Id' => $boatId], self::MAX_ROWS);
+        if (!is_array($all) || $all === []) {
+            return null;
+        }
+        $best = null;
+        $bestFrom = -1;
+        foreach ($all as $b) {
+            if (!Portal_constants::version_valid_at($b, $at)) {
+                continue;
+            }
+            $vf = intval($b['ValidFrom'] ?? 0);
+            if ($vf >= $bestFrom) {
+                $best = $b;
+                $bestFrom = $vf;
+            }
+        }
+        return $best;
+    }
+
+    public function all_boat_status(): array
+    {
+        return $this->rows('efa2boatstatus');
+    }
+
+    public function boat_status(string $boatId): ?array
+    {
+        $r = $this->socket->find_record_matched('efa2boatstatus', ['BoatId' => $boatId]);
+        return ($r === false || !is_array($r)) ? null : $r;
+    }
+
+    public function boat_damages(string $boatId, bool $onlyOpen = false, bool $mostSevereFirst = false): array
+    {
+        $all = $this->socket->find_records_matched(
+            'efa2boatdamages',
+            ['BoatId' => $boatId],
+            self::MAX_ROWS
+        );
+        if (!is_array($all)) {
+            return [];
+        }
+        $list = [];
+        foreach ($all as $d) {
+            if (($d['LastModification'] ?? '') === 'delete') {
+                continue;
+            }
+            $fixed = isset($d['Fixed']) && (strcasecmp((string) $d['Fixed'], 'true') === 0 || $d['Fixed'] === '1');
+            if ($onlyOpen && $fixed) {
+                continue;
+            }
+            $list[] = $d;
+        }
+        if ($mostSevereFirst) {
+            usort($list, function ($a, $b) {
+                return Portal_constants::damage_priority($a['Severity'] ?? '')
+                    <=> Portal_constants::damage_priority($b['Severity'] ?? '');
+            });
+        }
+        return $list;
+    }
+
+    public function all_damages(): array
+    {
+        return $this->rows('efa2boatdamages');
+    }
+
+    public function reservations_for_boat(string $boatId): array
+    {
+        $all = $this->socket->find_records_matched(
+            'efa2boatreservations',
+            ['BoatId' => $boatId],
+            self::MAX_ROWS
+        );
+        return is_array($all) ? $all : [];
+    }
+
+    public function all_persons(): array
+    {
+        return $this->rows('efa2persons');
+    }
+
+    public function person_by_id(string $personId): ?array
+    {
+        return $this->boat_by_id_generic('efa2persons', $personId);
+    }
+
+    private function boat_by_id_generic(string $table, string $id): ?array
+    {
+        $at = (int) (microtime(true) * 1000);
+        $all = $this->socket->find_records_matched($table, ['Id' => $id], self::MAX_ROWS);
+        if (!is_array($all)) {
+            return null;
+        }
+        $best = null;
+        $bestFrom = -1;
+        foreach ($all as $b) {
+            if (!Portal_constants::version_valid_at($b, $at)) {
+                continue;
+            }
+            $vf = intval($b['ValidFrom'] ?? 0);
+            if ($vf >= $bestFrom) {
+                $best = $b;
+                $bestFrom = $vf;
+            }
+        }
+        return $best;
+    }
+
+    public function all_destinations(): array
+    {
+        return $this->rows('efa2destinations');
+    }
+
+    public function club_config(): array
+    {
+        return $this->configCache;
+    }
+
+    public function current_logbook_name(): string
+    {
+        return $this->logbookName;
+    }
+
+    public function trip(string $logbookName, string $entryId): ?array
+    {
+        $r = $this->socket->find_record_matched(
+            'efa2logbook',
+            ['Logbookname' => $logbookName, 'EntryId' => $entryId]
+        );
+        return ($r === false || !is_array($r)) ? null : $r;
+    }
+
+    public function open_trips(?string $logbookName = null): array
+    {
+        $lb = $logbookName ?? $this->logbookName;
+        $all = $this->socket->find_records_matched(
+            'efa2logbook',
+            ['Logbookname' => $lb, 'Open' => 'true'],
+            self::MAX_ROWS
+        );
+        return is_array($all) ? $all : [];
+    }
+
+    public function user_by_account(string $account): ?array
+    {
+        $users = $this->toolbox->users;
+        if (filter_var($account, FILTER_VALIDATE_EMAIL)) {
+            $r = $this->socket->find_record($users->user_table_name, $users->user_mail_field_name, $account);
+        } elseif (is_numeric($account)) {
+            $r = $this->socket->find_record($users->user_table_name, $users->user_id_field_name, $account);
+        } else {
+            $r = $this->socket->find_record($users->user_table_name, $users->user_account_field_name, $account);
+        }
+        return ($r === false || !is_array($r)) ? null : $r;
+    }
+
+    public function user_by_id(int $efaCloudUserID): ?array
+    {
+        $r = $this->socket->find_record(
+            $this->toolbox->users->user_table_name,
+            $this->toolbox->users->user_id_field_name,
+            (string) $efaCloudUserID
+        );
+        return ($r === false || !is_array($r)) ? null : $r;
+    }
+
+    public function update_user_password(int $efaCloudUserID, string $passwordHash): array
+    {
+        $table = $this->toolbox->users->user_table_name;
+        $idField = $this->toolbox->users->user_id_field_name;
+        $existing = $this->user_by_id($efaCloudUserID);
+        if ($existing === null) {
+            throw Portal_error::not_found('Benutzerkonto nicht gefunden.');
+        }
+        $payload = [
+            'Passwort_Hash' => $passwordHash,
+            'LastModified' => (string) ((int) (microtime(true) * 1000)),
+        ];
+        $res = $this->socket->update_record_matched(
+            $this->actor_id(),
+            $table,
+            [$idField => (string) $efaCloudUserID],
+            $payload
+        );
+        if (is_string($res) && $res !== '') {
+            throw new RuntimeException('Passwort-Update fehlgeschlagen: ' . $res);
+        }
+        $out = $existing;
+        $out['Passwort_Hash'] = $passwordHash;
+        unset($out['Passwort_Hash']);
+        return $out;
+    }
+
+    private function escape(string $s): string
+    {
+        if ($this->socket->mysqli) {
+            return $this->socket->mysqli->real_escape_string($s);
+        }
+        return addslashes($s);
+    }
+
+    private function actor_id(): string
+    {
+        $u = $this->toolbox->users->session_user ?? [];
+        return (string) ($u['@id'] ?? $u['efaCloudUserID'] ?? '0');
+    }
+
+    /**
+     * Bind the authenticated portal user onto the legacy toolbox session
+     * so insert/update/delete audit fields receive a real efaCloudUserID.
+     */
+    public function bind_portal_user(array $user): void
+    {
+        $bound = $user;
+        if (!isset($bound['@id']) && isset($bound['efaCloudUserID'])) {
+            $bound['@id'] = $bound['efaCloudUserID'];
+        }
+        $this->toolbox->users->set_session_user($bound);
+    }
+
+    private function bump(array $record, string $mod): array
+    {
+        return Efa_tables::register_modification($record, time(), (string) ($record['ChangeCount'] ?? '0'), $mod);
+    }
+
+    public function insert_trip(array $record): array
+    {
+        if (!isset($record['EntryId']) || $record['EntryId'] === '') {
+            $record['EntryId'] = $this->next_entry_id($record['Logbookname'] ?? $this->logbookName);
+        }
+        if (!isset($record['ecrid']) || strlen((string) $record['ecrid']) < 10) {
+            $record['ecrid'] = $this->generate_ecrid();
+        }
+        $record = $this->bump($record, 'insert');
+        $record = $this->filter_table_columns('efa2logbook', $record);
+        $res = $this->socket->insert_into($this->actor_id(), 'efa2logbook', $record);
+        if (!is_numeric($res) && is_string($res) && $res !== '') {
+            throw new RuntimeException('efa2logbook insert failed: ' . $res);
+        }
+        return $record;
+    }
+
+    public function update_trip(array $record, int $expectedChangeCount): array
+    {
+        $existing = $this->trip($record['Logbookname'], (string) $record['EntryId']);
+        if ($existing === null) {
+            throw Portal_error::not_found('Fahrt nicht gefunden.');
+        }
+        if (intval($existing['ChangeCount'] ?? 0) !== $expectedChangeCount) {
+            throw Portal_error::stale('Fahrt wurde zwischenzeitlich geändert.', [
+                'expectedChangeCount' => $expectedChangeCount,
+                'actualChangeCount' => intval($existing['ChangeCount'] ?? 0),
+            ]);
+        }
+        $merged = array_merge($existing, $record);
+        $merged = $this->bump($merged, 'update');
+        $merged = $this->filter_table_columns('efa2logbook', $merged);
+        $key = ['Logbookname' => $merged['Logbookname'], 'EntryId' => $merged['EntryId']];
+        $this->socket->update_record_matched($this->actor_id(), 'efa2logbook', $key, $merged);
+        return $merged;
+    }
+
+    public function delete_trip(string $logbookName, string $entryId, int $expectedChangeCount): void
+    {
+        $existing = $this->trip($logbookName, $entryId);
+        if ($existing === null) {
+            throw Portal_error::not_found('Fahrt nicht gefunden.');
+        }
+        if (intval($existing['ChangeCount'] ?? 0) !== $expectedChangeCount) {
+            throw Portal_error::stale('Fahrt wurde zwischenzeitlich geändert.', [
+                'expectedChangeCount' => $expectedChangeCount,
+                'actualChangeCount' => intval($existing['ChangeCount'] ?? 0),
+            ]);
+        }
+        // Soft-delete style: clear via efa_record semantics is complex; physical delete of open entry
+        // matches desktop abort (trip never happened).
+        $this->socket->delete_record_matched($this->actor_id(), 'efa2logbook', [
+            'Logbookname' => $logbookName,
+            'EntryId' => $entryId,
+        ]);
+    }
+
+    public function update_boat_status(array $status, ?int $expectedChangeCount = null): array
+    {
+        $existing = $this->boat_status($status['BoatId']);
+        if ($existing === null) {
+            $status = $this->bump($status, 'insert');
+            if (!isset($status['ecrid'])) {
+                $status['ecrid'] = $this->generate_ecrid();
+            }
+            $status = $this->filter_table_columns('efa2boatstatus', $status);
+            $res = $this->socket->insert_into($this->actor_id(), 'efa2boatstatus', $status);
+            if (!is_numeric($res) && is_string($res) && $res !== '') {
+                throw new RuntimeException('efa2boatstatus insert failed: ' . $res);
+            }
+            return $status;
+        }
+        if ($expectedChangeCount !== null && intval($existing['ChangeCount'] ?? 0) !== $expectedChangeCount) {
+            throw Portal_error::stale('Bootsstatus wurde zwischenzeitlich geändert.', [
+                'expectedChangeCount' => $expectedChangeCount,
+                'actualChangeCount' => intval($existing['ChangeCount'] ?? 0),
+            ]);
+        }
+        $merged = array_merge($existing, $status);
+        $merged = $this->bump($merged, 'update');
+        $merged = $this->filter_table_columns('efa2boatstatus', $merged);
+        $this->socket->update_record_matched($this->actor_id(), 'efa2boatstatus', ['BoatId' => $merged['BoatId']], $merged);
+        return $merged;
+    }
+
+    public function insert_damage(array $damage): array
+    {
+        if (!isset($damage['Damage']) || $damage['Damage'] === '') {
+            $damage['Damage'] = $this->next_damage_number($damage['BoatId']);
+        }
+        if (!isset($damage['ecrid'])) {
+            $damage['ecrid'] = $this->generate_ecrid();
+        }
+        $damage = $this->bump($damage, 'insert');
+        $damage = $this->filter_table_columns('efa2boatdamages', $damage);
+        $res = $this->socket->insert_into($this->actor_id(), 'efa2boatdamages', $damage);
+        if (!is_numeric($res) && is_string($res) && $res !== '') {
+            throw new RuntimeException('efa2boatdamages insert failed: ' . $res);
+        }
+        return $damage;
+    }
+
+    private function filter_table_columns(string $table, array $record): array
+    {
+        $cols = $this->socket->get_column_names($table);
+        if (!is_array($cols) || $cols === []) {
+            return $record;
+        }
+        $allow = array_fill_keys($cols, true);
+        // Optional numeric columns: empty string is invalid under MariaDB STRICT.
+        $omitEmptyNumeric = [
+            'BoatCaptain', 'BoatVariant', 'EfbSyncTime', 'Damage', 'Reservation',
+            'MaxCrewWeight', 'DefaultVariant', 'LastVariant',
+        ];
+        $out = [];
+        foreach ($record as $k => $v) {
+            if (!isset($allow[$k])) {
+                continue;
+            }
+            if ($v === '' && in_array($k, $omitEmptyNumeric, true)) {
+                continue;
+            }
+            $out[$k] = $v;
+        }
+        return $out;
+    }
+
+    public function atomic(callable $fn)
+    {
+        $mysqli = $this->socket->mysqli;
+        if ($mysqli && method_exists($mysqli, 'begin_transaction')) {
+            $mysqli->begin_transaction();
+            try {
+                $result = $fn();
+                $mysqli->commit();
+                return $result;
+            } catch (Throwable $e) {
+                $mysqli->rollback();
+                throw $e;
+            }
+        }
+        return $fn();
+    }
+
+    public function next_entry_id(string $logbookName): string
+    {
+        $all = $this->socket->find_records_matched(
+            'efa2logbook',
+            ['Logbookname' => $logbookName],
+            self::MAX_ROWS
+        );
+        $max = 0;
+        if (is_array($all)) {
+            foreach ($all as $t) {
+                $max = max($max, intval($t['EntryId'] ?? 0));
+            }
+        }
+        return (string) ($max + 1);
+    }
+
+    public function next_damage_number(string $boatId): string
+    {
+        $all = $this->boat_damages($boatId, false, false);
+        $max = 0;
+        foreach ($all as $d) {
+            $max = max($max, intval($d['Damage'] ?? 0));
+        }
+        return (string) ($max + 1);
+    }
+
+    public function generate_ecrid(): string
+    {
+        return Efa_tables::generate_ecrids(1)[0];
+    }
+
+    public function idempotency_get(string $userId, string $key): ?array
+    {
+        $safe = preg_replace('/[^a-zA-Z0-9._-]/', '_', $userId . '_' . $key);
+        $path = $this->idempotencyDir . '/' . $safe . '.json';
+        if (!is_file($path)) {
+            return null;
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        return is_array($data) ? $data : null;
+    }
+
+    public function idempotency_put(string $userId, string $key, array $response): void
+    {
+        $safe = preg_replace('/[^a-zA-Z0-9._-]/', '_', $userId . '_' . $key);
+        file_put_contents($this->idempotencyDir . '/' . $safe . '.json', json_encode($response));
+    }
+
+    public function save_acknowledgment(array $payload): string
+    {
+        $token = 'ack_' . bin2hex(random_bytes(12));
+        $payload['token'] = $token;
+        $payload['createdAt'] = time();
+        file_put_contents($this->acksDir . '/' . $token . '.json', json_encode($payload));
+        return $token;
+    }
+
+    public function get_acknowledgment(string $token): ?array
+    {
+        if (!preg_match('/^ack_[a-f0-9]+$/', $token)) {
+            return null;
+        }
+        $path = $this->acksDir . '/' . $token . '.json';
+        if (!is_file($path)) {
+            return null;
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        return is_array($data) ? $data : null;
+    }
+}

@@ -1,0 +1,7 @@
+# Front-controller for /api/portal/v1/*
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/portal/v1/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

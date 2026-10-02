@@ -3,10 +3,7 @@
  * Block web-based installer scripts after installation is finished.
  */
 
-function efacloud_install_is_allowed(): bool
-{
-    return ! file_exists(__DIR__ . "/.locked");
-}
+require_once __DIR__ . "/install_state.php";
 
 if (! efacloud_install_is_allowed()) {
     http_response_code(403);

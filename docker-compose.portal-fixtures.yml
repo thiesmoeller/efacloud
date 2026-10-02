@@ -1,0 +1,11 @@
+# Local-only: mount sanitized fixtures for portal API smoke.
+# CapRover / production must NOT use this overlay — fixtures stay out of the image
+# (.dockerignore). Never point this at test_backup/ or real club PII.
+
+services:
+  web:
+    environment:
+      # Force Portal_fixture_store even when MariaDB install is complete.
+      EFACLOUD_PORTAL_FIXTURES: "1"
+    volumes:
+      - ./fixtures/sanitized:/var/www/html/fixtures/sanitized:ro

@@ -42,9 +42,8 @@ $toolbox->load_throttle("inits", $toolbox->config->settings_tfyh["init"]["max_in
 // remove install file from root folder
 if (file_exists("../install.php"))
     unlink("../install.php");
-// block access to install folder
-touch("../install/.locked");
-chmod("../install", 0700);
+// Mark installation complete (install lock + persisted config marker).
+efacloud_install_mark_complete();
 
 // === PAGE OUTPUT ===================================================================
 

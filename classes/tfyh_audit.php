@@ -49,7 +49,9 @@ class Tfyh_audit
      * "demo" (dilbo.org, efacloud.org),"efaCloud" (brg-intern.de),"naerrischegesellen" (fvssp.de),
      */
     private static $tfyh_public_dirs = ["_src","src","demo","efa","efacloud","img","naerrischegesellen",
-            "helpdocs","api","forms","i18n","js","license","pages","public","resources"
+            "helpdocs","api","forms","i18n","js","license","pages","public","resources",
+            // Dockside PWA static assets (same-origin /portal/); must stay world-readable.
+            "portal"
     ];
 
     /**

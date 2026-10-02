@@ -73,7 +73,10 @@ if ($done > 0) {
             if (! $tmp_upload_file)
                 $form_errors .= i("7qmVxb|Unknown error during upl...");
             else {
-                $_SESSION["io_file"] = $_FILES['userfile']["name"];
+                $_SESSION["io_file"] = basename((string) $_FILES['userfile']["name"]);
+                if ($_SESSION["io_file"] === '' || $_SESSION["io_file"] === '.' || $_SESSION["io_file"] === '..') {
+                    $form_errors .= i("7qmVxb|Unknown error during upl...");
+                } else {
                 $_SESSION["io_table"] = "efa2persons";
                 if (! file_exists("../log/io"))
                     mkdir("../log/io");
@@ -115,6 +118,7 @@ if ($done > 0) {
                     $todo = $done + 1;
                 else
                     $form_errors .= $import_check_errors;
+                }
             }
         }
     } elseif ($done == 2) {

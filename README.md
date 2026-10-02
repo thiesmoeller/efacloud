@@ -67,7 +67,11 @@ EFACLOUD_ADMIN_PASSWORD=<strong-password>
 TZ=Europe/Berlin
 ```
 
-Auto-install runs only when `config/settings_db` does not yet exist. After a successful run, the installer is locked and later redeploys reuse the persisted `/var/www/html/config` volume.
+Auto-install runs only when installation is not yet **complete**
+(`install/.locked` or `config/.install_complete`). Interrupted setups that have
+`settings_db` but no complete marker are resumed. After a successful run, the
+installer is locked and later redeploys reuse the persisted `/var/www/html/config`
+volume (including `.install_complete`).
 
 ## Deploy on CapRover
 
@@ -117,8 +121,19 @@ URL: https://efacloud.<your-domain>/
 ## Security notes for this fork
 
 - `config/settings_db` must never be committed. Rotate credentials if they were ever pushed to git.
-- The installer is blocked automatically after setup (`install/.locked` + Apache deny).
+- The installer is blocked automatically after setup (`install/.locked` + `config/.install_complete` + Apache deny).
+- Until installation completes, Apache serves only `/install/` (public app/API return 403).
 - Security hardening in this fork includes SQL identifier validation, XSS fix in maintenance page, upgrade version sanitization, and HTTP security headers in the Docker image.
+- Staging/production isolation notes: `docs/deploy/caprover-staging-production.md`.
+- **Go-live path (login → staging → cutover):** `docs/deploy/GO_LIVE.md`.
+- Cutover / backup / acceptance: `docs/deploy/cutover-runbook.md`,
+  `docs/deploy/backup-restore.md`, `docs/deploy/acceptance-checklist.md`.
+- Local smoke (no CapRover): `docs/deploy/local-compose-smoke.md`,
+  `./scripts/compose-local-smoke.sh`, `./scripts/portal-fixture-smoke.sh`.
+- Focused security regressions: `tests/security/run.sh`.
+- Local release-candidate suite: `./scripts/release-candidate-local.sh`.
+- After CapRover login: `./scripts/wait-caprover-then-bootstrap.sh` or
+  `./scripts/caprover-staging-bootstrap.sh --auto-create`.
 
 ## Backups and upgrades
 

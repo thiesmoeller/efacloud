@@ -1,13 +1,76 @@
+# Image contents are application runtime inputs only.
+# Keep secrets, local data, lab/demo/fixtures, and build junk out of CapRover builds.
+
+# VCS / editor / agent scratch
 .git
 .gitignore
-.env
-*.zip
-docker-compose.yml
-README.md
-captain-definition.json
-Dockerfile
-.dockerignore
+.gitattributes
+.cursor
+.vscode
+.idea
+*.swp
+*~
+.DS_Store
 
-# Never bake environment-specific database credentials into the image.
+# Secrets and local environment (never bake credentials into the image)
+.env
+.env.*
+!.env.example
+**/CREDENTIALS.json
+**/CREDENTIALS.md
+**/*secret*
+**/*credentials*
+
+# Generated / persisted application state (seeded or mounted at runtime)
 config/settings_db
 config/settings/dbSettings
+config/.install_complete
+install/.locked
+install/.db_ready
+log/**
+!log/.htaccess
+uploads/**
+!uploads/.htaccess
+attachements/**
+!attachements/.htaccess
+pdfs/**
+!pdfs/.htaccess
+
+# Local-only packaging and docs not required at runtime
+Dockerfile
+.dockerignore
+docker-compose.yml
+captain-definition.json
+README.md
+docs
+*.md
+!license/**
+
+# Lab, demo, fixtures, and club backups (workspace-only; not production image inputs)
+demo
+fixtures
+lab
+*.zip
+efaBackup*
+
+# Frontend: allow portal source for multi-stage Node build; never ship deps/caches.
+# Final image copies only portal/dist via Dockerfile --from=portal-build.
+portal/node_modules
+portal/dist
+portal/.vite
+**/node_modules
+**/.vite
+
+# Test and cache artifacts
+tests
+.pytest_cache
+**/__pycache__
+**/*.pyc
+.phpunit.result.cache
+phpunit.xml*
+vendor
+composer.lock
+
+# Parent-workspace / unrelated scratch that must not leak into builds
+rowr8
+agent-transcripts
