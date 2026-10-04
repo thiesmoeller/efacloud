@@ -61,7 +61,8 @@ The template sets:
 - Web image default `ghcr.io/thiesmoeller/efacloud:feature-caprover` — **prefer**
   an immutable `ghcr.io/thiesmoeller/efacloud:sha-…` (or `@sha256:…`) from Actions
   for staging and the **same** ref for production promote
-  (`docs/deploy/image-promote.md`)
+  (`docs/deploy/image-promote.md`). GHCR tags are multi-arch (amd64+arm64); older
+  amd64-only tags fail on arm64 CapRover with `exec format error`.
 - Env (`TZ`, `EFACLOUD_AUTO_INSTALL`, `EFACLOUD_BASE_URL`,
   `EFACLOUD_DB_HOST=srv-captain--$$cap_appname-db`, DB + admin vars)
 - Persistent volumes: `config`, `log`, `uploads`, `attachements`, `pdfs`, `resources`

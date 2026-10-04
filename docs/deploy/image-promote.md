@@ -5,6 +5,10 @@ staging sign-off and production deploy use the **same** bytes.
 
 Registry: `ghcr.io/thiesmoeller/efacloud`
 
+Images are **multi-arch** (`linux/amd64` + `linux/arm64`) so CapRover hosts of
+either architecture pull the matching variant. An amd64-only image on arm64
+CapRover fails at start with `exec format error` on the entrypoint.
+
 ## Tags published by Actions
 
 Workflow: `.github/workflows/docker-image.yml`
@@ -17,9 +21,10 @@ On push to `main` / `feature/caprover` (and `workflow_dispatch`):
 | `sha-<full>` | `ghcr.io/thiesmoeller/efacloud:sha-<40-char>` | Audit / exact commit pin |
 | branch name | `ghcr.io/thiesmoeller/efacloud:feature-caprover` | Moving tip only — **do not** promote to prod |
 
-The workflow writes the registry digest to the GitHub Actions **job summary**,
-then deploys `ghcr.io/thiesmoeller/efacloud:sha-<short>` to CapRover staging via
-**App Token** (`caprover/deploy-from-github`).
+The workflow builds a multi-arch manifest list, writes the registry digest to the
+GitHub Actions **job summary**, then deploys
+`ghcr.io/thiesmoeller/efacloud:sha-<short>` to CapRover staging via **App Token**
+(`caprover/deploy-from-github`).
 
 ### GitHub Actions secrets (staging auto-deploy)
 
