@@ -108,6 +108,11 @@ class Tfyh_menu
         foreach ($raw_menu_def_array as $raw_menu_def) {
             
             $menu_def = $raw_menu_def;
+            // Persistent config volumes may retain the upstream anonymous menu.
+            if (in_array(strtok($menu_def["link"], "?"),
+                    ["../public/fahrtenbuch.php", "../public/info.php"], true)) {
+                $menu_def["permission"] = "member";
+            }
             // check whether i18n replacement is needed
             if ($this->toolbox->is_valid_i18n_reference($menu_def["headline"]))
                 $menu_def["headline"] = i($menu_def["headline"]);

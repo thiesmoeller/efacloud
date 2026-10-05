@@ -93,7 +93,8 @@ if (isset($_SESSION["getps"][$fs_id]["token"])) {
 if ($done > 0) {
     $form_filled = new Tfyh_form($form_layout, $socket, $toolbox, $done, $fs_id);
     $form_filled->read_entered();
-    $form_errors = $form_filled->check_validity();
+    // Authenticate existing credentials regardless of today's creation policy.
+    $form_errors = $form_filled->check_validity(0);
     $entered_data = $form_filled->get_entered();
     
     // application logic, step by step
@@ -365,4 +366,3 @@ if (! $legacy)
     echo "</p></div>\n";
 echo "</div>";
 end_script();
-

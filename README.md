@@ -73,6 +73,17 @@ Auto-install runs only when installation is not yet **complete**
 installer is locked and later redeploys reuse the persisted `/var/www/html/config`
 volume (including `.install_complete`).
 
+Admin environment variables are **installation inputs**, not ongoing account
+management. Changing them after setup does not change an existing password or
+username. Manage accounts in efaCloud; for an administrator lockout use the
+one-time server command in [admin password recovery](docs/ops/admin-password-reset.md).
+After initial setup, remove the bootstrap admin password from the deployment
+environment once it is safely recorded in your password manager.
+
+Logbook information requires authentication, including the historical
+`/public/fahrtenbuch.php` and `/public/info.php` URLs. Persisted upstream
+`public_*` flags cannot grant anonymous access in this fork.
+
 ## Deploy on CapRover
 
 Create two apps:

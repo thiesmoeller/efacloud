@@ -532,12 +532,10 @@ class Efa_info
      */
     public function is_allowed_info (array $client_verified, String $type)
     {
-        $cfg = $this->toolbox->config->get_cfg();
-        // be aware that hte confg parameter name has a prefix "pblic_" for better configuratuion readability
-        $publicly_allowed = isset($cfg[$type]) && (strlen("public_" . $cfg[$type]) > 1);
-        if ($publicly_allowed)
-            return true;
+        // Club logbook information is private, including direct iframe/API calls.
+        // Persisted upstream public_* settings must not grant anonymous access.
         $client_not_anonymous = isset($client_verified["Rolle"]) &&
+                 (strlen(trim($client_verified["Rolle"])) > 0) &&
                  (strcasecmp($client_verified["Rolle"], $this->toolbox->users->anonymous_role) != 0);
         return $client_not_anonymous;
     }

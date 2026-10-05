@@ -554,5 +554,7 @@ expect_true(is_string($auditPhp)
         && preg_match('/\$tfyh_public_dirs\s*=\s*\[[^\]]*["\']portal["\']/s', $auditPhp) === 1,
         "tfyh_audit public dirs include portal (prevents deny-for-all lock)");
 
+require __DIR__ . '/auth-privacy.php';
+
 echo "\n$passed passed, $failed failed\n";
 exit($failed === 0 ? 0 : 1);

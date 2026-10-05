@@ -187,6 +187,15 @@ if ($session_registration_result == false) {
 
 // keep anonymous sessions only, if a form was requested (like login or registrations).
 $user_id = intval($toolbox->users->session_user["@id"]);
+// These historical /public/ URLs contain club data. Enforce authentication
+// before rendering, even when an old persistent menu still marks them public.
+if (in_array($user_requested_action, ["public/fahrtenbuch.php", "public/info.php"], true) &&
+        strcasecmp($toolbox->users->session_user["Rolle"], $toolbox->users->anonymous_role) == 0) {
+    header("Cache-Control: no-store");
+    header("Location: ../forms/login.php?goto=" . rawurlencode($user_requested_action), true, 303);
+    end_script(false);
+    exit();
+}
 $is_user_request_for_form = strcasecmp($file_path_elements[$index_last - 1], "forms") == 0;
 // A Javascript application has the option to retrieve configuration and session information though the
 // jsget.php page. In this case do not modify the form sequence

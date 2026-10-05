@@ -17,6 +17,7 @@ RUN apt-get update \
 
 COPY docker/apache-efacloud.conf /etc/apache2/conf-available/efacloud.conf
 COPY docker/bootstrap-install.sh /usr/local/bin/efacloud-bootstrap-install
+COPY docker/recover-admin.php /usr/local/bin/efacloud-recover-admin
 RUN a2enconf efacloud
 
 COPY docker/docker-entrypoint.sh /usr/local/bin/efacloud-entrypoint

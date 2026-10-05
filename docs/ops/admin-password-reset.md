@@ -45,5 +45,32 @@ Login screen states that reset is admin-only. No self-service link in v1
 
 ## Ops note
 
+### Locked-out administrator: one-time server recovery
+
+`EFACLOUD_ADMIN_*` creates the initial administrator only. Do not delete the
+installation markers or rerun the installer to reset a password: the installer
+can rebuild the database. Passwords are not synchronized on container restart.
+
+An operator with SSH/Docker access can reset an existing administrator:
+
+```bash
+docker exec -it <web-container> php /usr/local/bin/efacloud-recover-admin --id 1142
+```
+
+The command prompts twice without echoing the password. Use 12–72 bytes and
+store the password in your password manager. An optional `--name clubadmin`
+also corrects the login name. It refuses missing/non-admin IDs and duplicate
+login names; it preserves roles, other account fields, and other users.
+
+For automation, `--password-stdin` reads the exact bytes from standard input
+(no trailing newline). Do not put passwords in command arguments or shell
+history. The command is installed outside the web root and never runs during
+startup. Remove bootstrap password environment variables after setup/recovery
+once credentials are safely recorded. A second named administrator also provides
+an application-level recovery route.
+
+Recovery changes credentials; it does not revoke already-active sessions.
+Treat suspected account compromise separately from a forgotten password.
+
 Do not enable fixture mode (`EFACLOUD_PORTAL_FIXTURES`) in production; password
 hashes must live in the real `efaCloudUsers` table.
