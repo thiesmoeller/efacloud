@@ -81,8 +81,10 @@ if [ "${EFACLOUD_AUTO_INSTALL:-0}" = "1" ] && ! is_complete; then
     else
         echo "efacloud-entrypoint: starting fresh auto-install"
     fi
-    # Apache is started for local installer POSTs only; apache-efacloud.conf
+    # Temporary Apache for local installer POSTs only; apache-efacloud.conf
     # returns 403 for non-/install/ paths until install/.locked exists.
+    # After bootstrap, stop it and fall through to exec so Apache becomes PID 1
+    # with normal signal forwarding (CapRover stop/restart).
     docker-php-entrypoint apache2-foreground &
     apache_pid=$!
     if ! efacloud-bootstrap-install; then
@@ -90,8 +92,10 @@ if [ "${EFACLOUD_AUTO_INSTALL:-0}" = "1" ] && ! is_complete; then
         wait "$apache_pid" 2>/dev/null || true
         exit 1
     fi
-    wait "$apache_pid"
-    exit $?
+    kill "$apache_pid" 2>/dev/null || true
+    wait "$apache_pid" 2>/dev/null || true
+    lock_installer
+    echo "efacloud-entrypoint: auto-install complete; starting Apache as PID 1"
 fi
 
 exec docker-php-entrypoint "$@"
