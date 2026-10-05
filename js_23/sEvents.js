@@ -24,7 +24,7 @@ function _showRecord(reference) {
 	var tablename = reference[0];
 	var ecrid = reference[1];
 	var getRequest = new XMLHttpRequest();
-	var recordHtml = _("6E16M8| ** Display of a data re...", reference[0],
+	var recordHtml = _("6E16M8|<h4>Display of a data re...", reference[0],
 			tablename, ecrid);
 	// provide the callback for a response received
 	getRequest.onload = function() {

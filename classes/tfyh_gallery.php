@@ -307,7 +307,7 @@ class Tfyh_gallery
             return "<p>" . i("tg2LqL|Application configuratio...", $this->gallery_definition["title"]) . "</p>";
         
         $gallery_html = '<p><b>' . i("KLgQSh|Upload:") . '</b><br />' . i(
-                'foQQVH| ** Above the pictures c...') . "</p>";
+                "foQQVH|Above the pictures click...") . "</p>";
         
         $gallery_html .= '<form action="?gallery=' . $this->gallery_definition["key"] .
                  '&upload=1" method="post" enctype="multipart/form-data"><p>' .

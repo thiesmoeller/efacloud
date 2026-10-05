@@ -273,7 +273,7 @@ if ($is_new_user) {
              "<sup class='eventitem' id='showhelptext_NutzerUndBerechtigungen'>&#9432;</sup></h3>";
     echo "<p>" . i("xb6rnq|Here you can change the ...") . "</p>";
 }
-echo i("uVS3Gb| ** An efaCloud user can...");
+echo i("uVS3Gb|<ol><li>An efaCloud us...");
 
 echo $toolbox->form_errors_to_html($form_errors);
 echo $form_to_fill->get_html();
@@ -284,11 +284,11 @@ if ($todo == 1) { // step 1. No special texts for output
                  "' style='float:left;'>" . i("O39Sks|FINALLY delete users") . "</a>";
     echo $form_to_fill->get_help_html();
 } else {
-    echo i("EADCwd| ** The data change is *...");
+    echo i("EADCwd|    <p><b>The data cha...");
     echo (($form_errors) ? i("rT8wtF|not") : "");
     echo i("NeJqoO| ** performed. ** ");
     echo (($form_errors) ? "" : i("9mww2x|The following changes ha...") . "<br />" . $info);
-    echo i("MPbwHx| ** Display changed prof...", $id_to_update);
+    echo i("MPbwHx|<p> <a href=°../pages/n...", $id_to_update);
 }
 echo i("77gvXM|</div>");
 end_script();

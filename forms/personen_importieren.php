@@ -214,22 +214,22 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("fU75vS| ** Import persons ** Da...");
+echo i("fU75vS|<!-- START OF content -...");
 if ($todo == 1) { // step 1. Texts for output
-    echo i("POzcZe| ** File format and fiel...");
+    echo i("POzcZe|<p>File format and fiel...");
     echo $toolbox->form_errors_to_html($form_errors);
     echo $form_to_fill->get_html(true); // enable file upload
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 2) { // step 2. Texts for output
-    echo i("0alDAs| ** The file upload and ...");
+    echo i("0alDAs|<p>The file upload and ...");
     // no form errors possible at this step. just a button clicked.
     echo $import_check_info;
-    echo i("zmwOIb| ** In the next step, th...");
+    echo i("zmwOIb|<p>In the next step, th...");
     // no form errors possible at this step. just a button clicked.
     echo $form_to_fill->get_html();
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 3) { // step 3. Texts for output
-    echo i("02b3TQ| ** The file import was ...");
+    echo i("02b3TQ|<p>The file import was ...");
     echo "<p>" . $import_done_info . "</p><p>" . i("miz0SV|Done.") . "</p>";
 }
 

@@ -78,13 +78,13 @@ var sFormHandler = {
 			$('#vDiv-ValidityFromDate').hide();
 			$('#vDiv-ValidityFromTime').hide();
 			$('#versionized-data').show();
-			$("input[type=submit]").val(_("pDysSn|Change data for °%1", name));
+			$("input[type=submit]").val(_("pDysSn|Change data for %1", name));
 		} else { 
 			$('#vDiv-ValidityFromDate').show();
 			$('#vDiv-ValidityFromTime').show();
 			$('#versionized-data').hide();
 			if (vWayOfChange === 1) 
-				$("input[type=submit]").val(_("SI9WWD|Valid for °%1° change", name));
+				$("input[type=submit]").val(_("SI9WWD|Valid for %1 change", name));
 			else {
 	        	$('#valDateLabel').html("Abgrenzen zu Datum");
 	        	$('#valTimeLabel').html("Abgrenzen zu Zeit");

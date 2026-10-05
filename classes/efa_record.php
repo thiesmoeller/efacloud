@@ -1047,7 +1047,7 @@ class Efa_record
         $existing_record = $this->check_against_existing($list_id, $version_record, $mode, $force_refresh);
         if (($mode > 1) && ! is_array($existing_record)) {
             // no record with the given data key exists, it can be safely inserted, except it has no
-            // ValidFrom (efa pecularity for new Record creation)
+            // ValidFrom (efa peculiarity for new Record creation)
             if (strlen($record["ValidFrom"] ?? "") < 3)
                 return i("Versionized records must have a ValidFrom time stamp.");
             return $existing_record;

@@ -467,7 +467,7 @@ var cForm = {
                 if (definition["required"].length > 0) {
                     // input is required
                     if (definition["type"].toLowerCase().localeCompare("checkbox") == 0)
-                        formErrors += _("YYs5Cm|Please tick °%1°.", definition["label"]) + '<br>';
+                        formErrors += _("YYs5Cm|Please tick %1.", definition["label"]) + '<br>';
                     else
                         formErrors += _("ANAREj|Please enter a value for...", definition["label"]) + '<br>';
                     this.validities[key] = false;
@@ -482,7 +482,7 @@ var cForm = {
                     	var isValid = (value.length == 2);
                     	isValid = isValid && (parts[1].length > 5) && (parts[1].indexOf(".") > 0);
                         if (! isValid) {
-                            formErrors += _("0Jz4fV| ** Please enter a valid...",
+                            formErrors += _("0Jz4fV|Please enter a valid e-m...",
                             		definition["label"]);
                             this.validities[key] = false;
                         }

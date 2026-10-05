@@ -55,7 +55,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 $personId = (isset($toolbox->users->session_user["PersonId"])) ? $toolbox->users->session_user["PersonId"] : "????????-????-????-????????????";
-echo i("TdBhkc| ** Available boats ** T...", $logbook_to_use, $logbook_allowance, $personId);
+echo i("TdBhkc|<span style=°display: n...", $logbook_to_use, $logbook_allowance, $personId);
 
 // ===== create an API session and forward the API session id
 $api_user_id = intval($toolbox->users->session_user["@id"]);

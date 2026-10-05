@@ -54,7 +54,7 @@ class Tfyh_token_handler
      * @param array $token_file
      *            the token file, e. g. "../log/tokens.txt"
      */
-    public function __construct ($token_file)
+    public function __construct (String $token_file)
     {
         $this->tokenfile = $token_file;
     }

@@ -52,11 +52,11 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 if ($sec_concept_html) {
-    echo i("dQzRS3| ** Data protection conc...");
+    echo i("dQzRS3|<!-- START OF content -...");
     echo $sec_concept_html;
     echo "</div>";
 } else {
-    echo i("6wKURL| ** Create data protecti...");
+    echo i("6wKURL|<!-- START OF content -...");
 }
 echo "</div>";
 end_script();

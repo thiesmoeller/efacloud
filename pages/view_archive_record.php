@@ -77,7 +77,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("9Jk1j0| ** Data record display...", $tablename, date($dfmt_dt, strtotime($trash_record["Time"])), 
+echo i("9Jk1j0|<!-- START OF content -...", $tablename, date($dfmt_dt, strtotime($trash_record["Time"])),
         $trash_record["ID"], $records_timestamp_list);
 foreach ($archived_record as $key => $value) {
     if (in_array($key, Efa_tables::$date_fields[$tablename]) && (strlen($value) > 0))

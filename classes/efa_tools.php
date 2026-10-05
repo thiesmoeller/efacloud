@@ -289,7 +289,7 @@ class Efa_tools
             $init_because_is_efaCloudUsers = ($init_efaCloud_users &&
                      (strcasecmp($tablename, "efaCloudUsers") == 0));
             if ($init_because_is_efa || $init_because_is_efaCloud || $init_because_is_efaCloudUsers) {
-                $log_message = i("2p7kEh|Dropping table °%1°... ", $tablename);
+                $log_message = i("2p7kEh|Dropping table °%1°...", $tablename);
                 $sql_cmd = "DROP TABLE `" . $tablename . "`;";
                 $drop_success = $this->execute_and_log($appUserID, $sql_cmd, $log_message);
                 $result .= $log_message . (($drop_success) ? i("vI1rIC|ok.") : i("VTLYoN|no such table.")) .
@@ -594,7 +594,7 @@ class Efa_tools
                 }
                 // ALTER TABLE `efa2autoincrement` DROP INDEX `Sequence_7`;
                 $sql_cmd = "ALTER TABLE `" . $tablename . "` DROP INDEX `" . $iname_existing . "`;";
-                $log_message = i("zQY162|Dropped obsolete index  ...", $tablename, $iname_existing);
+                $log_message = i("zQY162|Dropped obsolete index °...", $tablename, $iname_existing);
                 $success = $this->execute_and_log($appUserID, $sql_cmd, $log_message);
                 if ($success === false)
                     return false;

@@ -4,6 +4,9 @@ Club deployment fork of the [efaCloud](https://www.efacloud.org) server (GPL-2.0
 
 Upstream reference: [tfyh/efacloud](https://github.com/tfyh/efacloud)
 
+Current upstream release: **2.4.0_13** (2026-05-20). See
+[release provenance and upgrade notes](docs/deploy/upstream-2.4.0_13.md).
+
 ## Quick start (local)
 
 Copy the example environment file and adjust values:

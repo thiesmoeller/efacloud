@@ -286,7 +286,8 @@ class Efa_info
         $cfg = $this->toolbox->config->get_cfg();
         if ($cfg["public_tripdata_EntryId"])
             $trip_row[] = strval($trip["EntryId"]);
-        $boat = $this->socket->find_record("efa2boats", "Id", $boat_id);
+        $boat_records = $this->socket->find_records_sorted("efa2boats", "Id", $boat_id, 10, "=", "InvalidFrom", false);
+        $boat = (count($boat_records) > 0) ? $boat_records[0] : false;
         if ($cfg["public_tripdata_BoatName"]) {
             $boatname = (($boat != false) && isset($boat["Name"])) ? $boat["Name"] : "Fremdboot";
             $trip_row[] = $boatname;

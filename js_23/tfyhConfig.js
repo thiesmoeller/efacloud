@@ -383,7 +383,7 @@ class TfyhConfig
 				furtherEmpty += fieldname + ", ";
 		}
 		if (furtherNotEmpty)
-			html += "<tr><td>" + _("tmmMX3|further not empty fields...") + "</td><td>" 
+			html += "<tr><td>" + _("") + "</td><td>"
 			+ furtherNotEmpty + "</td></tr>";	
 		if (furtherEmpty)
 			html += "<tr><td>" + _("aRC0en|further empty fields:") + "</td><td>" 

@@ -89,12 +89,12 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("y1NFtw| ** Send support request..."); 
+echo i("y1NFtw|<div class=°w3-contain...");
 echo $toolbox->form_errors_to_html($form_errors);
 
 // ======== start with the display of either the next form, or the error messages.
 if ($todo == 1) {
-    echo i("dH58zd| ** Please let me know y...");
+    echo i("dH58zd|<p>Please let me know y...");
     // step 1. Show form.
     echo $form_to_fill->get_html();
     // insert help text as right hand menu for mobile access

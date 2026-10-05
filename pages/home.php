@@ -84,5 +84,5 @@ if (! $short_home) {
              $efa_config->get_last_accesses_API($socket, true, true) . "";
     echo "</div>";
 } else
-    echo i("pARkCd| ** Please use efaWeb to...");
+    echo i("pARkCd|<p>Please use efaWeb to ...");
 end_script();

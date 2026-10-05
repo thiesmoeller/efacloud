@@ -87,9 +87,6 @@ class Tfyh_audit
      */
     private function get_forbidden_dirs ()
     {
-        
-        file_put_contents("../log/tmp", "Scanning\n");
-        
         $top_level_dirs = scandir("..");
         $forbidden_dirs = []; // Don't use the framework settings.
         foreach ($top_level_dirs as $top_level_dir) {
@@ -198,7 +195,7 @@ class Tfyh_audit
                 if (file_exists($htaccess_filename)) {
                     $corrections_needed ++;
                     $this->audit_warnings .= "    " .
-                             i("t32eUO|Extra °%1° removed.", $htaccess_filename) . "\n";
+                             i("t32eUO|Extra %1 removed.", $htaccess_filename) . "\n";
                 }
             }
         }

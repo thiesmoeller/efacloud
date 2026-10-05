@@ -42,7 +42,7 @@ $cronlog_this = (mb_strlen($cronlog_after) > mb_strlen($cronlog_before)) ? mb_su
 echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
-echo i("qMjfvd| ** The daily maintenan...");
+echo i("qMjfvd|<!-- START OF content ...");
 echo str_replace("\n", "<br>", $cronlog_this);
 
 echo "  </p></div>";

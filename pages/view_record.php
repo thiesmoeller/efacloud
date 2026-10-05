@@ -135,7 +135,7 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
 $tablename_de = (isset(Efa_tables::locale_names()[$tablename])) ? Efa_tables::locale_names()[$tablename] : $tablename;
 
 // page heading, identical for all workflow steps
-echo i("tSyQm8| ** Data record display...", $tablename_de);
+echo i("tSyQm8|<!-- START OF content -...", $tablename_de);
 $null_values = "";
 
 if (! $ecrid && isset($toDisplay["ecrid"]) && (strlen($toDisplay["ecrid"]) > 0))
@@ -169,7 +169,7 @@ if (strlen($null_values) > 0)
 echo "</table>\n</div>\n<div class='w3-container'>\n<div class='w3-row'>\n";
 if ($menu->is_allowed_menu_item("../forms/datensatz_aendern.php", $toolbox->users->session_user)) {
     $float_history = "right";
-    echo i("gXEDSy|<div class=°w3-col l2°>...");
+    echo i("gXEDSy|<div class=°w3-col l2°>");
     $is_admin = (strcmp($toolbox->users->session_user["Rolle"], $toolbox->users->useradmin_role) == 0);
     $is_deleted = (isset($tablerow["LastModification"]) &&
              (strcasecmp($tablerow["LastModification"], "delete") == 0));

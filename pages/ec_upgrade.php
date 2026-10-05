@@ -63,7 +63,7 @@ if (! isset($_GET["upgrade"])) {
              htmlspecialchars(file_get_contents("../public/version"));
     $versions_string = file_get_contents($versions_request);
     $versions = explode("|", $versions_string);
-    echo i("fzBHFZ| ** Upgrade the efaCloud...", $current_version, date($dfmt_dt, $current_version_installed));
+    echo i("fzBHFZ|<h3>Upgrade the efaClou...", $current_version, date($dfmt_dt, $current_version_installed));
     $release_notes = "";
     $version_options = "";
     foreach ($versions as $version) {
@@ -76,7 +76,7 @@ if (! isset($_GET["upgrade"])) {
         }
     }
     echo $release_notes;
-    echo i("QC2brN| ** Upgrade to the follo...", $version_options, $app_root, $src_subdir);
+    echo i("QC2brN|    <br /> <label><b>Up...", $version_options, $app_root, $src_subdir);
 } else {
     
     $version_to_install = (isset($_POST["version"])) ? strval($_POST["version"]) : "";

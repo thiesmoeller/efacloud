@@ -35,7 +35,7 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
-echo i("Z4iAHN| ** Help in efaCloud ** ..."); 
+echo i("Z4iAHN|<!-- START OF content -...");
 $helpdocs = scandir("../helpdocs/" . $toolbox->config->language_code);
 foreach ($helpdocs as $helpdoc) {
     $helpdoc_name = str_replace(".html", "", $helpdoc);
@@ -43,5 +43,5 @@ foreach ($helpdocs as $helpdoc) {
     if (substr($helpdoc_name, 0, 1) != ".")
         echo "<li>" . $helpdoc_name . $info_link . "</li>";
 }
-echo i("C1HUuR| ** More information is ..."); 
+echo i("C1HUuR|</ul><p>More informati...");
 end_script();

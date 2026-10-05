@@ -91,7 +91,7 @@ var cModal = {
 	showException : function(e) {
 		stacktrace = e.stack;
 		stacktraceHtml = stacktrace.replace(/\n/g, "<br>");
-		cModal.showHtml(_("5V5NzT| ** Oops, the applicatio...", 
+		cModal.showHtml(_("5V5NzT|Oops, the application cr...",
 		e.toString()) + stacktraceHtml);
 	},
 	

@@ -95,7 +95,7 @@ if ($action == 0) {
     }
     // Generate the html code to display management table
     $logbooks_table_html = "<table><tr><th>" . i(
-            "PfLbaB| ** Name ** Trips ** Ear..." . "<th>Anzahl Fahrten in</th><th>mögliche Aktion") .
+            "PfLbaB|Name</th><th>Trips</th><..." . "<th>Anzahl Fahrten in</th><th>mögliche Aktion") .
              "</th></tr>";
     foreach ($logbooks as $logbookname => $logbook) {
         $count = "";
@@ -199,20 +199,20 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
-echo i("OEps5V| ** Overview of the logb...");
+echo i("OEps5V|<!-- START OF content -...");
 // show logbook tables.
 if ($action == 0) {
     echo $logbooks_table_html;
-    echo i("ffsj9S| ** For the action, only...");
+    echo i("ffsj9S|<p>For the action, only...");
 } else {
     if ($mode == 0) {
         echo $trips_table;
-        echo i("wir4uQ| ** With the confirmatio...");
+        echo i("wir4uQ|<p>With the confirmatio...");
     } else {
-        echo i("sIOQ62| ** The following journe...");
+        echo i("sIOQ62|<h4>The following journ...");
         echo $deletion_result;
     }
-    echo i("gBlz7m| ** Correct further trip...");
+    echo i("gBlz7m|<p><a href=°../pages/s...");
 }
 echo i("K3jC4w|<!-- END OF Content -->...");
 end_script();

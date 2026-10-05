@@ -44,7 +44,7 @@ if ($do_reset) {
 echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
-echo i("jmEZKD| ** Delete database %1 a...", $socket->get_db_name());
+echo i("jmEZKD|<!-- START OF content -...", $socket->get_db_name());
 
 if ($do_reset_full) {
     echo "<p>" . i("PUAtWz|The database has been re...", $toolbox->users->session_user["@firstname"], 
@@ -58,9 +58,9 @@ if ($do_reset_full) {
              "</a></span><br></p>";
     echo "<p>" . i("U7JDda|The following activity r...") . "<br>" . $result_bootstrap . "</p>";
 } else {
-    echo i("odpdN0| ** In really rare case...", $toolbox->users->session_user["@firstname"] . " " . $toolbox->users->session_user["@lastname"]);
+    echo i("odpdN0|<p>In really rare case...", $toolbox->users->session_user["@firstname"] . " " . $toolbox->users->session_user["@lastname"]);
     echo $socket->get_db_name() . " " . i("9hnY2G|at") . " " . $app_root;
-    echo i("Edbkq1| ** --- ** will be dele...");
+    echo i("Edbkq1|---<br>will be deleted ...");
 }
 echo "</div>";
 end_script();

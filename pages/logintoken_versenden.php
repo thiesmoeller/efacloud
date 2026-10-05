@@ -71,7 +71,7 @@ if ($mail_was_sent) {
     $toolbox->logger->log(0, $toolbox->users->session_user["@id"], 
             i("o94iyq|Login token sent to user...") . " " . $user_name . "(" . $id . ").");
 } else {
-    $info = "<p><b>" . i("Wk99iY| ** Dispatch failed ** f...") . " '" . $this_mailto . "'.</p>";
+    $info = "<p><b>" . i("Wk99iY|Dispatch failed</b>for:") . " '" . $this_mailto . "'.</p>";
     $toolbox->logger->log(2, $toolbox->users->session_user["@id"], i("eAyB1z|Login token sent to user..."), 
             $user_name, $id);
 }
@@ -84,7 +84,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("rpXiYW| ** Send mails to users ...");
+echo i("rpXiYW|<!-- START OF content -...");
 echo $info;
 echo "</div>\n<!-- END OF Content -->";
 end_script();

@@ -759,7 +759,7 @@ class Tfyh_list
                 }
             }
             $list_html .= "</select>";
-            $list_html .= "<br>" . i("afDbIr|Value ") .
+            $list_html .= "<br>" . i("afDbIr|Value") .
                      " <input type='text' name='fvalue' class='forminput' value='" . $ofvalue .
                      "'  style='width:19em' />" . "&nbsp;&nbsp;&nbsp;&nbsp;<input type='submit' value='" .
                      i("efjxwi|show filtered list") . "' class='formbutton'/></form>";

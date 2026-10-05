@@ -51,7 +51,7 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
-echo i("Z7mnAX| ** Version history of a...", $tablename);
+echo i("Z7mnAX|<!-- START OF content -...", $tablename);
 if (strlen($modify_result) > 0)
     echo "<h5>" . i("f8865P|Version V%1 of the recor...", $restore, $tablename, $ecrid) . " " . $modify_result .
              "<h5>";

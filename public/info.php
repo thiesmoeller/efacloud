@@ -1,4 +1,5 @@
 <?php
+global $fs_id, $done, $toolbox, $socket, $menu;
 /**
  *
  *       efaCloud

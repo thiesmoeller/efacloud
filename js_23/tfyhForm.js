@@ -973,9 +973,9 @@ class TfyhForm {
             }
         }
     	if (TfyhData.getErrors().length > 0)
-            formErrors += _("yalySQ|Data validation failed. ...", TfyhData.getErrors()) + "<br>";
+            formErrors += _("", TfyhData.getErrors()) + "<br>";
     	if (TfyhValidate.has_findings())
-            formErrors += _("31KjuG|Values violate rules. Fi...", TfyhValidate.get_findings()) + "<br>";
+            formErrors += _("", TfyhValidate.get_findings()) + "<br>";
     	this.formErrors = formErrors;
         return formErrors;
     }

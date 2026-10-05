@@ -31,6 +31,6 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 ?>
-<?= i("lf6RQG| ** Help ** Help for ef..."); ?>
+<?= i("lf6RQG|<!-- START OF content -..."); ?>
 <?php
 end_script();

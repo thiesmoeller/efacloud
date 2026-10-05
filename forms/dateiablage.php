@@ -141,7 +141,7 @@ if ($todo == 1) {
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 2) { // step 2. Texts for output
     echo "<p>" . $uploadResult . "</p>";
-    echo i("a8iDlL| ** Here ** go to the ne...", $cdir);
+    echo i("a8iDlL|<p><a href=°?cdir=%1°>H...", $cdir);
 }
 
 // Help texts and page footer for output.

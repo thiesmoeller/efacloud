@@ -520,8 +520,6 @@ class Efa_archive
      * 
      * @param Tfyh_list $simple_list
      *            The list of the records to be archived.
-     * @param String $parameter_name
-     *            the name of the configuration parameter holding the maximum age.
      */
     private function non_versionized_to_archive (Tfyh_list $simple_list)
     {
@@ -665,7 +663,7 @@ class Efa_archive
             // The table name is needed to ditinguish the handling
             $table_name = $archive_target_list->get_table_name();
             if (in_array($table_name, Efa_tables::$versionized_table_names)) {
-                $info .= $this->versionized_to_archive($archive_target_list, $archive_setting);
+                $info .= $this->versionized_to_archive($archive_target_list);
             } else {
                 $info .= $this->non_versionized_to_archive($archive_target_list);
             }

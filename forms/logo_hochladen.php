@@ -76,7 +76,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("HQqMpM| ** Upload club logo ** ...");
+echo i("HQqMpM|<!-- START OF content -...");
 if ($todo == 1) { // step 1. Texts for output
     echo $toolbox->form_errors_to_html($form_errors);
     echo $form_to_fill->get_html(true); // enable file upload

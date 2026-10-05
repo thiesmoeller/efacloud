@@ -70,5 +70,5 @@ $_SESSION["search_result"]["tablename"] = "efaCloudUsers";
 echo $toolbox->users->get_action_links($user_id) .
          "<a href='../pages/show_history.php?searchresultindex=1'> - " . i("biT1cV|Change history") .
          "</a></p>";
-echo i("wLHGFz| ** Information on data ...");
+echo i("wLHGFz|</div><div class=°w3-c...");
 end_script();

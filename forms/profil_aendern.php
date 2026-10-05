@@ -171,7 +171,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("xnSRHk| ** Change personal prof...");
+echo i("xnSRHk|<!-- START OF content -...");
 echo $toolbox->form_errors_to_html($form_errors);
 if ($todo < 2) { // step 1. No special texts for output
     echo $form_to_fill->get_html();

@@ -77,5 +77,5 @@ else {
 echo "</p>";
 if (intval($delete_result) == 2)
     echo "<p>" . i("0xNazF|Unfortunately, a trash r...") . "</p>";
-echo i("QhtP9h| ** &gt;&gt; View change...");
+echo i("QhtP9h|<p><a href=°../pages/s...");
 end_script(true);

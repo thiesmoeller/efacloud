@@ -1,4 +1,5 @@
 <?php
+global $fs_id, $done, $toolbox, $socket, $menu;
 /**
  *
  *       efaCloud
@@ -22,26 +23,30 @@
 
 
 /**
- * The form for user profile self service. Based on the Tfyh_form class, please read instructions their to
+ * The form for user profile self-service. Based on the Tfyh_form class, please read instructions there to
  * better understand this PHP-code part.
  * 
  * @author mgSoft
  */
 
-// ===== initialize toolbox and socket and start session.
+// ===== initialise toolbox and socket and start session.
 $user_requested_file = __FILE__;
 // ===== page does not need an active session
 include_once "../classes/init.php";
 include_once '../classes/tfyh_form.php';
 include_once '../classes/efa_tables.php';
 include_once '../classes/efa_record.php';
+
+global $toolbox;
+global $socket;
 $efa_record = new Efa_record($toolbox, $socket);
 
 // === APPLICATION LOGIC ==============================================================
+global $fs_id;
 if (! isset($_SESSION["getps"][$fs_id]["table"]) || ! isset($_SESSION["getps"][$fs_id]["ecrid"]))
     $toolbox->display_error(i("8ARdau|Not allowed."), 
             i("6skWc5|Page °%1° must be called...", $user_requested_file), __FILE__);
-$tablename = $_SESSION["getps"][$fs_id]["table"];
+$tableName = $_SESSION["getps"][$fs_id]["table"];
 $ecrid = $_SESSION["getps"][$fs_id]["ecrid"];
 $add_new = strcasecmp($ecrid, "new") == 0;
 $app_user_id = $toolbox->users->session_user["@id"];
@@ -49,11 +54,11 @@ if ($add_new) {
     $record = ["ValidityFromDate" => date("Y-m-d"),"ValidityFromTime" => date("H:i")
     ];
 } else {
-    $record = $socket->find_record_matched($tablename, ["ecrid" => $ecrid
+    $record = $socket->find_record_matched($tableName, ["ecrid" => $ecrid
     ]);
     if ($record === false)
         $toolbox->display_error(i("M19SkN|Not found"), 
-                i("xh2TM5|The record to be changed...", $ecrid, $tablename), __FILE__);
+                i("xh2TM5|The record to be changed...", $ecrid, $tableName), __FILE__);
 }
 
 // the form templates to use for data edit, depending on the chosen table
@@ -65,7 +70,7 @@ $form_templates = ["efa2autoincrement" => 2,"efa2boatdamages" => 3,"efa2boatrese
 ];
 $todo_complete = 20;
 
-// the lookup tables needed as in efaWeb to auto-fill the id/name fields
+// the lookup tables needed as in efaWeb to autofill the id/name fields
 $lookups_needed = ["efa2autoincrement" => "",
         "efa2boatdamages" => "efaWeb_boats:BoatId;" . "efaWeb_persons:ReportedByPersonId,FixedByPersonId",
         "efa2boatreservations" => "efaWeb_boats:BoatId;" . "efaWeb_persons:PersonId","efa2boats" => "",
@@ -86,12 +91,15 @@ $lookups_needed = ["efa2autoincrement" => "",
 
 // === APPLICATION LOGIC ==============================================================
 // if validation fails, the same form will be displayed anew with error messgaes
-$todo = 1; // Special form setup: layouts 2 .. 18 are alternative layouts, see $form_templates,
-           // i.e. start with 2 .. 18, continue with 19
+$todo = 1; // Special form setup: layouts 2 ... 18 are alternative layouts, see $form_templates,
+           // i.e. start with 2 ... 18, continue with 19
 $form_errors = "";
-$form_layout = "../config/layouts/dataedit_" . $form_templates[$tablename];
+$form_layout = "../config/layouts/dataedit_" . $form_templates[$tableName];
+$new_record = [];
+$changes = "";
 
 // ======== start with form filled in last step: check of the entered values.
+global $done;
 if ($done == 0) {
     // create form layout based on the table used for data edit.
 } else {
@@ -99,24 +107,24 @@ if ($done == 0) {
     $entered_data = [];
     $changed_data = [];
     foreach ($_POST as $key => $value) {
-        if (strpos($key, "changed-") === 0)
+        if (str_starts_with($key, "changed-"))
             $changed_data[substr($key, strlen("changed-"))] = $value;
         else
             $entered_data[$key] = $value;
     }
     
     // fix for boolean (checkbox) values: efa expects "true" or nothing instead of "on" or nothing
-    $changed_data = Efa_tables::fix_boolean_text($tablename, $changed_data);
+    $changed_data = Efa_tables::fix_boolean_text($tableName, $changed_data);
     // register changes and try the new record for update
     $changes = "";
     foreach ($record as $key => $value) {
         if (isset($changed_data[$key]) &&
-                 (strcasecmp(strval($record[$key]), strval($changed_data[$key])) !== 0)) {
-            $changes .= $key . ": '" . strval($record[$key]) . "' => '" . strval($changed_data[$key]) . "'<br>";
+                 (strcasecmp(strval($value), strval($changed_data[$key])) !== 0)) {
+            $changes .= $key . ": '" . $value . "' => '" . $changed_data[$key] . "'<br>";
             $record[$key] = $changed_data[$key];
         }
     }
-    $is_versionized_table = in_array($tablename, Efa_tables::$versionized_table_names);
+    $is_versionized_table = in_array($tableName, Efa_tables::$versionized_table_names);
     $new_boat = false;
     $wayOfChange = 0;
     $current_record_ecrid = $record["ecrid"];
@@ -130,6 +138,7 @@ if ($done == 0) {
         // -------------- versionized records -------------------------------------------------
         // ------------------------------------------------------------------------------------
         if ($is_versionized_table) {
+            $modify_result = "";
             if ($add_new) {
                 // set invalid from, but no other field
                 $valid_from = (isset($entered_data["ValidityFromDate"]) &&
@@ -139,36 +148,35 @@ if ($done == 0) {
                 if ($valid_from == 0)
                     $form_errors .= i("Yhu6l5|The validity start date ...");
                 else {
-                    $new_record = [];
                     $new_record["Id"] = Tfyh_toolbox::static_create_GUIDv4();
                     $new_record["ValidFrom"] = $valid_from;
                     $new_record["InvalidFrom"] = Efa_tables::$forever64;
-                    $column_names = $socket->get_column_names($tablename);
+                    $column_names = $socket->get_column_names($tableName);
                     foreach ($changed_data as $key => $value) {
                         if (in_array($key, $column_names))
-                            $new_record[$key] = $changed_data[$key];
+                            $new_record[$key] = $value;
                     }
-                    $new_record = Efa_tables::add_system_fields_APIv3($new_record, $tablename, 1, 
+                    $new_record = Efa_tables::add_system_fields_APIv3($new_record, $tableName, 1,
                             $toolbox->users->session_user["@id"], $socket);
                     $new_record = Efa_tables::register_modification($new_record, time(), 0, "insert");
-                    $validated_record = $efa_record->validate_record_APIv3($tablename, $new_record, 1, 
+                    $validated_record = $efa_record->validate_record_APIv3($tableName, $new_record, 1,
                             $app_user_id, false);
                     if (is_array($validated_record))
-                        $modify_result = $efa_record->modify_record($tablename, $validated_record, 1, 
+                        $modify_result = $efa_record->modify_record($tableName, $validated_record, 1,
                                 $app_user_id, false);
                     else
                         $modify_result = $validated_record;
                         if ((strlen($modify_result) == 0) && ($modify_result !== false)) {
                         $new_ecrid = $validated_record["ecrid"];
-                        $changes .= i("B0quSZ|A record with the unique...", $new_record["ecrid"], $tablename) . " " .
-                                 "<a href='../pages/view_record.php?table=" . $tablename . '&ecrid=' .
+                        $changes .= i("B0quSZ|A record with the unique...", $new_record["ecrid"], $tableName) . " " .
+                                 "<a href='../pages/view_record.php?table=" . $tableName . '&ecrid=' .
                                  $new_ecrid . "'>" . i("FlfcWr|view") . "</a>. ";
-                        if (strcasecmp($tablename, "efa2boats") == 0)
+                        if (strcasecmp($tableName, "efa2boats") == 0)
                             $new_boat = $validated_record; // add a new boat status below.
                     } else
                         $form_errors .= $modify_result . "<br>" . i("sYfgN8|The record was not creat...");
                 }
-            } else { // update. Ways of change = 0=change content;1=change InvalidFrom;2=create new version
+            } else { // update. Ways of change = 0=change content;1=change InvalidFrom;2=create a new version
                 $record_valid_from32 = (isset($record["ValidFrom"])) ? Efa_tables::value_validity32(
                         $record["ValidFrom"]) : 0;
                 unset($record["ValidFrom"]); // when changing a record, the ValidFrom must never change
@@ -185,13 +193,13 @@ if ($done == 0) {
                     $record_invalid_from32 = Efa_tables::value_validity32($record["InvalidFrom"]);
                     // create a new version
                     if ((strlen($record["InvalidFrom"]) > 15))
-                        $form_errors .= i("sOvbNc| ** For the delimitation...", $changes);
+                        $form_errors .= i("sOvbNc|For the delimitation of ...", $changes);
                     elseif (($record_invalid_from32 - $record_valid_from32) < 86400)
-                        $form_errors .= i("PJnOSl| ** For the delimitation...", $changes);
+                        $form_errors .= i("PJnOSl|For the delimitation of ...", $changes);
                     
                     else {
                         $delimited_record = Efa_tables::register_modification($record, time(), 0, "update");
-                        $modify_result = $efa_record->modify_record($tablename, $delimited_record, 2, 
+                        $modify_result = $efa_record->modify_record($tableName, $delimited_record, 2,
                                 $app_user_id, false);
                         if (strlen($modify_result) != 0) {
                             $form_errors .= " " . i("Pv4vGW|The old version could no...") . " $modify_result";
@@ -204,12 +212,13 @@ if ($done == 0) {
                             $new_record["InvalidFrom"] = Efa_tables::$forever64;
                             unset($new_record["ecrid"]);
                             $new_record = Efa_tables::register_modification($new_record, time(), 0, "insert");
-                            $validated_record = $efa_record->validate_record_APIv3($tablename, $new_record, 1, 
+                            $validated_record = $efa_record->validate_record_APIv3($tableName, $new_record, 1,
                                     $app_user_id, false);
-                            if (is_array($validated_record))
-                                $copy_result = $efa_record->modify_record($tablename, $validated_record, 1, 
-                                        $app_user_id, false);
-                            else
+                            if (is_array($validated_record)) {
+                                $validated_record["ecrid"] = Efa_tables::generate_ecrids(1)[0];;
+                                $copy_result = $efa_record->modify_record($tableName, $validated_record, 1,
+                                    $app_user_id, false);
+                            } else
                                 $copy_result = $validated_record;
                             if (strlen($copy_result) == 0) {
                                 $changes .= ", " . i("GzZrqa|a new version has been c...");
@@ -226,10 +235,10 @@ if ($done == 0) {
                                 "update");
                         if ($wayOfChange == 1)
                             unset($record["ValidFrom"]);
-                        $validated_record = $efa_record->validate_record_APIv3($tablename, $record, 2, 
+                        $validated_record = $efa_record->validate_record_APIv3($tableName, $record, 2,
                                 $app_user_id, false);
                         if (is_array($validated_record))
-                            $modify_result = $efa_record->modify_record($tablename, $validated_record, 2, 
+                            $modify_result = $efa_record->modify_record($tableName, $validated_record, 2,
                                     $app_user_id, false);
                         else
                             $modify_result = $validated_record;
@@ -253,41 +262,41 @@ if ($done == 0) {
                     $new_record["BaseStatus"] = "AVAILABLE";
                     $new_record["CurrentStatus"] = "AVAILABLE";
                     $new_record["ShowInList"] = "AVAILABLE";
-                    $tablename = "efa2boatstatus";
+                    $tableName = "efa2boatstatus";
                 } else {
-                    $column_names = $socket->get_column_names($tablename);
+                    $column_names = $socket->get_column_names($tableName);
                     foreach ($changed_data as $key => $value) {
                         if (in_array($key, $column_names))
-                            $new_record[$key] = $changed_data[$key];
+                            $new_record[$key] = $value;
                     }
                 }
                 $new_record = Efa_tables::register_modification($new_record, time(), 0, "insert");
-                $validated_record = $efa_record->validate_record_APIv3($tablename, $new_record, 1, 
+                $validated_record = $efa_record->validate_record_APIv3($tableName, $new_record, 1,
                         $app_user_id, false);
                 if (is_array($validated_record))
-                    $modify_result = $efa_record->modify_record($tablename, $validated_record, 1, 
+                    $modify_result = $efa_record->modify_record($tableName, $validated_record, 1,
                             $app_user_id, false);
                 else
                     $modify_result = $validated_record;
                 if (strlen($modify_result) == 0) {
                     // successful insertion. Increment autoincrement counter first.
                     $current_record_ecrid = $validated_record["ecrid"];
-                    $efa_record->update_efa2autoincrement($tablename, $validated_record, $app_user_id);
+                    $efa_record->update_efa2autoincrement($tableName, $validated_record, $app_user_id);
                     $new_ecrid = $validated_record["ecrid"];
-                    $changes .= i("uUKDIW|A record with the unique...", $new_ecrid, $tablename) . " " .
-                             "<a href='../pages/view_record.php?table=" . $tablename . '&ecrid=' . $new_ecrid .
+                    $changes .= i("uUKDIW|A record with the unique...", $new_ecrid, $tableName) . " " .
+                             "<a href='../pages/view_record.php?table=" . $tableName . '&ecrid=' . $new_ecrid .
                              "'>" . i("4PkFAz|view") . "</a>. ";
                     // successful insertion of a new boat, add a boat status record.
-                    if (strcasecmp($tablename, "efa2boats") == 0)
+                    if (strcasecmp($tableName, "efa2boats") == 0)
                         $new_boat = $validated_record["Id"]; // add a new boat status below.
                 } else
                     $form_errors .= $modify_result . "<br>" . i("oSuy4P|The record was not creat...");
             } else {
                 $record = Efa_tables::register_modification($record, time(), $record["ChangeCount"], "update");
-                $validated_record = $efa_record->validate_record_APIv3($tablename, $record, 2, $app_user_id, 
+                $validated_record = $efa_record->validate_record_APIv3($tableName, $record, 2, $app_user_id,
                         false);
                 if (is_array($validated_record))
-                    $modify_result = $efa_record->modify_record($tablename, $validated_record, 2, 
+                    $modify_result = $efa_record->modify_record($tableName, $validated_record, 2,
                             $app_user_id, false);
                 else
                     $modify_result = $validated_record;
@@ -298,7 +307,7 @@ if ($done == 0) {
         }
     }
     if (strlen($form_errors) > 0)
-        $todo = $form_templates[$tablename];
+        $todo = $form_templates[$tableName];
     else
         $todo = count($form_templates) + 2;
 }
@@ -311,8 +320,8 @@ $type_categories = ["BOAT" => "TypeType","COXING" => "TypeCoxing","NUMSEATS" => 
         "RIGGING" => "TypeRigging"
 ];
 
-// ==== continue with the definition and eventually initialization of form to fill for the next step
-if (isset($form_filled) && ($todo == $form_templates[$tablename])) {
+// ==== continue with the definition and eventually initialisation of form to fill for the next step
+if (isset($form_filled) && ($todo == $form_templates[$tableName])) {
     // redo the 'done' form, if the $todo == $done, i. e. the validation failed.
     $form_to_fill = $form_filled;
     if ($add_new)
@@ -320,21 +329,21 @@ if (isset($form_filled) && ($todo == $form_templates[$tablename])) {
 } else {
     // if it is the start or all is fine, use a form for the coming step.
     $form_to_fill = new Tfyh_form($form_layout, $socket, $toolbox, $todo, $fs_id);
-    if ((strcasecmp("efa2logbook", $tablename) == 0) || (strcasecmp("efa2status", $tablename) == 0)) {
-        $types_type = (strcasecmp("efa2logbook", $tablename) == 0) ? "SESSION" : "STATUS";
+    if ((strcasecmp("efa2logbook", $tableName) == 0) || (strcasecmp("efa2status", $tableName) == 0)) {
+        $types_type = (strcasecmp("efa2logbook", $tableName) == 0) ? "SESSION" : "STATUS";
         $types = ["0="
         ];
         foreach ($efa_config->types[$types_type] as $type)
             $types[] = $type["Type"] . "=" . $type["Value"];
         $form_to_fill->select_options = $types;
-    } elseif (strcasecmp("efa2boats", $tablename) == 0) {
+    } elseif (strcasecmp("efa2boats", $tableName) == 0) {
         $form_to_fill->select_options = [];
         foreach ($type_categories as $type_category => $field_name) {
             $options = ["NOENTRY="
             ];
             foreach ($efa_config->types[$type_category] as $type)
                 $options[] = $type["Type"] . "=" . $type["Value"];
-            // four boat type variants are forseen as possible. Number will be changeable in javascript
+            // four boat type variants are forseen as possible. Number will be changeable in JavaScript
             $form_to_fill->select_options[$field_name . "1"] = $options;
             $form_to_fill->select_options[$field_name . "2"] = $options;
             $form_to_fill->select_options[$field_name . "3"] = $options;
@@ -343,10 +352,10 @@ if (isset($form_filled) && ($todo == $form_templates[$tablename])) {
     }
     if ($todo == 1) {
         // fix for boolean (checkbox) values: efa expects "true" or nothing instead of "on" or nothing
-        $preset = Efa_tables::fix_boolean_text($tablename, $record);
+        $preset = Efa_tables::fix_boolean_text($tableName, $record);
         
         // add a set of boat variant input fields, one per variant
-        if (strcasecmp("efa2boats", $tablename) == 0) {
+        if (strcasecmp("efa2boats", $tableName) == 0) {
             $variant_count = count(explode(";", $record["TypeVariant"]));
             $preset["VariantCount"] = $variant_count;
             foreach (["TypeVariant","TypeType","TypeCoxing","TypeSeats","TypeRigging","TypeDescription"
@@ -364,34 +373,35 @@ if (isset($form_filled) && ($todo == $form_templates[$tablename])) {
 
 // ===== start page output
 echo file_get_contents('../config/snippets/page_01_start');
+global $menu;
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("V1VijQ| ** Change a record ** &...", "<b>" . Efa_tables::locale_names()[$tablename] . "</b>");
+echo i("V1VijQ|<!-- START OF content -...", "<b>" . Efa_tables::locale_names()[$tableName] . "</b>");
 echo $toolbox->form_errors_to_html($form_errors);
 echo $form_to_fill->get_html();
 
 if ($todo < count($form_templates) + 2) { // step 1. No special texts for output
-    echo '<br /><a href="../pages/view_record.php?table=' . $tablename . '&ecrid=' . $record["ecrid"] .
+    echo '<br /><a href="../pages/view_record.php?table=' . $tableName . '&ecrid=' . $record["ecrid"] .
              '">Bearbeitung abbrechen</a>';
     echo $form_to_fill->get_help_html();
     
-    // add variables which shall be passed for lookup support in Javascript.
+    // add variables which shall be passed for lookup support in JavaScript.
     echo "<script>";
     echo "var formIsNewRecord = " . (($add_new) ? "true" : "false") . ";\n";
-    echo "var formTablename = '" . $tablename . "';\n";
-    echo "var formLookupsNeeded = '" . $lookups_needed[$tablename] . "';\n";
+    echo "var formTablename = '" . $tableName . "';\n";
+    echo "var formLookupsNeeded = '" . $lookups_needed[$tableName] . "';\n";
     $cfg_app = $toolbox->config->get_cfg();
     echo "var formNameFormat = '" . $cfg_app["efa_NameFormat"] . "';\n";
     echo "var formLookupsCsv = {};\n";
     include_once "../classes/tfyh_list.php";
     $list_args = ["{LastModified}" => "0"
     ];
-    foreach (explode(";", $lookups_needed[$tablename]) as $lookup_definition) {
+    foreach (explode(";", $lookups_needed[$tableName]) as $lookup_definition) {
         $listname = explode(":", $lookup_definition)[0];
         if (strcasecmp($listname, "efaweb_virtual_boatVariants") == 0)
-            $listname = "efaWeb_boats"; // the variant list will be created within the Javascrip Code for
+            $listname = "efaWeb_boats"; // the variant list will be created within the JavaScript Code for
                                         // efaClouzd & efaWeb
         $include_csv = new Tfyh_list("../config/lists/efaWeb", 0, $listname, $socket, $toolbox, $list_args);
         $csv_str = $include_csv->get_csv($toolbox->users->session_user);
@@ -401,7 +411,7 @@ if ($todo < count($form_templates) + 2) { // step 1. No special texts for output
     echo "</script>\n";
     echo $efa_config->pass_on_config();
 } else { // the very last form for all edits
-    echo i("dm895V| ** The data change is %...", (($form_errors) ? "nicht" : ""));
+    echo i("dm895V|    <p><b>The data cha...", (($form_errors) ? "nicht" : ""));
     echo $changes;
     echo "</p>";
 }

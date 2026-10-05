@@ -738,7 +738,7 @@ class Tfyh_config
         $settings_path = "../config/settings_app";
         $cfgStr = serialize($cfg_app);
         $cfgStrBase64 = base64_encode($cfgStr);
-        $info = "<p>" . i("c6AQAt|°%1° is written ... ", $settings_path);
+        $info = "<p>" . i("c6AQAt|%1 is written ... ", $settings_path);
         $byte_cnt = file_put_contents($settings_path, $cfgStrBase64);
         $info .= $byte_cnt . " " . i("n6ky2H|Byte.") . "</p>";
         return $info;

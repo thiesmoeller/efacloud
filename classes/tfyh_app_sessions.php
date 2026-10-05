@@ -200,7 +200,7 @@ class Tfyh_app_sessions
         // get existing session's user_id
         $session = $this->read_session($current_web_session_id);
         $user_id = $session["user_id"];
-        $this->log_event(i("F7Ctd4|Limiting °%1° for °%2°", $current_web_session_id, $user_id), true);
+        $this->log_event(i("F7Ctd4|Limiting %1 for %2", $current_web_session_id, $user_id), true);
         // provide the obsolete session with a grace period in case of network issues.
         $grace_period = Tfyh_toolbox::timef() + self::$grace_period;
         $this->write_session($grace_period, $grace_period, $user_id, $current_web_session_id);
@@ -277,7 +277,7 @@ class Tfyh_app_sessions
         // get existing session's user_id
         $session = $this->read_session($current_api_session_id);
         $user_id = $session["user_id"];
-        $this->log_event(i("To1Ea4|Limiting °%1° for °%2°", $current_api_session_id, $user_id), true);
+        $this->log_event(i("To1Ea4|Limiting %1 for %2", $current_api_session_id, $user_id), true);
         // update the current session's lifietime and keep alive period with a grace period in case of network
         // issues.
         $grace_period = Tfyh_toolbox::timef() + self::$grace_period;
@@ -318,13 +318,13 @@ class Tfyh_app_sessions
         $unlink_success = (file_exists($this->sessions_dir . $session_id)) ? unlink(
                 $this->sessions_dir . $session_id) : true;
         if (! $unlink_success)
-            $this->log_event(i("AsPYhV|Removing session °%1°.", $session_id, $cause), $unlink_success);
+            $this->log_event(i("AsPYhV|Removing session %1.", $session_id, $cause), $unlink_success);
         
         // close the PHP session, if no session ID was provided.
         if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION = array();
             $destroy_result = session_destroy();
-            $this->log_event(i("k1aGJk|Destroying session °%1°.", $session_id, $cause), $destroy_result);
+            $this->log_event(i("k1aGJk|Destroying session %1.", $session_id, $cause), $destroy_result);
         }
     }
 
@@ -344,7 +344,7 @@ class Tfyh_app_sessions
         // remove the app session file
         $unlink_success = unlink($this->sessions_dir . $session_id);
         if (! $unlink_success)
-            $this->log_event(i("legYF5|Removing session °%1°.", $session_id, $cause), $unlink_success);
+            $this->log_event(i("legYF5|Removing session %1.", $session_id, $cause), $unlink_success);
     }
 
     /**
@@ -432,7 +432,9 @@ class Tfyh_app_sessions
         $because_of = (! $success && (strlen($cause) > 0)) ? ". " . i("vKw9sL|Cause") . ": " . $cause : "";
         $result = ($success) ? i("8bTeiG|Successful") : i("H4WzFD|Failed") . $because_of;
         if ($this->debug_on) {
-            file_put_contents($this->debug_file, 
+            if (file_exists($this->debug_file) && (filesize($this->debug_file) > 1000000))
+                rename($this->debug_file, $this->debug_file . ".previous");
+            file_put_contents($this->debug_file,
                     date("Y-m-d H:i:s") . ": " . $message . ". " . $result . "\n", FILE_APPEND);
         }
         if (! $success)
@@ -476,7 +478,7 @@ class Tfyh_app_sessions
         $existig_session = $this->read_session($session_id);
         if (($existig_session !== false) &&
                  ($existig_session["ends_on"] < (Tfyh_toolbox::timef() + self::$grace_period + 1)))
-            return $this->log_event(i("Wv9xkv|Writing session °%1°", $session_id), false, 
+            return $this->log_event(i("Wv9xkv|Writing session %1", $session_id), false,
                     i("6gdISg|no more updates, too clo..."));
         $session_file_contents = $alive_until . ";" . $ends_on . ";" . $user_id . ";" . $this->client_token() .
                  ";" . "alive until " . date("Y-m-d H:i:s", intval($alive_until)) . ", ends on " .
@@ -605,7 +607,7 @@ class Tfyh_app_sessions
         if (file_exists($session_file))
             return $this->log_event(i("K6OO1w|Creating new session fil...") . " " . $session_file, false);
         if ($open_sessions_count >= $this->max_concurrent_sessions)
-            return $this->log_event(i("Z9Ncn1|Starting new session. Cu...") . " " . $open_sessions_count, 
+            return $this->log_event(i("Z9Ncn1|Starting new session °$s...") . " " . $open_sessions_count,
                     false);
         $now = Tfyh_toolbox::timef();
         return $this->write_session($now + $this->max_session_keepalive, $now + $this->max_session_duration, 

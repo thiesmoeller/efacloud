@@ -70,7 +70,7 @@ if (! isset($_GET["upgrade"])) {
     // see https://stackoverflow.com/questions/5647461/how-do-i-send-a-post-request-with-php
     $app_url = $toolbox->config->app_url;
     if (strlen($app_url) > 0) {
-        echo "<p>" . i("YNja1L|Your update to °%1° will...", $version_server, $app_root, 
+        echo "<p>" . i("", $version_server, $app_root,
                 (new DateTime())->format("Y-m-d H:i:a")) . "'<br>";
         $url = $app_url . '/registration.php';
         $data = array('version' => $version_server,'server' => $app_root
@@ -88,7 +88,7 @@ if (! isset($_GET["upgrade"])) {
         else 
             echo " - failed to register to $url.</p>";
     } else
-        echo "<p>" . i("oelARg|no URL to register upgra...") . "</p>";
+        echo "<p>" . i("") . "</p>";
     
     // ==============================================================================================
     // check loaded modules
