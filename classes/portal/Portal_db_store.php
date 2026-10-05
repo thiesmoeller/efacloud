@@ -27,39 +27,87 @@ class Portal_db_store implements Portal_store
         if (!is_dir($this->acksDir)) {
             @mkdir($this->acksDir, 0755, true);
         }
-        $this->logbookName = $logbookName ?? date('Y');
-        $this->load_config_cache();
+        $resolved = $this->load_live_efa_settings();
+        $this->configCache = $resolved['config'];
+        $this->logbookName = ($logbookName !== null && $logbookName !== '')
+            ? $logbookName
+            : ($resolved['logbook'] !== '' ? $resolved['logbook'] : date('Y'));
     }
 
-    private function load_config_cache(): void
+    /**
+     * Resolve club config + current logbook the same way as efaWeb / the desk:
+     * Efa_config (client_cfg / client_cfg_default + server current_logbook,
+     * optionally overridden by the reference client's CurrentLogbookEfaBoathouse).
+     *
+     * Fixture keys are soft defaults for local/dev images that still ship
+     * fixtures/sanitized; production images omit that path via .dockerignore.
+     *
+     * @return array{config: array<string,mixed>, logbook: string}
+     */
+    private function load_live_efa_settings(): array
     {
-        $path = dirname(__DIR__, 2) . '/fixtures/sanitized/club-config.json';
-        // Prefer live efa config if available later; fall back to known keys file for boathouse defaults.
-        if (is_file($path)) {
-            $j = json_decode((string) file_get_contents($path), true);
+        $config = [];
+        $root = dirname(__DIR__, 2);
+
+        $fixturePath = $root . '/fixtures/sanitized/club-config.json';
+        if (is_file($fixturePath)) {
+            $j = json_decode((string) file_get_contents($fixturePath), true);
             if (isset($j['keys']) && is_array($j['keys'])) {
-                $this->configCache = $j['keys'];
+                $config = $j['keys'];
             }
         }
-        // Overlay from client-uploaded config if present.
-        $cfgDir = dirname(__DIR__, 2) . '/config/efaCloud';
-        if (is_dir($cfgDir)) {
-            foreach (glob($cfgDir . '/*.json') ?: [] as $f) {
-                $data = json_decode((string) file_get_contents($f), true);
-                if (!is_array($data)) {
-                    continue;
-                }
-                foreach (['efaConfig', 'efa2config', 'keys'] as $bucket) {
-                    if (isset($data[$bucket]) && is_array($data[$bucket])) {
-                        foreach ($data[$bucket] as $k => $v) {
-                            if (is_scalar($v) || is_bool($v)) {
-                                $this->configCache[$k] = $v;
-                            }
-                        }
+
+        $logbook = '';
+        try {
+            require_once dirname(__DIR__) . '/efa_config.php';
+            $efa = new Efa_config($this->toolbox);
+            if (is_array($efa->config)) {
+                foreach ($efa->config as $name => $value) {
+                    if (!is_string($name) || $name === '') {
+                        continue;
                     }
+                    if (!(is_scalar($value) || is_bool($value) || $value === null)) {
+                        continue;
+                    }
+                    $config[$name] = $this->coerce_config_value($value);
                 }
             }
+            if (is_string($efa->current_logbook) && $efa->current_logbook !== '') {
+                $logbook = $efa->current_logbook;
+            }
+        } catch (Throwable $ignore) {
+            // Keep fixture defaults / calendar-year fallback.
         }
+
+        return ['config' => $config, 'logbook' => $logbook];
+    }
+
+    /**
+     * efa client config.json stores booleans/numbers as strings; portal checks
+     * use PHP truthiness (!empty / !), so coerce common scalars.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function coerce_config_value($value)
+    {
+        if (is_bool($value) || is_int($value) || is_float($value) || $value === null) {
+            return $value;
+        }
+        if (!is_string($value)) {
+            return $value;
+        }
+        $lower = strtolower($value);
+        if ($lower === 'true') {
+            return true;
+        }
+        if ($lower === 'false') {
+            return false;
+        }
+        if ($value !== '' && is_numeric($value)) {
+            return str_contains($value, '.') ? (float) $value : (int) $value;
+        }
+        return $value;
     }
 
     /** Upper bound for "load all rows" portal reads (fleet-sized). */

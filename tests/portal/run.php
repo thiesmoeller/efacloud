@@ -297,6 +297,40 @@ expect_true($abort['aborted'], 'abort deleted trip');
 expect_true(isset($abort['damage']), 'damage included on abort-with-damage');
 expect_true($app->store->trip('2026', '3') === null, 'entry 3 gone after abort');
 
+echo "== abort-with-damage rolls back if trip delete fails ==\n";
+$failStore = new class($fixtures) extends Portal_fixture_store {
+    public bool $failDelete = false;
+
+    public function delete_trip(string $logbookName, string $entryId, int $expectedChangeCount): void
+    {
+        if ($this->failDelete) {
+            throw new RuntimeException('simulated delete failure');
+        }
+        parent::delete_trip($logbookName, $entryId, $expectedChangeCount);
+    }
+};
+$failApp = new Portal_app($failStore);
+$failApp->session = new Portal_session($failStore, $throttleBase . '/' . bin2hex(random_bytes(3)));
+$failTrainer = $failStore->user_by_id(102);
+$failTrip = $failStore->trip('2026', '3');
+$damagesBefore = count($failStore->all_damages());
+$failStore->failDelete = true;
+$rolledBack = false;
+try {
+    $failApp->trips->abort($failTrainer, '3', [
+        'expectedChangeCount' => intval($failTrip['ChangeCount']),
+        'withDamage' => [
+            'severity' => 'FULLYUSEABLE',
+            'description' => 'Sollte zurückgerollt werden',
+        ],
+    ]);
+} catch (RuntimeException $e) {
+    $rolledBack = ($e->getMessage() === 'simulated delete failure');
+}
+expect_true($rolledBack, 'abort surfaced delete failure');
+expect_eq(count($failStore->all_damages()), $damagesBefore, 'orphan damage not left after failed abort');
+expect_true($failStore->trip('2026', '3') !== null, 'trip still present after failed abort');
+
 echo "== BoatCaptain not forced ==\n";
 $app = fresh_app($fixtures, $throttleBase);
 $member = $app->store->user_by_id(101);

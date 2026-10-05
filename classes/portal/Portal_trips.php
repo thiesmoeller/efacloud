@@ -246,15 +246,20 @@ class Portal_trips
             Portal_permissions::assert_can_manage_trip($user, $existing);
             $expectedCc = $this->require_change_count($body, $existing);
             $boatId = (string) ($existing['BoatId'] ?? '');
+            $withDamage = (!empty($body['withDamage']) && is_array($body['withDamage']))
+                ? $body['withDamage']
+                : null;
 
-            $damageResult = null;
-            if (!empty($body['withDamage']) && is_array($body['withDamage'])) {
-                $dmgBody = $body['withDamage'];
-                $dmgBody['boatId'] = $dmgBody['boatId'] ?? $boatId;
-                $damageResult = $this->damage->report($user, $dmgBody);
-            }
-
-            return $this->store->atomic(function () use ($logbook, $entryId, $expectedCc, $boatId, $damageResult) {
+            // Damage insert + trip delete + boat-status reset must share one
+            // transaction so a failed abort cannot leave an orphan damage row
+            // (and so retries do not duplicate damages).
+            return $this->store->atomic(function () use ($user, $withDamage, $logbook, $entryId, $expectedCc, $boatId) {
+                $damageResult = null;
+                if ($withDamage !== null) {
+                    $dmgBody = $withDamage;
+                    $dmgBody['boatId'] = $dmgBody['boatId'] ?? $boatId;
+                    $damageResult = $this->damage->report($user, $dmgBody);
+                }
                 $this->store->delete_trip($logbook, $entryId, $expectedCc);
                 $st = $this->store->boat_status($boatId);
                 if ($st) {
