@@ -46,6 +46,8 @@ for dir in config log uploads attachements pdfs resources; do
     seed_dir "$dir"
 done
 
+sh /usr/local/bin/efacloud-update-bundled-config
+
 mkdir -p \
     /var/www/html/log/api_errors \
     /var/www/html/log/api_inits \

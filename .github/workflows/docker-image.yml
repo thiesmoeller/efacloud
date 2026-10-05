@@ -79,6 +79,13 @@ jobs:
           '
           echo "Smoke OK"
 
+      - name: Security, portal, and persistent configuration regressions
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/security/run.php
+          docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/portal/run.php
+          sh tests/security/config-migration.sh
+
       # Multi-arch manifest list — CapRover arm64 pulls the arm64 variant.
       - name: Build and push multi-arch image
         id: push
