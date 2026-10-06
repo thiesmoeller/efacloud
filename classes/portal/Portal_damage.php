@@ -39,6 +39,20 @@ class Portal_damage
      */
     public function report(array $user, array $body): array
     {
+        if (Portal_permissions::is_account_revoked($user)) throw Portal_error::revoked();
+        return $this->store->atomic(function () use ($user, $body) {
+            $key = (string) ($body['idempotencyKey'] ?? '');
+            $userId = (string) $user['efaCloudUserID'];
+            $scope = 'damage:' . ($body['boatId'] ?? '') . ':' . $key;
+            if ($key !== '' && ($cached = $this->store->idempotency_get($userId, $scope)) !== null) return $cached;
+            $result = $this->report_once($user, $body);
+            if ($key !== '') $this->store->idempotency_put($userId, $scope, $result);
+            return $result;
+        });
+    }
+
+    private function report_once(array $user, array $body): array
+    {
         if (Portal_permissions::is_account_revoked($user)) {
             throw Portal_error::revoked();
         }

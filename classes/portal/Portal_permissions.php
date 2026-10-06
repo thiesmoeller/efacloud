@@ -1,7 +1,8 @@
 <?php
 /**
- * Trip permission checks: members manage trips they participate in;
- * trainer concession manages any crew's trips without admin/repair.
+ * Checkout eligibility: members may start with themselves aboard;
+ * the trainer concession permits organizing any crew. Existing portal trips
+ * are authorized separately by durable checkout attribution in Portal_trips.
  */
 
 declare(strict_types=1);

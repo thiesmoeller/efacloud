@@ -228,7 +228,8 @@ class Portal_session
             'trainer' => Portal_permissions::has_trainer_privilege($user),
             'canReportDamage' => true,
             'canManageOwnTrips' => true,
-            'canManageAnyTrips' => Portal_permissions::has_trainer_privilege($user)
+            'canManageAnyTrips' => Portal_permissions::is_admin($user),
+            'canStartAnyCrew' => Portal_permissions::has_trainer_privilege($user)
                 || in_array(strtolower((string) ($user['Rolle'] ?? '')), ['admin', 'board', 'bths'], true),
             'isAdmin' => Portal_permissions::is_admin($user),
             // Password reset is admin-assisted — not self-service in v1.

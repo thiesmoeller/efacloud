@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Fragment, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { SwUpdateBanner } from "./components/SwUpdateBanner";
 import { useOnline } from "./hooks/useOnline";
 import { useServiceWorker } from "./hooks/useServiceWorker";
+import { MyTripsScreen } from "./screens/MyTripsScreen";
 import { BoatDetailScreen } from "./screens/BoatDetailScreen";
 import { BoatListScreen } from "./screens/BoatListScreen";
 import { DamageListScreen } from "./screens/DamageListScreen";
@@ -14,7 +15,7 @@ import { TripFormScreen } from "./screens/TripFormScreen";
 import { VariantPickScreen } from "./screens/VariantPickScreen";
 
 function Protected({ children }: { children: ReactNode }) {
-  const { loading, authenticated } = useAuth();
+  const { loading, authenticated, user } = useAuth();
   if (loading) {
     return (
       <div className="screen">
@@ -23,18 +24,20 @@ function Protected({ children }: { children: ReactNode }) {
     );
   }
   if (!authenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Fragment key={user?.efaCloudUserID}>{children}</Fragment>;
 }
 
 export function App() {
   const online = useOnline();
+  const location = useLocation();
+  const editing = location.pathname.startsWith("/trips/") || location.pathname.endsWith("/damages/new");
   const { waiting, applyUpdate } = useServiceWorker();
   const { authenticated } = useAuth();
 
   return (
     <div className="app-shell">
       <OfflineBanner online={online} />
-      <SwUpdateBanner visible={!!waiting} onUpdate={applyUpdate} />
+      <SwUpdateBanner visible={!!waiting && !editing} onUpdate={applyUpdate} />
       <Routes>
         <Route
           path="/login"
@@ -44,10 +47,11 @@ export function App() {
           path="/"
           element={
             <Protected>
-              <BoatListScreen />
+              <MyTripsScreen />
             </Protected>
           }
         />
+        <Route path="/boats" element={<Protected><BoatListScreen /></Protected>} />
         <Route
           path="/boats/:boatId"
           element={

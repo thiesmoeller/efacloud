@@ -20,6 +20,7 @@ export interface PortalPrivileges {
   canReportDamage: boolean;
   canManageOwnTrips: boolean;
   canManageAnyTrips: boolean;
+  canStartAnyCrew: boolean;
   isAdmin: boolean;
   passwordReset: string;
 }
@@ -185,8 +186,11 @@ export interface PortalErrorBody {
 export interface StartTripBody {
   boatId: string;
   boatVariant: string;
+  date?: string;
+  startTime?: string;
   crew: Array<{ id: string; name?: string }>;
   coxId?: string;
+  coxName?: string;
   boatCaptain?: string;
   destinationId?: string;
   destinationName?: string;

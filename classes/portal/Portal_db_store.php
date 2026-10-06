@@ -9,7 +9,7 @@ class Portal_db_store implements Portal_store
 {
     private $socket;
     private $toolbox;
-    private string $idempotencyDir;
+    private int $transactionDepth = 0;
     private string $acksDir;
     private string $logbookName;
     private array $configCache = [];
@@ -19,11 +19,8 @@ class Portal_db_store implements Portal_store
         $this->socket = $socket;
         $this->toolbox = $toolbox;
         $root = dirname(__DIR__, 2);
-        $this->idempotencyDir = $root . '/log/portal_idempotency';
         $this->acksDir = $root . '/log/portal_acks';
-        if (!is_dir($this->idempotencyDir)) {
-            @mkdir($this->idempotencyDir, 0755, true);
-        }
+        $this->ensure_portal_schema();
         if (!is_dir($this->acksDir)) {
             @mkdir($this->acksDir, 0755, true);
         }
@@ -32,6 +29,50 @@ class Portal_db_store implements Portal_store
         $this->logbookName = ($logbookName !== null && $logbookName !== '')
             ? $logbookName
             : ($resolved['logbook'] !== '' ? $resolved['logbook'] : date('Y'));
+    }
+
+    // These tables deliberately live outside the efa2 synchronization namespace.
+    private function ensure_portal_schema(): void
+    {
+        $engines = $this->query("SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('efa2logbook','efa2boatstatus','efa2boatdamages')")->fetch_all(MYSQLI_ASSOC);
+        foreach ($engines as $table) {
+            if (strcasecmp($table['ENGINE'], 'InnoDB') !== 0) {
+                throw new RuntimeException('Portal requires InnoDB for ' . $table['TABLE_NAME']);
+            }
+        }
+        foreach (explode(';', (string) file_get_contents(__DIR__ . '/schema.sql')) as $sql) {
+            if (trim($sql) !== '') $this->query($sql);
+        }
+    }
+
+    private function query(string $sql)
+    {
+        $result = $this->socket->mysqli->query($sql);
+        if ($result === false) throw new RuntimeException('Portal database operation failed.');
+        return $result;
+    }
+
+    public function attribute_checkout(array $trip, int $userId): void
+    {
+        $lb = $this->escape($trip['Logbookname']);
+        $id = $this->escape($trip['ecrid']);
+        $this->query("INSERT INTO portal_checkouts (logbook_name, trip_ecrid, user_id) VALUES ('$lb', '$id', $userId)");
+    }
+
+    public function checkout_owner(array $trip): ?int
+    {
+        $lb = $this->escape($trip['Logbookname'] ?? '');
+        $id = $this->escape($trip['ecrid'] ?? '');
+        $row = $this->query("SELECT user_id FROM portal_checkouts WHERE logbook_name='$lb' AND trip_ecrid='$id'")->fetch_assoc();
+        return $row ? intval($row['user_id']) : null;
+    }
+
+    public function trips_started_by(int $userId): array
+    {
+        return $this->query("SELECT t.* FROM efa2logbook t JOIN portal_checkouts c
+            ON BINARY t.Logbookname = BINARY c.logbook_name AND BINARY t.ecrid = BINARY c.trip_ecrid
+            WHERE c.user_id=$userId")->fetch_all(MYSQLI_ASSOC);
     }
 
     /**
@@ -156,6 +197,10 @@ class Portal_db_store implements Portal_store
 
     public function boat_status(string $boatId): ?array
     {
+        if ($this->transactionDepth > 0) {
+            $id = $this->escape($boatId);
+            return $this->query("SELECT * FROM efa2boatstatus WHERE BoatId='$id' FOR UPDATE")->fetch_assoc();
+        }
         $r = $this->socket->find_record_matched('efa2boatstatus', ['BoatId' => $boatId]);
         return ($r === false || !is_array($r)) ? null : $r;
     }
@@ -254,6 +299,11 @@ class Portal_db_store implements Portal_store
 
     public function trip(string $logbookName, string $entryId): ?array
     {
+        if ($this->transactionDepth > 0) {
+            $lb = $this->escape($logbookName);
+            $id = $this->escape($entryId);
+            return $this->query("SELECT * FROM efa2logbook WHERE Logbookname='$lb' AND EntryId='$id' FOR UPDATE")->fetch_assoc();
+        }
         $r = $this->socket->find_record_matched(
             'efa2logbook',
             ['Logbookname' => $logbookName, 'EntryId' => $entryId]
@@ -270,6 +320,12 @@ class Portal_db_store implements Portal_store
             self::MAX_ROWS
         );
         return is_array($all) ? $all : [];
+    }
+
+    public function has_open_trip(string $boatId): bool
+    {
+        $id = $this->escape($boatId);
+        return $this->query("SELECT ecrid FROM efa2logbook WHERE BoatId='$id' AND Open IN ('true','1') AND COALESCE(LastModification,'') <> 'delete' LIMIT 1")->num_rows > 0;
     }
 
     public function user_by_account(string $account): ?array
@@ -365,7 +421,7 @@ class Portal_db_store implements Portal_store
         $record = $this->bump($record, 'insert');
         $record = $this->filter_table_columns('efa2logbook', $record);
         $res = $this->socket->insert_into($this->actor_id(), 'efa2logbook', $record);
-        if (!is_numeric($res) && is_string($res) && $res !== '') {
+        if ($res === false || (!is_numeric($res) && is_string($res) && $res !== '')) {
             throw new RuntimeException('efa2logbook insert failed: ' . $res);
         }
         return $record;
@@ -387,7 +443,7 @@ class Portal_db_store implements Portal_store
         $merged = $this->bump($merged, 'update');
         $merged = $this->filter_table_columns('efa2logbook', $merged);
         $key = ['Logbookname' => $merged['Logbookname'], 'EntryId' => $merged['EntryId']];
-        $this->socket->update_record_matched($this->actor_id(), 'efa2logbook', $key, $merged);
+        $this->assert_write($this->socket->update_record_matched($this->actor_id(), 'efa2logbook', $key, $merged));
         return $merged;
     }
 
@@ -405,10 +461,10 @@ class Portal_db_store implements Portal_store
         }
         // Soft-delete style: clear via efa_record semantics is complex; physical delete of open entry
         // matches desktop abort (trip never happened).
-        $this->socket->delete_record_matched($this->actor_id(), 'efa2logbook', [
+        $this->assert_write($this->socket->delete_record_matched($this->actor_id(), 'efa2logbook', [
             'Logbookname' => $logbookName,
             'EntryId' => $entryId,
-        ]);
+        ]));
     }
 
     public function update_boat_status(array $status, ?int $expectedChangeCount = null): array
@@ -421,7 +477,7 @@ class Portal_db_store implements Portal_store
             }
             $status = $this->filter_table_columns('efa2boatstatus', $status);
             $res = $this->socket->insert_into($this->actor_id(), 'efa2boatstatus', $status);
-            if (!is_numeric($res) && is_string($res) && $res !== '') {
+            if ($res === false || (!is_numeric($res) && is_string($res) && $res !== '')) {
                 throw new RuntimeException('efa2boatstatus insert failed: ' . $res);
             }
             return $status;
@@ -435,7 +491,7 @@ class Portal_db_store implements Portal_store
         $merged = array_merge($existing, $status);
         $merged = $this->bump($merged, 'update');
         $merged = $this->filter_table_columns('efa2boatstatus', $merged);
-        $this->socket->update_record_matched($this->actor_id(), 'efa2boatstatus', ['BoatId' => $merged['BoatId']], $merged);
+        $this->assert_write($this->socket->update_record_matched($this->actor_id(), 'efa2boatstatus', ['BoatId' => $merged['BoatId']], $merged));
         return $merged;
     }
 
@@ -450,10 +506,17 @@ class Portal_db_store implements Portal_store
         $damage = $this->bump($damage, 'insert');
         $damage = $this->filter_table_columns('efa2boatdamages', $damage);
         $res = $this->socket->insert_into($this->actor_id(), 'efa2boatdamages', $damage);
-        if (!is_numeric($res) && is_string($res) && $res !== '') {
+        if ($res === false || (!is_numeric($res) && is_string($res) && $res !== '')) {
             throw new RuntimeException('efa2boatdamages insert failed: ' . $res);
         }
         return $damage;
+    }
+
+    private function assert_write($result): void
+    {
+        if ($result === false || (is_string($result) && $result !== '' && !is_numeric($result))) {
+            throw new RuntimeException('Portal write failed: ' . (string) $result);
+        }
     }
 
     private function filter_table_columns(string $table, array $record): array
@@ -474,7 +537,7 @@ class Portal_db_store implements Portal_store
                 continue;
             }
             if ($v === '' && in_array($k, $omitEmptyNumeric, true)) {
-                continue;
+                $v = null;
             }
             $out[$k] = $v;
         }
@@ -483,28 +546,35 @@ class Portal_db_store implements Portal_store
 
     public function atomic(callable $fn)
     {
+        if ($this->transactionDepth > 0) return $fn();
+        require_once dirname(__DIR__) . '/efa_boat_concurrency_guard.php';
+        return Efa_boat_concurrency_guard::with_mutation_lock($this->socket,
+            fn() => $this->transaction($fn));
+    }
+
+    private function transaction(callable $fn)
+    {
         $mysqli = $this->socket->mysqli;
-        if ($mysqli && method_exists($mysqli, 'begin_transaction')) {
-            $mysqli->begin_transaction();
-            try {
-                $result = $fn();
-                $mysqli->commit();
-                return $result;
-            } catch (Throwable $e) {
-                $mysqli->rollback();
-                throw $e;
-            }
+        $mysqli->begin_transaction();
+        $this->transactionDepth++;
+        try {
+            // Serialize portal retries, including the gap before an idempotency row exists.
+            $this->query('SELECT id FROM portal_mutation_lock WHERE id=1 FOR UPDATE');
+            $result = $fn();
+            if (!$mysqli->commit()) throw new RuntimeException('Portal commit failed.');
+            return $result;
+        } catch (Throwable $e) {
+            $mysqli->rollback();
+            throw $e;
+        } finally {
+            $this->transactionDepth--;
         }
-        return $fn();
     }
 
     public function next_entry_id(string $logbookName): string
     {
-        $all = $this->socket->find_records_matched(
-            'efa2logbook',
-            ['Logbookname' => $logbookName],
-            self::MAX_ROWS
-        );
+        $lb = $this->escape($logbookName);
+        $all = $this->query("SELECT EntryId FROM efa2logbook WHERE Logbookname='$lb' FOR UPDATE")->fetch_all(MYSQLI_ASSOC);
         $max = 0;
         if (is_array($all)) {
             foreach ($all as $t) {
@@ -531,19 +601,18 @@ class Portal_db_store implements Portal_store
 
     public function idempotency_get(string $userId, string $key): ?array
     {
-        $safe = preg_replace('/[^a-zA-Z0-9._-]/', '_', $userId . '_' . $key);
-        $path = $this->idempotencyDir . '/' . $safe . '.json';
-        if (!is_file($path)) {
-            return null;
-        }
-        $data = json_decode((string) file_get_contents($path), true);
-        return is_array($data) ? $data : null;
+        $id = $this->escape($userId);
+        $hash = hash('sha256', $key);
+        $row = $this->query("SELECT response FROM portal_idempotency WHERE user_id='$id' AND key_hash='$hash'")->fetch_assoc();
+        return $row ? json_decode($row['response'], true, 512, JSON_THROW_ON_ERROR) : null;
     }
 
     public function idempotency_put(string $userId, string $key, array $response): void
     {
-        $safe = preg_replace('/[^a-zA-Z0-9._-]/', '_', $userId . '_' . $key);
-        file_put_contents($this->idempotencyDir . '/' . $safe . '.json', json_encode($response));
+        $id = $this->escape($userId);
+        $hash = hash('sha256', $key);
+        $json = $this->escape(json_encode($response, JSON_THROW_ON_ERROR));
+        $this->query("INSERT INTO portal_idempotency (user_id, key_hash, response) VALUES ('$id', '$hash', '$json')");
     }
 
     public function save_acknowledgment(array $payload): string

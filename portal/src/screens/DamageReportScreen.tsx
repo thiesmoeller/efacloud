@@ -1,13 +1,18 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { MutationAttempt } from "../lib/mutationAttempt";
+import { useOnline } from "../hooks/useOnline";
 import { api } from "../api/client";
 import { PortalApiError } from "../api/errors";
 import type { DamageSeverity } from "../api/types";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SeverityPicker } from "../components/SeverityPicker";
 
-export function DamageReportScreen() {
-  const { boatId = "" } = useParams();
+export function DamageReportScreen({ forBoat, onDone, onBusyChange }: { forBoat?: string; onDone?: () => void; onBusyChange?: (busy: boolean) => void } = {}) {
+  const { boatId: routeBoat = "" } = useParams();
+  const boatId = forBoat ?? routeBoat;
+  const attempt = useRef(new MutationAttempt());
+  const online = useOnline();
   const navigate = useNavigate();
   const [severity, setSeverity] = useState<DamageSeverity>("LIMITEDUSEABLE");
   const [description, setDescription] = useState("");
@@ -19,14 +24,15 @@ export function DamageReportScreen() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    onBusyChange?.(true);
     setError(null);
     setSuccess(null);
     try {
-      const res = await api.reportDamage(boatId, {
+      const res = await attempt.current.run({
         severity,
         description: description.trim(),
         logbookText: logbookText.trim() || undefined,
-      });
+      }, b => api.reportDamage(boatId, b as Parameters<typeof api.reportDamage>[1]));
       // Reporting must not imply the trip finished.
       const note =
         res.message ||
@@ -34,17 +40,18 @@ export function DamageReportScreen() {
           ? "Schaden gemeldet. Die Fahrt wurde nicht beendet oder abgebrochen."
           : "Schaden gemeldet.");
       setSuccess(note);
-      setTimeout(() => navigate(`/boats/${encodeURIComponent(boatId)}/damages`), 900);
+      if (!onDone) navigate(`/boats/${encodeURIComponent(boatId)}/damages`, { replace: true });
     } catch (err) {
       setError(err instanceof PortalApiError ? err.message : "Melden fehlgeschlagen.");
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   };
 
   return (
     <div className="screen">
-      <ScreenHeader title="Schaden melden" backTo={`/boats/${encodeURIComponent(boatId)}`} />
+      {!onDone && <ScreenHeader title="Schaden melden" backTo={`/boats/${encodeURIComponent(boatId)}`} />}
       <p className="muted" style={{ margin: 0 }}>
         Melden beendet keine Fahrt und bricht sie nicht ab.
       </p>
@@ -69,10 +76,11 @@ export function DamageReportScreen() {
         </div>
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+        <button type="submit" className="btn btn-primary btn-block" disabled={busy || !online || !!success}>
           Melden
         </button>
       </form>
+      {onDone && <button type="button" disabled={busy} className="btn btn-secondary" onClick={onDone}>Zurück zur Fahrt</button>}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { PortalApiError } from "../api/errors";
@@ -23,19 +23,26 @@ import {
   nextAckDialog,
 } from "../lib/ackFlow";
 import { isCoxed, seatCountFromCategory } from "../lib/badges";
-import { newIdempotencyKey } from "../lib/idempotency";
+import { MutationAttempt } from "../lib/mutationAttempt";
+import { DamageReportScreen } from "./DamageReportScreen";
+import { Modal } from "../components/Modal";
+import { useOnline } from "../hooks/useOnline";
 
 type Mode = "start" | "correct" | "finish";
 
 export function TripFormScreen() {
   const navigate = useNavigate();
+  const online = useOnline();
+  const attempts = useRef({ start: new MutationAttempt(), correct: new MutationAttempt(), finish: new MutationAttempt(), abort: new MutationAttempt() });
   const { entryId } = useParams();
   const [params] = useSearchParams();
+  const logbookName = params.get("logbookName") ?? undefined;
+  const [reload, setReload] = useState(0);
   const boatIdParam = params.get("boatId") ?? "";
   const variantParam = params.get("variant") ?? "1";
 
   const isExisting = !!entryId && entryId !== "new";
-  const [mode, setMode] = useState<Mode>(isExisting ? "correct" : "start");
+  const [mode, setMode] = useState<Mode>(isExisting ? "finish" : "start");
   const [trip, setTrip] = useState<Trip | null>(null);
   const [detail, setDetail] = useState<BoatDetailResponse | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -47,7 +54,10 @@ export function TripFormScreen() {
   const [cox, setCox] = useState<Person | null>(null);
   const [boatCaptain, setBoatCaptain] = useState("");
   const [destinationId, setDestinationId] = useState("");
+  const [destinationName, setDestinationName] = useState("");
   const [distance, setDistance] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [endTime, setEndTime] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -58,7 +68,8 @@ export function TripFormScreen() {
   const [ackQueue, setAckQueue] = useState<AckCheck[]>([]);
   const [currentAck, setCurrentAck] = useState<AckCheck | null>(null);
   const [pendingAction, setPendingAction] = useState<"start" | "correct" | null>(null);
-  const [idemKey] = useState(() => newIdempotencyKey());
+
+  const [damageOpen, setDamageOpen] = useState(false);
   const [abortOpen, setAbortOpen] = useState(false);
   const [abortWithDamage, setAbortWithDamage] = useState(false);
   const [abortSeverity, setAbortSeverity] = useState<DamageSeverity>("LIMITEDUSEABLE");
@@ -69,9 +80,8 @@ export function TripFormScreen() {
   }, [detail, variant]);
 
   const coxNeeded = selectedVariant ? isCoxed(selectedVariant.typeCoxing) : false;
-  const seatCount = selectedVariant
-    ? seatCountFromCategory(selectedVariant.seatCategory)
-    : crew.length;
+  const configuredSeats = selectedVariant ? seatCountFromCategory(selectedVariant.seatCategory) : crew.length;
+  const seatCount = config.InputAllowOnlyMaxCrewNumber === false ? Math.max(configuredSeats, crew.length) : configuredSeats;
 
   useEffect(() => {
     setCrew((prev) => {
@@ -95,21 +105,21 @@ export function TripFormScreen() {
         setDestinations(dests.destinations);
 
         if (isExisting && entryId) {
-          const { trip: t } = await api.getTrip(entryId);
+          const { trip: t } = await api.getTrip(entryId, logbookName);
           if (cancelled) return;
           setTrip(t);
+          setStartTime(t.startTime);
+          setStartDate(t.date);
           setBoatId(t.boatId);
           setVariant(t.boatVariant || "1");
           setDestinationId(t.destinationId || "");
+          setDestinationName(t.destinationName || "");
           setDistance(t.distance || "");
           setBoatCaptain(t.boatCaptain || "");
-          setCox(t.cox?.id ? { id: t.cox.id, firstName: "", lastName: "", displayName: t.cox.name } : null);
-          const crewPersons: Array<Person | null> = t.crew.map((c) =>
-            c.id
-              ? { id: c.id, firstName: "", lastName: "", displayName: c.name }
-              : null
-          );
-          setCrew(crewPersons.length ? crewPersons : [null]);
+          setCox(t.cox?.id || t.cox?.name ? { id: t.cox.id, firstName: "", lastName: "", displayName: t.cox.name } : null);
+          const crewPersons: Array<Person | null> = Array.from({ length: Math.max(1, ...t.crew.map(c => c.position)) }, () => null);
+          t.crew.forEach(c => { crewPersons[c.position - 1] = { id: c.id, firstName: "", lastName: "", displayName: c.name }; });
+          setCrew(crewPersons);
           const d = await api.getBoat(t.boatId);
           if (!cancelled) setDetail(d);
         } else if (boatIdParam) {
@@ -118,7 +128,11 @@ export function TripFormScreen() {
           setDetail(d);
           setBoatId(boatIdParam);
           const defaultDest = String(d.boat?.DefaultDestinationId ?? "");
-          if (defaultDest) setDestinationId(defaultDest);
+          if (defaultDest) {
+            setDestinationId(defaultDest);
+            setDestinationName(dests.destinations.find(dest => dest.id === defaultDest)?.name ?? "");
+            setDistance(String(dests.destinations.find(dest => dest.id === defaultDest)?.distance ?? ""));
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -129,7 +143,35 @@ export function TripFormScreen() {
     return () => {
       cancelled = true;
     };
-  }, [boatIdParam, entryId, isExisting]);
+  }, [boatIdParam, entryId, isExisting, logbookName, reload]);
+
+  const handleFailure = (err: unknown, fallback: string) => {
+    const conflict = err instanceof PortalApiError && ["STALE_STATE", "TRIP_NOT_OPEN", "NOT_FOUND"].includes(err.code);
+    setError((err instanceof Error ? err.message : fallback) + (conflict ? " Der aktuelle Stand wird neu geladen. Bitte prüfen." : ""));
+    if (conflict) { setTrip(null); setReload(n => n + 1); setAckTokens([]); }
+  };
+
+  useEffect(() => {
+    if (isExisting || boatCaptain !== "") return;
+    if (config.BoatCaptainAutoSelect) {
+      if (cox?.displayName) setBoatCaptain("0");
+      else if (String(config.BoatCaptainDefault) === "BOW" && crew[0]?.id) setBoatCaptain("1");
+      else if (String(config.BoatCaptainDefault) === "STROKE") {
+        const last = crew.reduce((n, person, i) => person?.id ? i + 1 : n, 0);
+        if (last) setBoatCaptain(String(last));
+      }
+    } else if (config.InputMustSelectBoatCaptain && seatCount === 1 && crew[0]?.id) setBoatCaptain("1");
+  }, [isExisting, boatCaptain, config, cox, crew, seatCount]);
+
+  useEffect(() => {
+    if (boatCaptain === "") return;
+    const aboard = boatCaptain === "0" ? cox?.displayName : crew[Number(boatCaptain) - 1]?.displayName;
+    if (aboard) return;
+    // Match the desktop fallback after removing the selected captain's seat.
+    if (cox?.displayName) setBoatCaptain("0");
+    else if (crew[0]?.displayName) setBoatCaptain("1");
+    else setBoatCaptain("");
+  }, [boatCaptain, cox, crew]);
 
   const beginAckFlow = (err: PortalApiError, action: "start" | "correct") => {
     const { checks, required, stale } = extractAckChecks(err);
@@ -158,24 +200,26 @@ export function TripFormScreen() {
         const body = {
           boatId,
           boatVariant: variant,
-          crew: crew.filter((c): c is Person => !!c?.id).map((c) => ({ id: c.id, name: c.displayName })),
+          crew: crew.map(c => ({ id: c?.id ?? "", name: c?.displayName ?? "" })),
           coxId: coxNeeded && cox?.id ? cox.id : undefined,
+          coxName: coxNeeded ? cox?.displayName ?? "" : "",
           boatCaptain: boatCaptain || undefined,
           destinationId: destinationId || undefined,
-          destinationName: destinations.find((d) => d.id === destinationId)?.name,
+          destinationName,
           distance: distance || undefined,
           acknowledgmentTokens: tokens,
-          idempotencyKey: idemKey,
+          date: startDate || undefined,
+          startTime: startTime || undefined,
         };
-        const res = await api.startTrip(body);
+        const res = await attempts.current.start.run(body, b => api.startTrip(b as unknown as Parameters<typeof api.startTrip>[0]));
         setSuccess("Fahrt gestartet.");
         setTrip(res.trip);
-        navigate(`/trips/${encodeURIComponent(res.trip.entryId)}`, { replace: true });
+
       } catch (err) {
         if (isAckFlowError(err)) {
           beginAckFlow(err, "start");
         } else if (err instanceof PortalApiError) {
-          setError(err.message);
+          handleFailure(err, "Speichern fehlgeschlagen.");
         } else {
           setError("Start fehlgeschlagen.");
         }
@@ -184,7 +228,7 @@ export function TripFormScreen() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinations, distance, idemKey, navigate]
+    [boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, distance, startDate, startTime]
   );
 
   const runCorrect = useCallback(
@@ -193,27 +237,30 @@ export function TripFormScreen() {
       setBusy(true);
       setError(null);
       try {
-        const res = await api.correctTrip(trip.entryId, {
+        const res = await attempts.current.correct.run({
+          logbookName: trip.logbookName, ecrid: trip.ecrid,
+          date: startDate, startTime,
           expectedChangeCount: trip.changeCount,
           boatId,
           boatVariant: variant,
-          crew: crew.filter((c): c is Person => !!c?.id).map((c) => ({ id: c.id, name: c.displayName })),
+          crew: crew.map(c => ({ id: c?.id ?? "", name: c?.displayName ?? "" })),
           coxId: coxNeeded && cox?.id ? cox.id : "",
+          coxName: coxNeeded ? cox?.displayName ?? "" : "",
           boatCaptain: boatCaptain || "",
           destinationId: destinationId || "",
-          destinationName: destinations.find((d) => d.id === destinationId)?.name ?? "",
+          destinationName,
           distance: distance || "",
           acknowledgmentTokens: tokens,
-          idempotencyKey: newIdempotencyKey(),
-        });
+        }, b => api.correctTrip(trip.entryId, b));
         setTrip(res.trip);
         setSuccess("Fahrt korrigiert.");
+        setMode("finish");
         setAckTokens([]);
       } catch (err) {
         if (isAckFlowError(err)) {
           beginAckFlow(err, "correct");
         } else if (err instanceof PortalApiError) {
-          setError(err.message);
+          handleFailure(err, "Speichern fehlgeschlagen.");
         } else {
           setError("Korrektur fehlgeschlagen.");
         }
@@ -222,7 +269,7 @@ export function TripFormScreen() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trip, boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinations, distance]
+    [trip, boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, distance, startDate, startTime]
   );
 
   const onConfirmAck = async () => {
@@ -267,20 +314,20 @@ export function TripFormScreen() {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.finishTrip(trip.entryId, {
+      const res = await attempts.current.finish.run({
+        logbookName: trip.logbookName, ecrid: trip.ecrid,
         expectedChangeCount: trip.changeCount,
-        distance: distance || undefined,
+        distance,
         endTime: endTime || undefined,
         endDate: endDate || undefined,
-        destinationId: destinationId || undefined,
-        destinationName: destinations.find((d) => d.id === destinationId)?.name,
-        idempotencyKey: newIdempotencyKey(),
-      });
+        destinationId,
+        destinationName,
+      }, b => api.finishTrip(trip.entryId, b as Parameters<typeof api.finishTrip>[1]));
       setTrip(res.trip);
       setSuccess("Fahrt beendet.");
-      setTimeout(() => navigate("/"), 800);
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof PortalApiError ? err.message : "Beenden fehlgeschlagen.");
+      handleFailure(err, "Beenden fehlgeschlagen.");
     } finally {
       setBusy(false);
     }
@@ -291,22 +338,22 @@ export function TripFormScreen() {
     setBusy(true);
     setError(null);
     try {
-      await api.abortTrip(trip.entryId, {
+      await attempts.current.abort.run({
+        logbookName: trip.logbookName, ecrid: trip.ecrid,
         expectedChangeCount: trip.changeCount,
-        idempotencyKey: newIdempotencyKey(),
         withDamage: abortWithDamage
           ? { severity: abortSeverity, description: abortDesc }
           : undefined,
-      });
+      }, b => api.abortTrip(trip.entryId, b as Parameters<typeof api.abortTrip>[1]));
       setAbortOpen(false);
       setSuccess(
         abortWithDamage
           ? "Fahrt abgebrochen und Schaden gemeldet."
           : "Fahrt abgebrochen (hat nicht stattgefunden)."
       );
-      setTimeout(() => navigate("/"), 800);
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof PortalApiError ? err.message : "Abbruch fehlgeschlagen.");
+      handleFailure(err, "Abbruch fehlgeschlagen.");
     } finally {
       setBusy(false);
     }
@@ -314,16 +361,23 @@ export function TripFormScreen() {
 
   const boatName = String(detail?.boat?.Name ?? trip?.boatName ?? "Fahrt");
   const mustDest = !!config.StartSessionMustSelectDestination;
-  const showCaptain = config.BoatCaptainShow !== false;
+  const showCaptain = config.BoatCaptainShow !== false || !!config.InputMustSelectBoatCaptain;
 
   const captainOptions = useMemo(() => {
     const opts: Array<{ value: string; label: string }> = [{ value: "", label: "— keiner —" }];
-    if (cox?.id) opts.push({ value: "0", label: `Stm. ${cox.displayName}` });
+    if (cox?.displayName) opts.push({ value: "0", label: `Stm. ${cox.displayName}` });
     crew.forEach((c, i) => {
-      if (c?.id) opts.push({ value: String(i + 1), label: `${i + 1}. ${c.displayName}` });
+      if (c?.displayName) opts.push({ value: String(i + 1), label: `${i + 1}. ${c.displayName}` });
     });
     return opts;
   }, [cox, crew]);
+
+  if (!isExisting && trip) return <main className="screen">
+    <ScreenHeader title="Fahrt gestartet" />
+    <div role="status" className="success-box">{trip.boatName} ist auf Fahrt. Der Start wurde gespeichert.</div>
+    <button className="btn btn-primary" onClick={() => navigate("/boats", { replace: true })}>Weiteres Boot starten</button>
+    <button className="btn btn-secondary" onClick={() => navigate("/", { replace: true })}>Meine Fahrten</button>
+  </main>;
 
   return (
     <div className="screen">
@@ -337,7 +391,7 @@ export function TripFormScreen() {
         }
         backTo="/"
       />
-      <p className="muted" style={{ margin: 0 }}>
+      <p className="boat-name" style={{ margin: 0 }}>
         {boatName}
         {selectedVariant ? ` · ${selectedVariant.seatCategoryLabel}` : ""}
         {variant ? ` · Var. ${variant}` : ""}
@@ -347,36 +401,29 @@ export function TripFormScreen() {
         <div className="error-box">
           Offene Schäden ({detail!.openDamages.length}):{" "}
           {detail!.openDamages[0].severityLabel} — {detail!.openDamages[0].description}
-          <div style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate(`/boats/${encodeURIComponent(boatId)}/damages`)}
-            >
-              Schäden ansehen
-            </button>
-          </div>
+          <details><summary>Schäden ansehen</summary>{detail!.openDamages.map(d => <p key={d.damage}>{d.severityLabel}: {d.description}</p>)}</details>
         </div>
       )}
 
-      {error && <div className="error-box">{error}</div>}
-      {success && <div className="success-box">{success}</div>}
+      {error && <div role="alert" className="error-box">{error}</div>}
+      {success && <div role="status" className="success-box">{success}</div>}
 
-      {isExisting && trip && (
+      {isExisting && trip && !trip.open && <div role="status" className="success-box">Diese Fahrt ist bereits beendet. <button type="button" className="btn btn-secondary" onClick={() => navigate("/")}>Meine Fahrten</button></div>}
+      {isExisting && trip?.open && (
         <div className="chip-row">
           <button
             type="button"
             className={`chip${mode === "correct" ? " active" : ""}`}
             onClick={() => setMode("correct")}
           >
-            Korrigieren
+            Fahrt korrigieren
           </button>
           <button
             type="button"
             className={`chip${mode === "finish" ? " active" : ""}`}
             onClick={() => setMode("finish")}
           >
-            Beenden
+            Zur Rückgabe
           </button>
         </div>
       )}
@@ -390,12 +437,16 @@ export function TripFormScreen() {
           else void onFinish();
         }}
       >
+        <fieldset disabled={busy || (isExisting && (!trip || !trip.open))} className="stack form-fields">
+        {mode === "finish" && trip && <section className="trip-card"><h2>Mannschaft</h2><p>{trip.crew.map(c => `${c.position}. ${c.name}`).join(" · ")}{trip.cox.name && ` · Stm. ${trip.cox.name}`}</p><p>Obmann: {trip.boatCaptain === "0" ? trip.cox.name : trip.crew.find(c => String(c.position) === trip.boatCaptain)?.name || "—"}</p></section>}
+        {mode !== "finish" && <>
+        {detail && detail.variants.length > 1 && <div className="field"><label htmlFor="variant">Konfiguration</label><select id="variant" value={variant} onChange={e => setVariant(e.target.value)}>{detail.variants.map(v => <option key={v.variant} value={v.variant}>{v.seatCategoryLabel} · {v.typeDescription || v.typeRigging} · {isCoxed(v.typeCoxing) ? "mit Stm." : "ohne Stm."}</option>)}</select></div>}
         {coxNeeded && <PersonPicker label="Steuermann" value={cox} onChange={setCox} />}
 
         {crew.map((c, i) => (
           <PersonPicker
             key={i}
-            label={coxNeeded ? `Mannschaft ${i + 1}` : i === 0 ? "Name" : `Mannschaft ${i + 1}`}
+            label={`Sitz ${i + 1}`}
             value={c}
             onChange={(p) => {
               setCrew((prev) => {
@@ -407,11 +458,13 @@ export function TripFormScreen() {
           />
         ))}
 
+        {config.InputAllowOnlyMaxCrewNumber === false && crew.length < 23 && <button type="button" className="btn btn-secondary" onClick={() => setCrew(previous => [...previous, null])}>Weiteren Sitz hinzufügen</button>}
         {showCaptain && (
           <div className="field">
             <label htmlFor="captain">Obmann</label>
             <select
               id="captain"
+              required={!!config.InputMustSelectBoatCaptain}
               value={boatCaptain}
               onChange={(e) => setBoatCaptain(e.target.value)}
             >
@@ -424,15 +477,19 @@ export function TripFormScreen() {
           </div>
         )}
 
+        <div className="field"><label htmlFor="start-time">Abfahrt (leer: mit Zeitvorgabe des Vereins)</label><input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} /></div>
+        <div className="field"><label htmlFor="start-date">Startdatum (leer: heute)</label><input id="start-date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></div>
+        </>}
         <div className="field">
           <label htmlFor="dest">Ziel{mustDest && !isExisting ? " *" : ""}</label>
           <select
             id="dest"
             value={destinationId}
-            required={mustDest && !isExisting}
+            required={mustDest && !isExisting && !destinationName}
             onChange={(e) => {
               setDestinationId(e.target.value);
               const d = destinations.find((x) => x.id === e.target.value);
+              setDestinationName(d?.name ?? "");
               if (d?.distance) setDistance(String(d.distance));
             }}
           >
@@ -444,6 +501,11 @@ export function TripFormScreen() {
             ))}
           </select>
         </div>
+
+        {!destinationId && <div className="field">
+          <label htmlFor="custom-destination">Individuelles Fahrtziel</label>
+          <input id="custom-destination" value={destinationName} required={mustDest && !isExisting} onChange={e => setDestinationName(e.target.value)} />
+        </div>}
 
         {(mode === "finish" || isExisting) && (
           <div className="field">
@@ -484,17 +546,17 @@ export function TripFormScreen() {
 
         <div className="row-actions">
           {!isExisting && (
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            <button type="submit" className="btn btn-primary btn-block" disabled={busy || !online}>
               Fahrt starten
             </button>
           )}
           {isExisting && mode === "correct" && (
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            <button type="submit" className="btn btn-primary btn-block" disabled={busy || !online}>
               Korrektur speichern
             </button>
           )}
           {isExisting && mode === "finish" && (
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            <button type="submit" className="btn btn-primary btn-block" disabled={busy || !online}>
               Fahrt beenden
             </button>
           )}
@@ -502,7 +564,7 @@ export function TripFormScreen() {
             <button
               type="button"
               className="btn btn-danger btn-block"
-              disabled={busy}
+              disabled={busy || !online}
               onClick={() => setAbortOpen(true)}
             >
               Fahrt abbrechen…
@@ -511,11 +573,12 @@ export function TripFormScreen() {
           <button
             type="button"
             className="btn btn-secondary btn-block"
-            onClick={() => navigate(`/boats/${encodeURIComponent(boatId)}/damages/new`)}
+            onClick={() => setDamageOpen(true)}
           >
             Schaden melden
           </button>
         </div>
+        </fieldset>
       </form>
 
       {currentAck && (
@@ -527,10 +590,10 @@ export function TripFormScreen() {
         />
       )}
 
+      {damageOpen && <Modal titleId="damage-title" busy={busy} onCancel={() => setDamageOpen(false)}><h2 id="damage-title">Schaden melden</h2><DamageReportScreen forBoat={boatId} onBusyChange={setBusy} onDone={() => setDamageOpen(false)} /></Modal>}
       {abortOpen && (
-        <div className="dialog-backdrop" role="dialog" aria-modal="true">
-          <div className="dialog">
-            <h2>Fahrt abbrechen</h2>
+        <Modal titleId="abort-title" onCancel={() => setAbortOpen(false)} busy={busy}>
+            <h2 id="abort-title">Fahrt abbrechen</h2>
             <p>
               Nur abbrechen, wenn die Fahrt nicht stattgefunden hat. Der offene Eintrag wird
               gelöscht.
@@ -561,7 +624,7 @@ export function TripFormScreen() {
               <button
                 type="button"
                 className="btn btn-danger btn-block"
-                disabled={busy || (abortWithDamage && !abortDesc.trim())}
+                disabled={busy || !online || (abortWithDamage && !abortDesc.trim())}
                 onClick={() => void onAbort()}
               >
                 {abortWithDamage ? "Fahrt abbrechen (Bootsschaden)" : "Fahrt abbrechen"}
@@ -569,14 +632,13 @@ export function TripFormScreen() {
               <button
                 type="button"
                 className="btn btn-secondary btn-block"
-                disabled={busy}
+                disabled={busy || !online}
                 onClick={() => setAbortOpen(false)}
               >
                 Nichts
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

@@ -38,7 +38,7 @@ export function BoatDetailScreen() {
       {detail && (
         <>
           <p className="muted" style={{ margin: 0 }}>
-            Status: {detail.listView}
+            Status: {({ available: "Verfügbar", onwater: "Auf Fahrt", unavailable: "Nicht verfügbar" } as Record<string, string>)[detail.listView] ?? detail.listView}
             {detail.status?.Comment ? ` — ${String(detail.status.Comment)}` : ""}
           </p>
 
@@ -63,6 +63,7 @@ export function BoatDetailScreen() {
             <button
               type="button"
               className="btn btn-primary btn-block"
+              disabled={detail.listView === "onwater"}
               onClick={() => {
                 if ((detail.variants?.length ?? 0) > 1) {
                   navigate(`/boats/${encodeURIComponent(boatId)}/variants`);

@@ -1,3 +1,4 @@
+import { Modal } from "./Modal";
 import type { AckCheck } from "../api/types";
 
 type Props = {
@@ -13,8 +14,7 @@ export function AckDialog({ check, busy, onConfirm, onCancel }: Props) {
     check.kind === "status_notavailable" || check.kind === "reservation";
 
   return (
-    <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="ack-title">
-      <div className="dialog">
+    <Modal titleId="ack-title" onCancel={onCancel} busy={busy}>
         <h2 id="ack-title">{check.title}</h2>
         <p>{check.message}</p>
         <div className="dialog-actions">
@@ -45,7 +45,6 @@ export function AckDialog({ check, busy, onConfirm, onCancel }: Props) {
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

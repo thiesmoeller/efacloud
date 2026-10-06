@@ -97,8 +97,8 @@ export function BoatListScreen() {
     const variants = byBoat.get(boatId) ?? [];
     if (variants.length === 0) return;
     const first = variants[0];
-    if (first.listView === "onwater" && first.entryNo) {
-      navigate(`/trips/${encodeURIComponent(String(first.entryNo))}`);
+    if (first.listView === "onwater") {
+      navigate(`/boats/${encodeURIComponent(boatId)}`);
       return;
     }
     if (variants.length === 1) {
@@ -113,7 +113,8 @@ export function BoatListScreen() {
   return (
     <div className="screen">
       <ScreenHeader
-        title="Boote"
+        title="Boot wählen"
+        backTo="/"
         trailing={
           <button type="button" className="btn btn-ghost" onClick={() => void logout()}>
             Abmelden
@@ -125,13 +126,12 @@ export function BoatListScreen() {
         {privileges?.trainer ? " · Trainer" : ""}
       </p>
 
-      <div className="view-tabs" role="tablist">
+      <div className="view-tabs" aria-label="Verfügbarkeit">
         {VIEWS.map((v) => (
           <button
             key={v.id}
             type="button"
-            role="tab"
-            aria-selected={view === v.id}
+            aria-pressed={view === v.id}
             className={`view-tab${view === v.id ? " active" : ""}`}
             onClick={() => setView(v.id)}
             disabled={!!debouncedSearch}
@@ -219,6 +219,7 @@ export function BoatListScreen() {
             <li key={id}>
               <button type="button" className="boat-row" onClick={() => onSelectBoat(id)}>
                 <span className="boat-row-title">{primary.name}</span>
+                <span className="badge">{VIEWS.find(v => v.id === primary.listView)?.label}</span>
                 <span className="boat-row-meta">
                   <span className="badge">{primary.seatCategoryLabel}</span>
                   {rig && <span className="badge">{rig}</span>}

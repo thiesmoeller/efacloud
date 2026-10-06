@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useVisibleRefresh } from "../hooks/useVisibleRefresh";
 import { api } from "../api/client";
 import { PortalApiError } from "../api/errors";
 import type { PortalPrivileges, PortalUser } from "../api/types";
@@ -59,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [refresh]);
+
+  useVisibleRefresh(refresh);
 
   const login = useCallback(async (account: string, password: string) => {
     const s = await api.login(account, password);

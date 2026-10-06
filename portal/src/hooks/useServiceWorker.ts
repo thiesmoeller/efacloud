@@ -10,6 +10,8 @@ export function useServiceWorker(): SwState {
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+    let timer: number | undefined;
+    let cancelled = false;
     let reg: ServiceWorkerRegistration | undefined;
 
     const onUpdateFound = () => {
@@ -25,22 +27,26 @@ export function useServiceWorker(): SwState {
     navigator.serviceWorker
       .register("/portal/sw.js", { scope: "/portal/" })
       .then((r) => {
+        if (cancelled) return;
         reg = r;
         if (r.waiting) setWaiting(r.waiting);
         r.addEventListener("updatefound", onUpdateFound);
         // Periodic check while app is open.
-        const id = window.setInterval(() => r.update().catch(() => {}), 60_000);
-        return () => window.clearInterval(id);
+        timer = window.setInterval(() => r.update().catch(() => {}), 60_000);
+
       })
       .catch(() => {
         /* SW optional in local vite without HTTPS; ignore */
       });
+    return () => { cancelled = true; clearInterval(timer); reg?.removeEventListener("updatefound", onUpdateFound); };
   }, []);
 
   const applyUpdate = () => {
-    waiting?.postMessage({ type: "SKIP_WAITING" });
+    if (!waiting) return;
+    navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), { once: true });
+    waiting.postMessage({ type: "SKIP_WAITING" });
     setWaiting(null);
-    window.location.reload();
+
   };
 
   return { waiting, applyUpdate };

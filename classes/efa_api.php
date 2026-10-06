@@ -77,7 +77,24 @@ class Efa_api
      *            execution and possibly rejected with an error message.
      * @return the api result-code and result
      */
-    public function api_modify (array $client_verified, String $tablename, array $record, int $mode, 
+    public function api_modify (array $client_verified, String $tablename, array $record, int $mode,
+            int $api_version = 1)
+    {
+        if (in_array(strtolower($tablename), ['efa2logbook', 'efa2boatstatus', 'efa2boatdamages'], true)) {
+            include_once "../classes/efa_boat_concurrency_guard.php";
+            try {
+                return Efa_boat_concurrency_guard::with_mutation_lock($this->socket,
+                        function () use ($client_verified, $tablename, $record, $mode, $api_version) {
+                            return $this->api_modify_locked($client_verified, $tablename, $record, $mode, $api_version);
+                        });
+            } catch (RuntimeException $e) {
+                return "502;" . $e->getMessage();
+            }
+        }
+        return $this->api_modify_locked($client_verified, $tablename, $record, $mode, $api_version);
+    }
+
+    private function api_modify_locked (array $client_verified, String $tablename, array $record, int $mode,
             int $api_version = 1)
     {
         $mode_str = ($mode == 1) ? "insert" : (($mode == 2) ? "update" : "delete");

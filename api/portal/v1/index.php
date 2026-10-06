@@ -286,11 +286,17 @@ try {
 
     // -------- Trips --------
     if (($parts[0] ?? '') === 'trips') {
+        if (count($parts) === 1 && $method === 'GET') {
+            if (($_GET['scope'] ?? '') !== 'started-by-me' || ($_GET['status'] ?? '') !== 'open') {
+                throw Portal_error::validation('TRIP_SCOPE_REQUIRED', 'scope=started-by-me und status=open sind erforderlich.');
+            }
+            portal_json($app->trips->started_by_me($user));
+        }
         if (count($parts) === 1 && $method === 'POST') {
             portal_json($app->trips->start($user, $body), 201);
         }
         if (count($parts) === 2 && $method === 'GET') {
-            portal_json($app->trips->get($user, $parts[1]));
+            portal_json($app->trips->get($user, $parts[1], $_GET['logbookName'] ?? null));
         }
         if (count($parts) === 2 && $method === 'PATCH') {
             portal_json($app->trips->correct($user, $parts[1], $body));

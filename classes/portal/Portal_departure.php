@@ -132,7 +132,7 @@ class Portal_departure
         $current = strtoupper((string) ($status['CurrentStatus'] ?? ''));
 
         // 1–2: on water
-        if ($current === Portal_constants::STATUS_ONTHEWATER) {
+        if ($current === Portal_constants::STATUS_ONTHEWATER || $this->store->has_open_trip($boatId)) {
             $entryNo = (string) ($status['EntryNo'] ?? '');
             $boatName = $status['BoatText'] ?? $boatId;
             if ($intendedEntry !== null && $intendedEntry !== '' && $entryNo === $intendedEntry) {

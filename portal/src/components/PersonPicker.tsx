@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId, useRef } from "react";
 import { api } from "../api/client";
 import type { Person } from "../api/types";
 
@@ -9,12 +9,15 @@ type Props = {
 };
 
 export function PersonPicker({ label, value, onChange }: Props) {
+  const inputId = useId();
+  const editing = useRef(false);
   const [query, setQuery] = useState(value?.displayName ?? "");
   const [hits, setHits] = useState<Person[]>([]);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setQuery(value?.displayName ?? "");
+    if (value || !editing.current) setQuery(value?.displayName ?? "");
+    editing.current = false;
   }, [value]);
 
   useEffect(() => {
@@ -22,19 +25,22 @@ export function PersonPicker({ label, value, onChange }: Props) {
       setHits([]);
       return;
     }
+    let cancelled = false;
     const t = window.setTimeout(() => {
       api
         .searchPersons(query.trim())
-        .then((r) => setHits(r.persons.slice(0, 12)))
+        .then((r) => { if (!cancelled) setHits(r.persons.slice(0, 12)); })
         .catch(() => setHits([]));
     }, 200);
-    return () => window.clearTimeout(t);
+    return () => { cancelled = true; window.clearTimeout(t); };
   }, [query, open]);
 
   return (
     <div className="field">
-      <label>{label}</label>
+      <label htmlFor={inputId}>{label}</label>
       <input
+        id={inputId}
+        onKeyDown={e => { if (e.key === "Escape") setOpen(false); }}
         value={query}
         placeholder="Name suchen…"
         autoComplete="off"
@@ -42,7 +48,7 @@ export function PersonPicker({ label, value, onChange }: Props) {
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
-          if (!e.target.value) onChange(null);
+          if (value) { editing.current = true; onChange(null); }
         }}
       />
       {open && hits.length > 0 && (
@@ -64,7 +70,7 @@ export function PersonPicker({ label, value, onChange }: Props) {
         </ul>
       )}
       {value && (
-        <button type="button" className="btn btn-ghost" onClick={() => onChange(null)}>
+        <button type="button" className="btn btn-ghost" onClick={() => { onChange(null); setQuery(""); }}>
           Leeren
         </button>
       )}

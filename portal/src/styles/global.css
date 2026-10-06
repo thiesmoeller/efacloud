@@ -1,26 +1,26 @@
 :root {
   /* Dockside: deep water slate + lagoon accent + brass highlight */
-  --bg-deep: #071b22;
-  --bg: #0a303c;
-  --bg-panel: #103a47;
-  --bg-raised: #154554;
+  --bg-deep: #f2f6f7;
+  --bg: #f5f8fa;
+  --bg-panel: #ffffff;
+  --bg-raised: #f1f6f7;
   --bg-soft: #d9ecef;
   --bg-soft-2: #b8d8de;
-  --ink: #f5fbfc;
-  --ink-muted: #9fc0c8;
-  --ink-on-soft: #0a303c;
-  --accent: #2a9aad;
-  --accent-strong: #1e7f90;
+  --ink: #152e43;
+  --ink-muted: #506577;
+  --ink-on-soft: #f5f8fa;
+  --accent: #096e73;
+  --accent-strong: #075a60;
   --warn: #c9851a;
   --danger: #c44b4b;
   --ok: #2f9e6b;
-  --border: rgba(245, 251, 252, 0.12);
-  --shadow: 0 10px 28px rgba(7, 27, 34, 0.35);
+  --border: #cedadd;
+  --shadow: 0 4px 16px rgba(21, 46, 67, 0.06);
   --radius: 14px;
   --touch: 52px;
   --font-display: "Outfit", "Segoe UI", sans-serif;
   --font-body: "Figtree", "Segoe UI", sans-serif;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 *,
@@ -41,10 +41,7 @@ body {
   font-size: 16px;
   line-height: 1.45;
   color: var(--ink);
-  background:
-    radial-gradient(120% 80% at 10% -10%, #156576 0%, transparent 55%),
-    radial-gradient(90% 60% at 100% 0%, #0f4a58 0%, transparent 50%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  background: var(--bg);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -191,7 +188,7 @@ a {
 
 .btn-primary {
   background: var(--accent);
-  color: #042028;
+  color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -246,7 +243,7 @@ a {
 
 .chip.active {
   background: var(--accent);
-  color: #042028;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -327,18 +324,18 @@ a {
 
 .badge-damage {
   background: rgba(196, 75, 75, 0.25);
-  color: #ffc9c9;
+  color: #8a2424;
 }
 
 .badge-warn {
   background: rgba(201, 133, 26, 0.25);
-  color: #ffe1a8;
+  color: #714900;
 }
 
 .error-box {
   background: rgba(196, 75, 75, 0.18);
   border: 1px solid rgba(196, 75, 75, 0.45);
-  color: #ffd0d0;
+  color: #812323;
   padding: 12px 14px;
   border-radius: 12px;
 }
@@ -346,7 +343,7 @@ a {
 .success-box {
   background: rgba(47, 158, 107, 0.18);
   border: 1px solid rgba(47, 158, 107, 0.4);
-  color: #c8f0dc;
+  color: #155538;
   padding: 12px 14px;
   border-radius: 12px;
 }
@@ -363,16 +360,20 @@ a {
 }
 
 .dialog {
+  color: var(--ink);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   width: min(480px, 100%);
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 18px 18px 14px 14px;
   padding: 20px 18px;
   box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
   gap: 14px;
 }
+
+.dialog[open] { display: flex; flex-direction: column; }
+.dialog::backdrop { background: rgba(10, 30, 45, .6); }
 
 .dialog h2 {
   margin: 0;
@@ -408,7 +409,7 @@ a {
 
 .login-panel {
   margin-top: 12vh;
-  background: rgba(16, 58, 71, 0.88);
+  background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 24px 18px;
@@ -476,3 +477,18 @@ a {
   color: var(--ink);
   padding: 0 10px;
 }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+html { scroll-padding-block: 24px 100px; }
+input, select, textarea, button, a { scroll-margin-block: 24px 100px; }
+a.btn { text-decoration: none; }
+.form-fields { padding: 0; margin: 0; border: 0; min-width: 0; }
+.trip-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-panel); box-shadow: var(--shadow); }
+.trip-card p, .trip-card h2 { margin: 0; }
+.boat-name, .boat-row-title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+.trip-card .badge { align-self: flex-start; background: #e1f1ef; color: #155538; }
+summary { cursor: pointer; padding-block: 12px; }
+.form-fields > .row-actions > .btn-primary { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 2; box-shadow: 0 0 0 8px var(--bg); }
+/* Release sticky actions while an input is focused, including with a phone keyboard. */
+.form-fields:focus-within > .row-actions > .btn-primary { position: static; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

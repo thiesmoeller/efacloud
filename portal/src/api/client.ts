@@ -45,6 +45,7 @@ async function portalFetch<T>(path: string, options: FetchOptions = {}): Promise
   };
 
   if (method !== "GET" && method !== "HEAD") {
+    if (!navigator.onLine) throw new PortalApiError("NETWORK_ERROR", germanNetworkMessage(), 0);
     headers["Content-Type"] = "application/json; charset=utf-8";
     if (csrfToken) {
       headers["X-CSRF-Token"] = csrfToken;
@@ -184,8 +185,13 @@ export const api = {
     return portalFetch("/trips", { method: "POST", body });
   },
 
-  getTrip(entryId: string): Promise<{ trip: Trip }> {
-    return portalFetch(`/trips/${encodeURIComponent(entryId)}`);
+  listMyTrips(): Promise<{ trips: Trip[] }> {
+    return portalFetch("/trips?scope=started-by-me&status=open");
+  },
+
+  getTrip(entryId: string, logbookName?: string): Promise<{ trip: Trip }> {
+    const query = logbookName ? `?logbookName=${encodeURIComponent(logbookName)}` : "";
+    return portalFetch(`/trips/${encodeURIComponent(entryId)}${query}`);
   },
 
   correctTrip(
@@ -201,6 +207,8 @@ export const api = {
   finishTrip(
     entryId: string,
     body: {
+      logbookName?: string;
+      ecrid?: string | null;
       expectedChangeCount: number;
       endTime?: string;
       endDate?: string;
@@ -219,6 +227,8 @@ export const api = {
   abortTrip(
     entryId: string,
     body: {
+      logbookName?: string;
+      ecrid?: string | null;
       expectedChangeCount: number;
       idempotencyKey: string;
       withDamage?: { severity: DamageSeverity; description: string };

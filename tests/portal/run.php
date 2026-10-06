@@ -244,6 +244,7 @@ echo "== idempotency / stale ChangeCount ==\n";
 $app = fresh_app($fixtures, $throttleBase);
 $member = $app->store->user_by_id(101);
 $trip = $app->store->trip('2026', '3');
+$app->store->attribute_checkout($trip, 101);
 $body = [
     'expectedChangeCount' => 999,
     'destinationName' => 'x',
@@ -286,6 +287,7 @@ expect_eq(count($app->store->open_trips()), $openBefore, 'open trips still prese
 // Abort-with-damage still deletes trip (explicit path)
 $trip = $app->store->trip('2026', '3');
 $trainer = $app->store->user_by_id(102);
+$app->store->attribute_checkout($trip, 102);
 $abort = $app->trips->abort($trainer, '3', [
     'expectedChangeCount' => intval($trip['ChangeCount']),
     'withDamage' => [
@@ -313,6 +315,7 @@ $failApp = new Portal_app($failStore);
 $failApp->session = new Portal_session($failStore, $throttleBase . '/' . bin2hex(random_bytes(3)));
 $failTrainer = $failStore->user_by_id(102);
 $failTrip = $failStore->trip('2026', '3');
+$failStore->attribute_checkout($failTrip, 102);
 $damagesBefore = count($failStore->all_damages());
 $failStore->failDelete = true;
 $rolledBack = false;

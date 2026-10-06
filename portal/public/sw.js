@@ -1,5 +1,5 @@
 /* efaPortal service worker — cache application shell/assets only; APIs always network. */
-const CACHE = "efaportal-shell-v2";
+const CACHE = "efaportal-shell-v3";
 const SHELL = [
   "/portal/",
   "/portal/index.html",
@@ -13,7 +13,6 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE)
       .then((cache) => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
   );
 });
 

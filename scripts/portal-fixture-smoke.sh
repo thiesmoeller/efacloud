@@ -160,8 +160,12 @@ curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   "$API/boats/11111111-1111-4111-a111-111111111107/damages" \
   -o /tmp/portal-smoke-damages.json \
   || fail "GET boat damages"
-curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/trips/3" -o /tmp/portal-smoke-trip.json \
-  || fail "GET open trip 3"
+TRIP_CODE="$(curl -sS -o /tmp/portal-smoke-trip.json -w '%{http_code}' -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/trips/3")"
+[[ "$TRIP_CODE" == "403" ]] || fail "unattributed trip must not be portal-managed (got $TRIP_CODE)"
+curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/trips?scope=started-by-me&status=open" -o /tmp/portal-smoke-my-trips.json \
+  || fail "GET personal trips"
+[[ "$(json_get /tmp/portal-smoke-my-trips.json trips)" == "[]" ]] || fail "fixture desktop trips must not enter personal list"
+pass "unattributed trip forbidden; personal list empty"
 
 # Minimal structural assertions (counts > 0)
 python_assert() {

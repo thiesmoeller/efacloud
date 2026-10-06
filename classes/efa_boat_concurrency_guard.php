@@ -12,6 +12,28 @@ declare(strict_types=1);
 class Efa_boat_concurrency_guard
 {
     /**
+     * Serialize validation + persistence across desktop posttx and portal writes.
+     * A row lock alone is insufficient: the desktop could validate before the
+     * portal commits, then wait on UPDATE and overwrite the newly committed status.
+     * The connection-scoped lock also works before any portal schema exists.
+     */
+    public static function with_mutation_lock($socket, callable $fn)
+    {
+        $db = $socket->mysqli;
+        $database = $db->query('SELECT DATABASE()')->fetch_row()[0];
+        $name = 'efa-boat-write-' . substr(hash('sha256', (string) $database), 0, 40);
+        $locked = $db->query("SELECT GET_LOCK('$name', 10)")->fetch_row()[0];
+        if ((string) $locked !== '1') {
+            throw new RuntimeException('CONFLICT: boat data is being changed. Please retry.');
+        }
+        try {
+            return $fn();
+        } finally {
+            $db->query("SELECT RELEASE_LOCK('$name')");
+        }
+    }
+
+    /**
      * @param array<string,mixed> $record
      * @param int $mode 1 insert, 2 update, 3 delete
      * @return string|null deny reason, or null if allowed

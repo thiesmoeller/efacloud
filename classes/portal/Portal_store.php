@@ -42,11 +42,18 @@ interface Portal_store
 
     public function current_logbook_name(): string;
 
+    public function attribute_checkout(array $trip, int $userId): void;
+    public function checkout_owner(array $trip): ?int;
+    public function trips_started_by(int $userId): array;
+
     /** @return array<string,mixed>|null */
     public function trip(string $logbookName, string $entryId): ?array;
 
     /** @return array<int,array<string,mixed>> */
     public function open_trips(?string $logbookName = null): array;
+
+    /** Check all logbooks, including a desktop checkout whose status has not arrived yet. */
+    public function has_open_trip(string $boatId): bool;
 
     /** @return array<string,mixed>|null */
     public function user_by_account(string $account): ?array;
@@ -129,6 +136,7 @@ class Portal_fixture_store implements Portal_store
     private string $logbookName = '2026';
     private array $idempotency = [];
     private array $acks = [];
+    private array $checkouts = [];
     private int $ecridSeq = 1;
 
     public function __construct(string $fixturesDir)
@@ -338,6 +346,33 @@ class Portal_fixture_store implements Portal_store
         return $out;
     }
 
+    public function has_open_trip(string $boatId): bool
+    {
+        foreach ($this->trips as $trip) {
+            if (($trip['BoatId'] ?? '') === $boatId
+                && in_array(strtolower((string) ($trip['Open'] ?? '')), ['true', '1'], true)
+                && ($trip['LastModification'] ?? '') !== 'delete') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function attribute_checkout(array $trip, int $userId): void
+    {
+        $this->checkouts[$trip['Logbookname'] . ':' . $trip['ecrid']] = $userId;
+    }
+
+    public function checkout_owner(array $trip): ?int
+    {
+        return $this->checkouts[($trip['Logbookname'] ?? '') . ':' . ($trip['ecrid'] ?? '')] ?? null;
+    }
+
+    public function trips_started_by(int $userId): array
+    {
+        return array_values(array_filter($this->trips, fn($t) => $this->checkout_owner($t) === $userId));
+    }
+
     public function user_by_account(string $account): ?array
     {
         foreach ($this->users as $u) {
@@ -458,6 +493,8 @@ class Portal_fixture_store implements Portal_store
             'trips' => $this->trips,
             'status' => $this->status,
             'damages' => $this->damages,
+            'checkouts' => $this->checkouts,
+            'idempotency' => $this->idempotency,
         ];
         try {
             return $fn();
@@ -465,6 +502,8 @@ class Portal_fixture_store implements Portal_store
             $this->trips = $snap['trips'];
             $this->status = $snap['status'];
             $this->damages = $snap['damages'];
+            $this->checkouts = $snap['checkouts'];
+            $this->idempotency = $snap['idempotency'];
             throw $e;
         }
     }

@@ -25,7 +25,7 @@ class Portal_trips
      */
     public function start(array $user, array $body): array
     {
-        return $this->with_idempotency($user, $body, function () use ($user, $body) {
+        return $this->with_idempotency($user, $body, 'start', function () use ($user, $body) {
             if (Portal_permissions::is_account_revoked($user)) {
                 throw Portal_error::revoked();
             }
@@ -39,12 +39,13 @@ class Portal_trips
             }
 
             $cfg = $this->store->club_config();
+            $trip = $this->build_trip_from_body($body, $boat, true);
             if (!empty($cfg['StartSessionMustSelectDestination'])
-                && empty($body['destinationId']) && empty($body['destinationName'])) {
+                && empty($trip['DestinationId']) && empty($trip['DestinationName'])) {
                 throw Portal_error::validation('DESTINATION_REQUIRED', 'Bitte ein Ziel wählen.');
             }
 
-            $trip = $this->build_trip_from_body($body, $boat, true);
+            $this->validate_crew($trip, $boat);
             Portal_permissions::assert_can_manage_trip($user, $trip);
 
             $this->departure->assert_start_allowed([
@@ -62,8 +63,9 @@ class Portal_trips
 
             $statusBefore = $this->store->boat_status($boatId);
 
-            return $this->store->atomic(function () use ($trip, $boatId, $logbook, $entryId, $statusBefore, $boat) {
+            return $this->store->atomic(function () use ($user, $trip, $boatId, $logbook, $entryId, $statusBefore, $boat) {
                 $saved = $this->store->insert_trip($trip);
+                $this->store->attribute_checkout($saved, intval($user['efaCloudUserID']));
                 $statusUpdate = [
                     'BoatId' => $boatId,
                     'CurrentStatus' => Portal_constants::STATUS_ONTHEWATER,
@@ -85,14 +87,14 @@ class Portal_trips
     /**
      * @param array<string,mixed> $user
      */
-    public function get(array $user, string $entryId): array
+    public function get(array $user, string $entryId, ?string $logbookName = null): array
     {
-        $logbook = $this->store->current_logbook_name();
+        $logbook = $logbookName ?? $this->store->current_logbook_name();
         $trip = $this->store->trip($logbook, $entryId);
-        if ($trip === null) {
+        if ($trip === null || ($trip['LastModification'] ?? '') === 'delete') {
             throw Portal_error::not_found('Fahrt nicht gefunden.');
         }
-        Portal_permissions::assert_can_manage_trip($user, $trip);
+        $this->assert_owner($user, $trip);
         return ['trip' => $this->format_trip($trip)];
     }
 
@@ -103,16 +105,18 @@ class Portal_trips
      */
     public function correct(array $user, string $entryId, array $body): array
     {
-        return $this->with_idempotency($user, $body, function () use ($user, $entryId, $body) {
-            $logbook = $this->store->current_logbook_name();
+        return $this->with_idempotency($user, $body, 'correct:' . ($body['logbookName'] ?? $this->store->current_logbook_name()) . ':' . $entryId, function () use ($user, $entryId, $body) {
+            $logbook = (string) ($body['logbookName'] ?? $this->store->current_logbook_name());
             $existing = $this->store->trip($logbook, $entryId);
-            if ($existing === null) {
+            if ($existing === null || ($existing['LastModification'] ?? '') === 'delete') {
                 throw Portal_error::not_found('Fahrt nicht gefunden.');
             }
             if (!$this->is_open($existing)) {
                 throw Portal_error::validation('TRIP_NOT_OPEN', 'Nur offene Fahrten können korrigiert werden.');
             }
-            Portal_permissions::assert_can_manage_trip($user, $existing);
+            $this->assert_owner($user, $existing);
+            $this->assert_identity($body, $existing);
+            $this->assert_active_status($existing);
 
             $expectedCc = $this->require_change_count($body, $existing);
             $oldBoatId = (string) ($existing['BoatId'] ?? '');
@@ -128,7 +132,13 @@ class Portal_trips
 
             $boat = $this->store->boat_by_id($newBoatId) ?? [];
             $mergedBody = array_merge($this->trip_to_body($existing), $body);
-            $trip = $this->build_trip_from_body($mergedBody, $boat, true);
+            if ($newBoatId !== $oldBoatId) $mergedBody['boatName'] = $boat['Name'] ?? '';
+            if (array_key_exists('crew', $body)) {
+                for ($i = 1; $i <= 23; $i++) unset($mergedBody['crew' . $i . 'Id'], $mergedBody['crew' . $i . 'Name']);
+            }
+            if (array_key_exists('coxId', $body) && !array_key_exists('coxName', $body)) unset($mergedBody['coxName']);
+            $trip = $this->build_trip_from_body($mergedBody, $boat, false);
+            $this->validate_crew($trip, $boat);
             $trip['Logbookname'] = $logbook;
             $trip['EntryId'] = $entryId;
             $trip['Open'] = 'true';
@@ -168,16 +178,18 @@ class Portal_trips
      */
     public function finish(array $user, string $entryId, array $body): array
     {
-        return $this->with_idempotency($user, $body, function () use ($user, $entryId, $body) {
-            $logbook = $this->store->current_logbook_name();
+        return $this->with_idempotency($user, $body, 'finish:' . ($body['logbookName'] ?? $this->store->current_logbook_name()) . ':' . $entryId, function () use ($user, $entryId, $body) {
+            $logbook = (string) ($body['logbookName'] ?? $this->store->current_logbook_name());
             $existing = $this->store->trip($logbook, $entryId);
-            if ($existing === null) {
+            if ($existing === null || ($existing['LastModification'] ?? '') === 'delete') {
                 throw Portal_error::not_found('Fahrt nicht gefunden.');
             }
             if (!$this->is_open($existing)) {
                 throw Portal_error::validation('TRIP_NOT_OPEN', 'Fahrt ist bereits beendet.');
             }
-            Portal_permissions::assert_can_manage_trip($user, $existing);
+            $this->assert_owner($user, $existing);
+            $this->assert_identity($body, $existing);
+            $this->assert_active_status($existing);
             $expectedCc = $this->require_change_count($body, $existing);
 
             $cfg = $this->store->club_config();
@@ -193,6 +205,7 @@ class Portal_trips
             $sub = intval($cfg['FinishSessionTimeSubstract'] ?? 5);
             $end = clone $now;
             $end->modify('-' . $sub . ' minutes');
+            $this->round_desktop_time($end);
 
             $update = array_merge($existing, [
                 'Open' => 'false',
@@ -201,13 +214,24 @@ class Portal_trips
                 'EndDate' => $body['endDate'] ?? '',
                 'Distance' => $distance,
             ]);
-            if (!empty($body['destinationId'])) {
+            if (array_key_exists('destinationId', $body)) {
                 $update['DestinationId'] = $body['destinationId'];
             }
-            if (!empty($body['destinationName'])) {
+            if (array_key_exists('destinationName', $body)) {
                 $update['DestinationName'] = $body['destinationName'];
             }
 
+            $startAt = new DateTime($existing['Date'] . ' ' . $existing['StartTime'], $tz);
+            $endDay = !empty($body['endDate']) ? $body['endDate'] : $end->format('Y-m-d');
+            $endAt = new DateTime($endDay . ' ' . $update['EndTime'], $tz);
+            if (empty($body['endTime']) && $endAt < $startAt
+                && $startAt->getTimestamp() - $endAt->getTimestamp() < (intval($cfg['StartSessionTimeAdd'] ?? 5) + $sub) * 120) {
+                $endAt = clone $startAt;
+                $update['EndTime'] = $startAt->format('H:i');
+            }
+            if ($endAt < $startAt && empty($body['endDate'])) $endAt->modify('+1 day');
+            if ($endAt < $startAt) throw Portal_error::validation('END_BEFORE_START', 'Das Ende liegt vor dem Start.');
+            $update['EndDate'] = $endAt->format('Y-m-d') === $startAt->format('Y-m-d') ? '' : $endAt->format('Y-m-d');
             $boatId = (string) ($existing['BoatId'] ?? '');
 
             return $this->store->atomic(function () use ($update, $expectedCc, $boatId) {
@@ -234,16 +258,18 @@ class Portal_trips
      */
     public function abort(array $user, string $entryId, array $body): array
     {
-        return $this->with_idempotency($user, $body, function () use ($user, $entryId, $body) {
-            $logbook = $this->store->current_logbook_name();
+        return $this->with_idempotency($user, $body, 'abort:' . ($body['logbookName'] ?? $this->store->current_logbook_name()) . ':' . $entryId, function () use ($user, $entryId, $body) {
+            $logbook = (string) ($body['logbookName'] ?? $this->store->current_logbook_name());
             $existing = $this->store->trip($logbook, $entryId);
-            if ($existing === null) {
+            if ($existing === null || ($existing['LastModification'] ?? '') === 'delete') {
                 throw Portal_error::not_found('Fahrt nicht gefunden.');
             }
             if (!$this->is_open($existing)) {
                 throw Portal_error::validation('TRIP_NOT_OPEN', 'Nur offene Fahrten können abgebrochen werden.');
             }
-            Portal_permissions::assert_can_manage_trip($user, $existing);
+            $this->assert_owner($user, $existing);
+            $this->assert_identity($body, $existing);
+            $this->assert_active_status($existing);
             $expectedCc = $this->require_change_count($body, $existing);
             $boatId = (string) ($existing['BoatId'] ?? '');
             $withDamage = (!empty($body['withDamage']) && is_array($body['withDamage']))
@@ -284,22 +310,56 @@ class Portal_trips
         });
     }
 
-    private function with_idempotency(array $user, array $body, callable $fn): array
+    public function started_by_me(array $user): array
     {
-        $key = (string) ($body['idempotencyKey'] ?? '');
-        $userId = (string) ($user['efaCloudUserID'] ?? $user['@id'] ?? '0');
-        if ($key !== '') {
-            $cached = $this->store->idempotency_get($userId, $key);
-            if ($cached !== null) {
-                $cached['_idempotentReplay'] = true;
-                return $cached;
+        if (Portal_permissions::is_account_revoked($user)) throw Portal_error::revoked();
+        $trips = array_filter($this->store->trips_started_by(intval($user['efaCloudUserID'])), fn($t) => $this->is_open($t));
+        return ['trips' => array_values(array_map([$this, 'format_trip'], $trips))];
+    }
+
+    private function assert_owner(array $user, array $trip): void
+    {
+        if (Portal_permissions::is_account_revoked($user)) throw Portal_error::revoked();
+        if (!Portal_permissions::is_admin($user)
+            && $this->store->checkout_owner($trip) !== intval($user['efaCloudUserID'])) {
+            throw Portal_error::forbidden('Du darfst hier nur selbst gestartete Fahrten bearbeiten. Andere Fahrten verwaltet der Bootshauscomputer.');
+        }
+    }
+
+    private function assert_active_status(array $trip): void
+    {
+        $status = $this->store->boat_status((string) $trip['BoatId']);
+        if ($status !== null && (($status['CurrentStatus'] ?? '') !== Portal_constants::STATUS_ONTHEWATER
+            || (!empty($status['Logbook']) && $status['Logbook'] !== $trip['Logbookname'])
+            || (!empty($status['EntryNo']) && (string) $status['EntryNo'] !== (string) $trip['EntryId']))) {
+            throw Portal_error::stale('Der Bootsstatus wurde am Computer geändert. Bitte die Fahrten neu laden.');
+        }
+    }
+
+    private function assert_identity(array $body, array $trip): void
+    {
+        if (isset($body['ecrid']) && $body['ecrid'] !== ($trip['ecrid'] ?? '')) {
+            throw Portal_error::stale('Dieser Fahrteintrag wurde ersetzt. Bitte die Fahrten neu laden.');
+        }
+    }
+
+    private function with_idempotency(array $user, array $body, string $scope, callable $fn): array
+    {
+        if (Portal_permissions::is_account_revoked($user)) throw Portal_error::revoked();
+        return $this->store->atomic(function () use ($user, $body, $scope, $fn) {
+            $key = (string) ($body['idempotencyKey'] ?? '');
+            $userId = (string) $user['efaCloudUserID'];
+            if ($key !== '') {
+                $cached = $this->store->idempotency_get($userId, $scope . ':' . $key);
+                if ($cached !== null) {
+                    $cached['_idempotentReplay'] = true;
+                    return $cached;
+                }
             }
-        }
-        $result = $fn();
-        if ($key !== '') {
-            $this->store->idempotency_put($userId, $key, $result);
-        }
-        return $result;
+            $result = $fn();
+            if ($key !== '') $this->store->idempotency_put($userId, $scope . ':' . $key, $result);
+            return $result;
+        });
     }
 
     private function require_change_count(array $body, array $existing): int
@@ -323,7 +383,7 @@ class Portal_trips
 
     private function is_open(array $trip): bool
     {
-        return isset($trip['Open']) && (strcasecmp((string) $trip['Open'], 'true') === 0 || $trip['Open'] === true);
+        return ($trip['LastModification'] ?? '') !== 'delete' && isset($trip['Open']) && (strcasecmp((string) $trip['Open'], 'true') === 0 || $trip['Open'] === true);
     }
 
     /**
@@ -338,12 +398,13 @@ class Portal_trips
         $add = intval($cfg['StartSessionTimeAdd'] ?? 5);
         $start = clone $now;
         $start->modify('+' . $add . ' minutes');
+        $this->round_desktop_time($start);
 
         $trip = [
             'BoatId' => $body['boatId'] ?? ($boat['Id'] ?? ''),
             'BoatName' => $body['boatName'] ?? ($boat['Name'] ?? ''),
             'BoatVariant' => (string) ($body['boatVariant'] ?? $body['variant'] ?? '1'),
-            'Date' => $body['date'] ?? $now->format('Y-m-d'),
+            'Date' => $body['date'] ?? $start->format('Y-m-d'),
             'StartTime' => $body['startTime'] ?? $start->format('H:i'),
             'DestinationId' => $body['destinationId'] ?? '',
             'DestinationName' => $body['destinationName'] ?? '',
@@ -353,14 +414,18 @@ class Portal_trips
             // Do NOT force BoatCaptain=1 (efaWeb divergence).
         ];
 
-        if (!empty($body['coxId'])) {
-            $trip['CoxId'] = $body['coxId'];
-            $trip['CoxName'] = $body['coxName'] ?? $this->person_name($body['coxId']);
+        if (!empty($body['coxId']) || !empty($body['coxName'])) {
+            $trip['CoxId'] = $body['coxId'] ?? '';
+            $trip['CoxName'] = $body['coxName'] ?? $this->person_name((string) ($body['coxId'] ?? ''));
         } else {
             $trip['CoxId'] = '';
             $trip['CoxName'] = '';
         }
 
+        for ($seat = 1; $seat <= 23; $seat++) {
+            $trip['Crew' . $seat . 'Id'] = '';
+            $trip['Crew' . $seat . 'Name'] = '';
+        }
         $crew = $body['crew'] ?? [];
         if (is_array($crew)) {
             $i = 1;
@@ -380,8 +445,8 @@ class Portal_trips
         }
         // Also accept Crew1Id style
         for ($i = 1; $i <= 23; $i++) {
-            if (!empty($body['crew' . $i . 'Id'])) {
-                $trip['Crew' . $i . 'Id'] = $body['crew' . $i . 'Id'];
+            if (!empty($body['crew' . $i . 'Id']) || !empty($body['crew' . $i . 'Name'])) {
+                $trip['Crew' . $i . 'Id'] = $body['crew' . $i . 'Id'] ?? '';
                 $trip['Crew' . $i . 'Name'] = $body['crew' . $i . 'Name']
                     ?? $this->person_name((string) $body['crew' . $i . 'Id']);
             }
@@ -391,6 +456,13 @@ class Portal_trips
             $trip['DestinationId'] = $boat['DefaultDestinationId'];
         }
 
+        foreach ($this->store->all_destinations() as $dest) {
+            if (($dest['Id'] ?? '') === $trip['DestinationId']) {
+                if ($trip['DestinationName'] === '') $trip['DestinationName'] = $dest['Name'] ?? '';
+                if ($trip['Distance'] === '') $trip['Distance'] = $dest['Distance'] ?? '';
+                break;
+            }
+        }
         return $trip;
     }
 
@@ -411,12 +483,53 @@ class Portal_trips
             'coxName' => $trip['CoxName'] ?? '',
         ];
         for ($i = 1; $i <= 23; $i++) {
-            if (!empty($trip['Crew' . $i . 'Id'])) {
-                $body['crew' . $i . 'Id'] = $trip['Crew' . $i . 'Id'];
+            if (!empty($trip['Crew' . $i . 'Id']) || !empty($trip['Crew' . $i . 'Name'])) {
+                $body['crew' . $i . 'Id'] = $trip['Crew' . $i . 'Id'] ?? '';
                 $body['crew' . $i . 'Name'] = $trip['Crew' . $i . 'Name'] ?? '';
             }
         }
         return $body;
+    }
+
+    private function round_desktop_time(DateTime $time): void
+    {
+        $minute = intval($time->format('i'));
+        $remainder = $minute % 5;
+        $time->setTime(intval($time->format('H')), $minute, 0);
+        $time->modify(($remainder < 3 ? -$remainder : 5 - $remainder) . ' minutes');
+    }
+
+    private function validate_crew(array $trip, array $boat): void
+    {
+        $variants = (new Portal_boats($this->store))->expand_variants($boat);
+        $variant = null;
+        foreach ($variants as $v) if ((string) $v['variant'] === $trip['BoatVariant']) $variant = $v;
+        if ($variant === null) throw Portal_error::validation('VARIANT_INVALID', 'Bitte eine gültige Bootskonfiguration wählen.');
+        $cfg = $this->store->club_config();
+        $seats = intval($variant['seatCategory']);
+        $count = !empty($trip['CoxId']) || !empty($trip['CoxName']) ? 1 : 0;
+        for ($i = 1; $i <= 23; $i++) {
+            if (!empty($trip['Crew' . $i . 'Id']) || !empty($trip['Crew' . $i . 'Name'])) {
+                $count++;
+                if (!empty($cfg['InputAllowOnlyMaxCrewNumber']) && $seats > 0 && $i > $seats) {
+                    throw Portal_error::validation('CREW_TOO_LARGE', 'Die Mannschaft passt nicht zur Bootskonfiguration.');
+                }
+            }
+        }
+        if ($count === 0) throw Portal_error::validation('CREW_REQUIRED', 'Bitte mindestens eine Person eintragen.');
+        if ($variant['typeCoxing'] === 'COXLESS' && (!empty($trip['CoxId']) || !empty($trip['CoxName']))) {
+            throw Portal_error::validation('COX_NOT_ALLOWED', 'Diese Konfiguration hat keinen Steuersitz.');
+        }
+        $captain = $trip['BoatCaptain'];
+        if ($captain === '' && !empty($cfg['InputMustSelectBoatCaptain'])) {
+            throw Portal_error::validation('CAPTAIN_REQUIRED', 'Bitte einen Obmann auswählen.');
+        }
+        if ($captain !== '') {
+            $field = $captain === '0' ? 'Cox' : 'Crew' . $captain;
+            if (empty($trip[$field . 'Id']) && empty($trip[$field . 'Name'])) {
+                throw Portal_error::validation('CAPTAIN_NOT_ABOARD', 'Der Obmann muss tatsächlich im Boot sitzen.');
+            }
+        }
     }
 
     private function person_name(string $id): string
