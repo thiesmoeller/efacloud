@@ -188,7 +188,7 @@ class TfyhDataItem
     {
         let diff = this.get_name() + " ?= " + item_to_compare.get_name() + ": ";
         if (strcmp(this.get_name(), item_to_compare.get_name()) != 0)
-            diff += _("V0JhTP|Name A not equal to name...") + " ";
+            diff += _("") + " ";
         diff += this.diff_descriptor(item_to_compare, exclude_current_value, exclude_defaults);
     }
 

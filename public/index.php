@@ -30,6 +30,6 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 ?>
-<?= i("U1NXw3| ** efaCloud - efa in th..."); ?>
+<?= i("U1NXw3|<!-- Image header -->..."); ?>
 <?php
 end_script();

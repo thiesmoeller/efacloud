@@ -208,7 +208,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("fr1H7j| ** Find an efa record ..."); 
+echo i("fr1H7j|<!-- START OF content -...");
 echo $toolbox->form_errors_to_html($form_errors);
 if ($todo < 3) {
     if ($todo == 2)

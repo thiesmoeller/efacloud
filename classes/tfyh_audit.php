@@ -49,7 +49,9 @@ class Tfyh_audit
      * "demo" (dilbo.org, efacloud.org),"efaCloud" (brg-intern.de),"naerrischegesellen" (fvssp.de),
      */
     private static $tfyh_public_dirs = ["_src","src","demo","efa","efacloud","img","naerrischegesellen",
-            "helpdocs","api","forms","i18n","js","license","pages","public","resources"
+            "helpdocs","api","forms","i18n","js","license","pages","public","resources",
+            // Dockside PWA static assets (same-origin /portal/); must stay world-readable.
+            "portal"
     ];
 
     /**
@@ -85,9 +87,6 @@ class Tfyh_audit
      */
     private function get_forbidden_dirs ()
     {
-        
-        file_put_contents("../log/tmp", "Scanning\n");
-        
         $top_level_dirs = scandir("..");
         $forbidden_dirs = []; // Don't use the framework settings.
         foreach ($top_level_dirs as $top_level_dir) {
@@ -196,7 +195,7 @@ class Tfyh_audit
                 if (file_exists($htaccess_filename)) {
                     $corrections_needed ++;
                     $this->audit_warnings .= "    " .
-                             i("t32eUO|Extra °%1° removed.", $htaccess_filename) . "\n";
+                             i("t32eUO|Extra %1 removed.", $htaccess_filename) . "\n";
                 }
             }
         }

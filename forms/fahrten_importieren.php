@@ -50,7 +50,10 @@ if ($done > 0) {
             if (! $tmp_upload_file)
                 $form_errors .= i("RAACdM|Unknown error during upl...");
             else {
-                $_SESSION["io_file"] = $_FILES['userfile']["name"];
+                $_SESSION["io_file"] = basename((string) $_FILES['userfile']["name"]);
+                if ($_SESSION["io_file"] === '' || $_SESSION["io_file"] === '.' || $_SESSION["io_file"] === '..') {
+                    $form_errors .= i("RAACdM|Unknown error during upl...");
+                } else {
                 $_SESSION["io_table"] = "efa2logbook";
                 if (! file_exists("../log/io"))
                     mkdir("../log/io");
@@ -121,6 +124,7 @@ if ($done > 0) {
                 else
                     $form_errors .= $import_check_errors;
                 // perf_log("Fahrten importieren, prüfen, Abschluss");
+                }
             }
         }
     } elseif ($done == 2) {
@@ -199,22 +203,22 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("atUZOz| ** Import trips ** Here...");
+echo i("atUZOz|<!-- START OF content -...");
 if ($todo == 1) { // step 1. Texts for output
-    echo i("JTl0ci| ** File format and fiel...");
+    echo i("JTl0ci|<p>File format and fiel...");
     echo $toolbox->form_errors_to_html($form_errors);
     echo $form_to_fill->get_html(true); // enable file upload
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 2) { // step 2. Texts for output
-    echo i("7MLPuQ| ** The file upload and ...");
+    echo i("7MLPuQ|<p>The file upload and ...");
     // no form errors possible at this step. just a button clicked.
     echo $import_check_info;
-    echo i("0AKx35| ** In the next step, th...");
+    echo i("0AKx35|<p>In the next step, th...");
     // no form errors possible at this step. just a button clicked.
     echo $form_to_fill->get_html(false);
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 3) { // step 3. Texts for output
-    echo i("x1uDKx| ** The file import was ...");
+    echo i("x1uDKx|<p>The file import was ...");
     echo "<p>" . $import_done_info . "</p>";
 }
 

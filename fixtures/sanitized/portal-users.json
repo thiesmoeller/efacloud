@@ -1,0 +1,28 @@
+[
+  {
+    "efaCloudUserID": 101,
+    "Rolle": "member",
+    "PersonId": "22222222-2222-4222-a222-222222222201",
+    "notes": "Member — own trips only (portal)"
+  },
+  {
+    "efaCloudUserID": 102,
+    "Rolle": "member",
+    "PersonId": "22222222-2222-4222-a222-222222222206",
+    "TrainerPrivilege": true,
+    "Concessions": 131072,
+    "notes": "portalTrainer Concession bit 131072 (TrainerPrivilege alias for fixtures). Grant via efaCloudUsers.Concessions."
+  },
+  {
+    "efaCloudUserID": 103,
+    "Rolle": "bths",
+    "PersonId": "",
+    "notes": "Boathouse/API terminal style account"
+  },
+  {
+    "efaCloudUserID": 104,
+    "Rolle": "admin",
+    "PersonId": "22222222-2222-4222-a222-222222222205",
+    "notes": "Admin — repair admin stays here"
+  }
+]

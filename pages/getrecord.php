@@ -24,6 +24,7 @@
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
+include_once "../classes/efa_tables.php";
 if (! isset($_GET["table"])) {
     echo i("sgBY7F|Error: No table name was...");
     exit();
@@ -32,16 +33,22 @@ if (! isset($_GET["table"])) {
     exit();
 }
 
-$record = $socket->find_record($_GET["table"], "ecrid", $_GET["ecrid"]);
+$tablename = strval($_GET["table"]);
+if (! Efa_tables::is_safe_table_name($tablename)) {
+    $toolbox->display_error(i("VhNoKp|Not allowed."), i("lTNFEv|Not allowed."), $user_requested_file);
+}
+
+$record = $socket->find_record($tablename, "ecrid", strval($_GET["ecrid"]));
 if ($record == false) {
-    echo i("jVHp9d|Error: The record in tab...", $_GET["table"], 
-            $_GET["ecrid"]);
+    echo htmlspecialchars(i("jVHp9d|Error: The record in tab...", $tablename, 
+            strval($_GET["ecrid"])), ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
     exit();
 }
 
 foreach ($record as $key => $value) {
     if (strcmp($key, "ecrhis") !== 0)
-        echo "<b>$key</b>: $value<br>\n";
+        echo "<b>" . htmlspecialchars((string) $key, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") . "</b>: "
+                . htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") . "<br>\n";
 }
 if (isset($record["ecrhis"])) {
     echo "<hr><b>".i("YhzWIM|Change history")."</b>";

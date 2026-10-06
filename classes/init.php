@@ -21,8 +21,8 @@
  */
 
 /**
- * snippet to start all forms and pages. Controls load, user identity and opens the data base access. Provides
- * the functions called on script end.
+ * snippet to start all forms and pages. Controls load, user identity and opens the database access. Provides
+ * the functions called on the script end.
  */
 
 // ===== MAINTENANCE AND DBUGGING =========================================
@@ -52,8 +52,8 @@ function perf_log (String $method)
 }
 
 // ===== global functions for application session control and monitoring.
-// close the data base socket and echo the footer at the end of the script execution.
-function end_script (bool $add_footer = true)
+// close the database socket and echo the footer at the end of the script execution.
+function end_script (bool $add_footer = true): void
 {
     global $toolbox;
     global $socket;
@@ -76,14 +76,13 @@ function end_script (bool $add_footer = true)
     $session_user = (isset($toolbox->users->session_user["@id"])) ? intval(
             $toolbox->users->session_user["@id"]) : 0;
     $toolbox->logger->put_timestamp($session_user, $user_requested_action, $php_script_started_at);
-    // do not exit, A header() statement for redirection may follow..
+    // do not exit, A header() statement for redirection may follow.
 }
 
 // if the script end was not reached, which happens typically in file download scripts, but also
-// in error cases, shut down the data base connection.
-function shutdown ()
+// in error cases, shut down the database connection.
+function shutdown (): void
 {
-    global $toolbox;
     global $socket;
     global $connected;
     global $script_completed;
@@ -118,7 +117,7 @@ function shutdown ()
         file_put_contents(__DIR__ . "/../log/sys_shutdowns.log", 
                 date("Y-m-d H:i:s") . ": Last Error = " . $errinfo . "\n", FILE_APPEND);
         echo "<h1>" . i("Pj5VdW|Oops! A fatal error.") . "</h1><p>" . str_replace("#", "<br>#", $errinfo) .
-                 ".</p><p>" . i("IGCugZ| ** Please help to impro...") . "</p>";
+                 ".</p><p>" . i("IGCugZ|Please help to improve t...") . "</p>";
     }
 }
 register_shutdown_function('shutdown');
@@ -179,23 +178,32 @@ if (! isset($dbconnect)) {
 $session_registration_result = $toolbox->app_sessions->web_session_start($user_requested_action, $socket);
 
 // load throttling
-if ($session_registration_result == false) {
+if (!$session_registration_result) {
     $script_completed = true;
     $toolbox->display_error($toolbox->too_many_sessions_error_headline, 
             i("ATSnFO|There are too many users..."), $user_requested_file);
 }
 
-// keep anonymous sessions only, if a form was requested (like login or registrations).
+// keep anonymous sessions only if a form was requested (like login or registrations).
 $user_id = intval($toolbox->users->session_user["@id"]);
+// These historical /public/ URLs contain club data. Enforce authentication
+// before rendering, even when an old persistent menu still marks them public.
+if (in_array($user_requested_action, ["public/fahrtenbuch.php", "public/info.php"], true) &&
+        strcasecmp($toolbox->users->session_user["Rolle"], $toolbox->users->anonymous_role) == 0) {
+    header("Cache-Control: no-store");
+    header("Location: ../forms/login.php?goto=" . rawurlencode($user_requested_action), true, 303);
+    end_script(false);
+    exit();
+}
 $is_user_request_for_form = strcasecmp($file_path_elements[$index_last - 1], "forms") == 0;
-// A Javascript application has the option to retrieve configuration and session information though the
+// A JavaScript application has the option to retrieve configuration and session information though the
 // jsget.php page. In this case do not modify the form sequence
 $is_jsget = (strcmp($user_requested_action, "pages/jsget.php") == 0)
             || (strcmp($user_requested_action, "public/seats_blocked.php") == 0)
             || (strcmp($user_requested_action, "public/seats_request.php") == 0);
 
 if (! $is_user_request_for_form && ($user_id == - 1) && !$is_jsget) {
-    // drop app session, if an anonymous user requests anything different than a form.
+    // drop app session if an anonymous user requests anything different than a form.
     $toolbox->app_sessions->web_session_close(
             i("CW7uhM|anonymous request for no...", $file_path_elements[$index_last - 1], 
                     $file_path_elements[$index_last]));
@@ -207,18 +215,16 @@ load_i18n_resource($toolbox->config->language_code);
 $debug = ($toolbox->config->debug_level > 0);
 if ($debug)
     file_put_contents("../log/debug_init.log", 
-            date("Y-m-d H:i:s") . "\n  " . i("JCP71T|File: %1.  User after se...", $user_requested_file, 
+            date("Y-m-d H:i:s") . "\n  " . i("JCP71T|File: %1  User after se...", $user_requested_file,
                     $user_id, 
                     ((isset($toolbox->users->session_user["Rolle"])) ? $toolbox->users->session_user["Rolle"] : i(
                             "YXYsQR|[undefined]"))) . "\n", FILE_APPEND);
 
-// ===== identify current context, i. e. the parent directory's parent.
+// ===== identify the current context, i.e. the parent directory's parent.
 // The application holds all executable code in directories at the application root. Multiple
-// applications of such type may reside in one web server serving different tenants. The session
-// must
-// recognise, if the application root was changed, to prevent users from using their access rights
-// in any
-// other tenant.
+// applications of such a type may reside in one web server serving different tenants. The session
+// must recognise if the application root was changed to prevent users from using their access rights
+// in any other tenant.
 $context = getcwd();
 $context = substr($context, 0, strrpos($context, "/"));
 if ($debug) {
@@ -270,7 +276,7 @@ if (! $menu->is_allowed_menu_item($user_requested_file)) {
 
 if (! $is_jsget) {
     // ===== form sequence check. Using the fs_id all actions can be distinguished in a multitab
-    // user session. Actually these tokens are generated for all pages, not only forms, but for
+    // user session. Actually, these tokens are generated for all pages, not only forms, but for
     // forms they are crucial.
     $done = 0;
     $fs_id = "";

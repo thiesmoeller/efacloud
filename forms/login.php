@@ -1,4 +1,5 @@
 <?php
+global $fs_id, $done, $toolbox, $socket, $menu;
 /**
  *
  *       the tools-for-your-hobby framework
@@ -22,7 +23,7 @@
 
 /**
  * The login form for all activites on this application except registration. Based on the Tfyh_form class,
- * please read instructions their to better understand this PHP-code part.
+ * please read instructions there to better understand this PHP-code part.
  * 
  * @author mgSoft
  */
@@ -93,7 +94,8 @@ if (isset($_SESSION["getps"][$fs_id]["token"])) {
 if ($done > 0) {
     $form_filled = new Tfyh_form($form_layout, $socket, $toolbox, $done, $fs_id);
     $form_filled->read_entered();
-    $form_errors = $form_filled->check_validity();
+    // Authenticate existing credentials regardless of today's creation policy.
+    $form_errors = $form_filled->check_validity(0);
     $entered_data = $form_filled->get_entered();
     
     // application logic, step by step
@@ -154,7 +156,7 @@ if ($done > 0) {
                     // The user has defined a permanent password, then it must be used.
                     // He may reset this permanent password to get one-time session tokens.
                     $form_errors .= i("gvdW5g|If a permanent password ...") . " ";
-                    $form_errors .= i("v0PFwa| ** The permanent passwo...") . " ";
+                    $form_errors .= i("v0PFwa|The permanent password c...") . " ";
                 } elseif ($login_is_id) {
                     // The user has not defined a permanent password, then she/he must not use the numeric ID
                     // as login.
@@ -192,7 +194,7 @@ if ($done > 0) {
                             // Compile Mail to user.
                             $subject = i("M4m15E|One-time password for %1...", $toolbox->config->app_name, 
                                     $token);
-                            $body .= i("rtBEhk| ** Dear %1 %2, ** ", $user_to_login["Vorname"], 
+                            $body = i("rtBEhk|Dear %1 %2,", $user_to_login["Vorname"],
                                     $user_to_login["Nachname"]);
                             // user with user rights !Toonym" shall not get a token
                             if (strcasecmp($user_to_login["Rolle"], "anonym") == 0) {
@@ -259,20 +261,20 @@ if ($done > 0) {
                             $toolbox->config->settings_tfyh["init"]["max_errors_per_hour"], 
                             $user_requested_file);
                     $toolbox->logger->log_init_login_error("error");
-                    $form_errors .= i("zdAPKK| ** Login error. ** Alre...", $login_failures) . "</p>";
+                    $form_errors .= i("zdAPKK|Login error.<br>Already ...", $login_failures) . "</p>";
                     $toolbox->logger->log(1, $appUserID, i("sZKXYK|Wrong password at login."));
                     // try and eroor will become slower and slower.
                     sleep(2 * $login_failures);
                 }
             }
     } elseif ($done === 2) {
-        // step 2: user has got a token mail, verify token.
+        // step 2: user has got token mail, verify token.
         include_once '../classes/tfyh_token_handler.php';
         $token_handler = new Tfyh_token_Handler("../log/tokens.txt");
         $appUserID = $token_handler->get_user_and_update($entered_data["Token"]);
         if ($appUserID == - 1) {
             $form_errors .= i("1HuxvX|The one-time password is...") . " ";
-            $form_errors .= i("OoZfSs| ** A one-time password ...");
+            $form_errors .= i("OoZfSs|A one-time password can ...");
         } elseif ($appUserID == - 2) {
             $form_errors .= i("Gc6rWW|Too many sessions open f...");
             $toolbox->logger->log(1, $appUserID, i("sAM6H9|Too many sessions open f..."));
@@ -308,7 +310,7 @@ if ($done > 0) {
         Cron_jobs::run_daily_jobs($toolbox, $socket, $toolbox->users->session_user["@id"]);
         // now redirect to the deeplink or the users home page.
         if (strlen($deeplink) > 0)
-            echo header("Location: ../" . str_replace("%2F", "/", $deeplink));
+            header("Location: ../" . str_replace("%2F", "/", $deeplink));
         else
             header("Location: ../pages/home.php");
     }
@@ -365,4 +367,3 @@ if (! $legacy)
     echo "</p></div>\n";
 echo "</div>";
 end_script();
-

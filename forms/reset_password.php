@@ -157,7 +157,7 @@ echo $form_to_fill->get_html();
 if ($todo == 1) { // step 1. no special texts for output
 } elseif ($todo == 2) { // step 2. No special texts
 } elseif ($todo == 3) { // step 3.
-    echo i("nO9bzi| ** After deleting the p...");
+    echo i("nO9bzi|<p>After deleting the p...");
 }
 
 echo $form_to_fill->get_help_html();

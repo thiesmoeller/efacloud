@@ -1,0 +1,26 @@
+{
+  "name": "efaCloud Portal",
+  "short_name": "efaPortal",
+  "description": "Steg-Anmeldung und Bootsauswahl für efaCloud",
+  "start_url": "/portal/",
+  "scope": "/portal/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#d9ecef",
+  "theme_color": "#0a303c",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "/portal/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/portal/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

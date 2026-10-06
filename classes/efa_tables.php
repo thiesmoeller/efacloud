@@ -436,6 +436,14 @@ class Efa_tables
     }
 
     /**
+     * Reject table names that are not safe to embed in SQL backtick identifiers.
+     */
+    public static function is_safe_table_name (String $tablename): bool
+    {
+        return preg_match('/^[A-Za-z][A-Za-z0-9_]{0,63}$/', $tablename) === 1;
+    }
+
+    /**
      * Checks whether the provided $to_check is a valid ecrid
      * 
      * @param String $to_check

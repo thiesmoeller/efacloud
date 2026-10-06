@@ -1,0 +1,150 @@
+# Build multi-stage efaCloud image and publish immutable multi-arch tags to GHCR.
+# CapRover staging/prod should pull the same sha-* tag (or digest) — see
+# docs/deploy/image-promote.md.
+#
+# Platforms: linux/amd64 + linux/arm64 (CapRover on project-park is arm64).
+name: Docker image
+
+on:
+  push:
+    branches:
+      - main
+      - feature/caprover
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/thiesmoeller/efacloud
+  PLATFORMS: linux/amd64,linux/arm64
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=sha,prefix=sha-,format=long
+            type=ref,event=branch
+
+      # load: only works for a single platform — smoke on the runner's amd64.
+      - name: Build image (amd64 load for smoke)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: ${{ env.IMAGE }}:smoke-local
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke (portal assets + Apache config)
+        run: |
+          set -euo pipefail
+          echo "Smoke testing: ${IMAGE}:smoke-local"
+          docker run --rm --entrypoint sh "${IMAGE}:smoke-local" -c '
+            set -e
+            test -f /var/www/html/portal/index.html
+            test -f /var/www/html/api/portal/v1/index.php
+            test -f /var/www/html/classes/portal/Portal_session.php
+            test -f /etc/apache2/conf-enabled/efacloud.conf
+            . /etc/apache2/envvars
+            apache2 -t
+          '
+          echo "Smoke OK"
+
+      - name: Security, portal, and persistent configuration regressions
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/security/run.php
+          docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/portal/run.php
+          sh tests/security/config-migration.sh
+
+      # Multi-arch manifest list — CapRover arm64 pulls the arm64 variant.
+      - name: Build and push multi-arch image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Resolve digest and write job summary
+        run: |
+          set -euo pipefail
+          SHORT_SHA="$(echo "${{ github.sha }}" | cut -c1-7)"
+          FULL_SHA="${{ github.sha }}"
+          BRANCH="${{ github.ref_name }}"
+          SAFE_BRANCH="$(echo "$BRANCH" | tr '/' '-')"
+          PRIMARY="${IMAGE}:sha-${SHORT_SHA}"
+
+          DIGEST="$(docker buildx imagetools inspect "$PRIMARY" --format '{{.Manifest.Digest}}' 2>/dev/null || true)"
+          DIGEST_REF=""
+          if [[ -n "$DIGEST" ]]; then
+            DIGEST_REF="${IMAGE}@${DIGEST}"
+          fi
+
+          {
+            echo "## efaCloud image published"
+            echo ""
+            echo "| Item | Value |"
+            echo "|------|-------|"
+            echo "| Registry | \`${IMAGE}\` |"
+            echo "| Platforms | \`${PLATFORMS}\` |"
+            echo "| Digest ref | \`${DIGEST_REF:-unknown}\` |"
+            echo "| Tag \`sha-${SHORT_SHA}\` | \`${IMAGE}:sha-${SHORT_SHA}\` |"
+            echo "| Tag \`sha-${FULL_SHA}\` | \`${IMAGE}:sha-${FULL_SHA}\` |"
+            echo "| Branch tag | \`${IMAGE}:${SAFE_BRANCH}\` |"
+            echo "| Commit | \`${FULL_SHA}\` |"
+            echo ""
+            echo "Manifest list includes **amd64** and **arm64**. CapRover selects the host arch."
+            echo "Promote staging → production with the **same** \`sha-*\` tag or digest."
+            echo "See \`docs/deploy/image-promote.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Published digest: ${DIGEST_REF:-unknown}"
+          echo "SHORT_SHA_TAG=${IMAGE}:sha-${SHORT_SHA}" >> "$GITHUB_ENV"
+
+      - name: Deploy image to CapRover staging
+        # Repo secrets (Settings → Secrets and variables → Actions):
+        #   CAPROVER_SERVER    = https://captain.project-park.de
+        #   CAPROVER_APP       = efacloud-staging
+        #   CAPROVER_APP_TOKEN = CapRover → Apps → efacloud-staging → Deployment → App Token
+        uses: caprover/deploy-from-github@v1.1.2
+        with:
+          server: ${{ secrets.CAPROVER_SERVER }}
+          app: ${{ secrets.CAPROVER_APP }}
+          token: ${{ secrets.CAPROVER_APP_TOKEN }}
+          image: ${{ env.SHORT_SHA_TAG }}

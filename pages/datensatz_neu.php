@@ -36,7 +36,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("uVNY6O| ** Create a new record ...");
+echo i("uVNY6O|<!-- START OF content -...");
 
 $forbidden = ["efa2autoincrement" => i("UGlDe1|Further system counters ..."),"efa2boats" => false,
         "efa2boatdamages" => i("xjjbhP|For new damage reports, ..."),

@@ -1,0 +1,63 @@
+[
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111101",
+    "BoatText": "Albatros",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": ""
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111102",
+    "BoatText": "Biber",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": ""
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111103",
+    "BoatText": "Cirrus",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": ""
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111104",
+    "BoatText": "Düne",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "ONTHEWATER",
+    "ShowInList": "",
+    "Logbook": "2026",
+    "EntryNo": "3",
+    "Comment": "unterwegs nach Übungskanal seit 02.10.2026 um 08:15 mit Anna Beispiel, Ben Beispiel"
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111105",
+    "BoatText": "Elster",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": ""
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111106",
+    "BoatText": "Flut",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "NOTAVAILABLE",
+    "ShowInList": "NOTAVAILABLE",
+    "Comment": "Wartung"
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111107",
+    "BoatText": "Gischt",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": "NOTAVAILABLE",
+    "Comment": "Bootsschaden: Riss im Unterschiff (Boot nicht benutzbar)"
+  },
+  {
+    "BoatId": "11111111-1111-4111-a111-111111111108",
+    "BoatText": "Hulk",
+    "BaseStatus": "AVAILABLE",
+    "CurrentStatus": "AVAILABLE",
+    "ShowInList": ""
+  }
+]

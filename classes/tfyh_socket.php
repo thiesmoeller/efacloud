@@ -233,6 +233,31 @@ class Tfyh_socket
     }
 
     /**
+     * Reject identifiers that must not be interpolated into SQL backtick quotes.
+     */
+    private function assert_safe_sql_identifier (String $name): ?String
+    {
+        if (preg_match('/^[A-Za-z][A-Za-z0-9_]{0,63}$/', $name) !== 1)
+            return i("lTNFEv|Not allowed.") . " (" . $name . ")";
+        return null;
+    }
+
+    /**
+     * Reject record/matching arrays whose keys are unsafe as SQL identifiers.
+     *
+     * @param array<string|int,mixed> $fields
+     */
+    private function assert_safe_sql_field_keys (array $fields): ?String
+    {
+        foreach ($fields as $key => $_value) {
+            $err = $this->assert_safe_sql_identifier(strval($key));
+            if ($err !== null)
+                return $err;
+        }
+        return null;
+    }
+
+    /**
      * Add a post-read-transaction listener to the socket. If a trigger of that name already exists, it is
      * replaced.
      * 
@@ -650,6 +675,12 @@ class Tfyh_socket
      */
     public function insert_into (String $appUserID, String $table_name, array $record)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return $identifier_error;
+        $identifier_error = $this->assert_safe_sql_field_keys($record);
+        if ($identifier_error !== null)
+            return $identifier_error;
         // trigger pre-write-modification checks
         foreach ($this->triggers as $name => $trigger) {
             if ($this->debug_on)
@@ -730,8 +761,12 @@ class Tfyh_socket
     private function timestamp_write_access (String $appUserID)
     {
         $timef = Tfyh_toolbox::timef();
-        file_put_contents("../log/lwa/" . $appUserID, $timef);
-        file_put_contents("../log/lwa/any", $timef);
+        $dir = "../log/lwa";
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents($dir . "/" . $appUserID, $timef);
+        @file_put_contents($dir . "/any", $timef);
     }
 
     /**
@@ -884,18 +919,32 @@ class Tfyh_socket
     {
         if (strlen($condition) == 0)
             return "WHERE 1";
+        $table_err = $this->assert_safe_sql_identifier($table_name);
+        if ($table_err !== null)
+            return "WHERE 0";
         $wherekeyis = "WHERE ";
         $conditions = explode(",", $condition);
         $c = 0;
+        $allowed_ops = ["=", "!=", "<>", "<", ">", "<=", ">=", "LIKE", "NULL", "IN"];
         foreach ($matching as $key => $value) {
-            if (strcasecmp($conditions[$c], "NULL") == 0) {
+            $key_err = $this->assert_safe_sql_identifier(strval($key));
+            if ($key_err !== null)
+                return "WHERE 0";
+            $op = strtoupper(trim($conditions[$c]));
+            if (! in_array($op, $allowed_ops, true))
+                return "WHERE 0";
+            if (strcasecmp($op, "NULL") == 0) {
                 $wherekeyis .= "`" . $table_name . "`.`" . $key . "` IS NULL AND ";
             } else 
-                if (strcasecmp($conditions[$c], "IN") == 0) {
-                    $wherekeyis .= "`" . $table_name . "`.`" . $key . "` IN (" . $value . ") AND ";
+                if (strcasecmp($op, "IN") == 0) {
+                    // Only allow a comma-separated list of quoted/numeric literals — no subqueries.
+                    $in_list = $this->sanitize_sql_in_list(strval($value));
+                    if ($in_list === null)
+                        return "WHERE 0";
+                    $wherekeyis .= "`" . $table_name . "`.`" . $key . "` IN (" . $in_list . ") AND ";
                 } else
-                    $wherekeyis .= "`" . $table_name . "`.`" . $key . "` " . $conditions[$c] . " '" .
-                             strval($value) . "' AND ";
+                    $wherekeyis .= "`" . $table_name . "`.`" . $key . "` " . $op . " '" .
+                             $this->mysqli->real_escape_string(strval($value)) . "' AND ";
             if ($c < count($conditions) - 1)
                 $c ++;
         }
@@ -903,6 +952,21 @@ class Tfyh_socket
             return "WHERE 1";
         $wherekeyis = mb_substr($wherekeyis, 0, mb_strlen($wherekeyis) - 5);
         return $wherekeyis;
+    }
+
+    /**
+     * Accept only a comma-separated list of numeric literals or single-quoted strings for IN (...).
+     * Returns null if the list looks like injected SQL.
+     */
+    private function sanitize_sql_in_list (String $value): ?String
+    {
+        $value = trim($value);
+        if ($value === "")
+            return null;
+        // Strict literal list only — no identifiers, functions, or subqueries.
+        if (preg_match('/^(\s*(\d+|\'(?:\\\\\'|[^\'])*\')\s*,)*\s*(\d+|\'(?:\\\\\'|[^\'])*\')\s*$/', $value) !== 1)
+            return null;
+        return $value;
     }
 
     /**
@@ -957,6 +1021,15 @@ class Tfyh_socket
     public function update_record_matched (String $appUserID, String $table_name, array $matching_keys, 
             array $record)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return $identifier_error;
+        $identifier_error = $this->assert_safe_sql_field_keys($matching_keys);
+        if ($identifier_error !== null)
+            return $identifier_error;
+        $identifier_error = $this->assert_safe_sql_field_keys($record);
+        if ($identifier_error !== null)
+            return $identifier_error;
         // trigger pre-write-modification checks
         foreach ($this->triggers as $name => $trigger) {
             if ($this->debug_on)
@@ -1012,12 +1085,13 @@ class Tfyh_socket
             }
             // the change entry shall neither contain the keys, nor the record history to
             // prevent from too much redundant information
-            if (! $skip_update && (strcmp($value, $prev_rec[$key]) !== 0) && (! isset(
+            $prev_val = $prev_rec[$key] ?? '';
+            if (! $skip_update && (strcmp((string) $value, (string) $prev_val) !== 0) && (! isset(
                     $this->toolbox->config->settings_tfyh["history"][$table_name]) || (strcasecmp($key, 
                     $this->toolbox->config->settings_tfyh["history"][$table_name]) != 0)))
                 // No quote escaping in the change log entry. This will be handled in
                 // execute_and_log().
-                $change_entry .= $key . ': "' . $prev_rec[$key] . '"=>"' . $value . '", ';
+                $change_entry .= $key . ': "' . $prev_val . '"=>"' . $value . '", ';
         }
         
         $sql_cmd = mb_substr($sql_cmd, 0, mb_strlen($sql_cmd) - 1);
@@ -1071,6 +1145,12 @@ class Tfyh_socket
      */
     public function delete_record_matched (String $appUserID, String $table_name, array $matching)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return $identifier_error;
+        $identifier_error = $this->assert_safe_sql_field_keys($matching);
+        if ($identifier_error !== null)
+            return $identifier_error;
         // trigger pre-write-modification checks
         foreach ($this->triggers as $name => $trigger) {
             if ($this->debug_on)
@@ -1111,7 +1191,7 @@ class Tfyh_socket
         // delete the data anyway.
         $change_entry = mb_substr($change_entry, 0, mb_strlen($change_entry) - 2);
         // ID used is **ID**
-        $sql_cmd .= "DELETE FROM `" . $table_name . "` " .
+        $sql_cmd = "DELETE FROM `" . $table_name . "` " .
                  $this->clause_for_wherekeyis($table_name, $matching, "=");
         
         // execute sql command and log execution.
@@ -1253,6 +1333,9 @@ class Tfyh_socket
     public function find_records_sorted_matched (String $table_name, array $matching, int $max_rows, 
             String $condition, String $sort_key, bool $sort_ascending, int $start_row = 0)
     {
+        $identifier_error = $this->assert_safe_sql_identifier($table_name);
+        if ($identifier_error !== null)
+            return false;
         // compile command parts: columns to choose
         $col_names = $this->get_column_names($table_name);
         $col_indicators = "";

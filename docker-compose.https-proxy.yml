@@ -1,0 +1,24 @@
+# Overlay: CapRover-style HTTPS reverse proxy in front of compose service `web`.
+# Does not replace CapRover — local Secure-cookie drill only.
+#
+# Usage (attach to running project, e.g. efacloud-desktop-synch):
+#   ./scripts/https-cookie-drill.sh
+#   # or manually:
+#   docker compose -p efacloud-desktop-synch \
+#     -f docker-compose.yml -f docker-compose.desktop-synch.yml \
+#     -f docker-compose.https-proxy.yml up -d https-proxy
+#
+# Host ports: HTTPS ${EFACLOUD_HTTPS_PORT:-18443}, HTTP proxy ${EFACLOUD_HTTP_PROXY_PORT:-18080}
+
+services:
+  https-proxy:
+    image: nginx:1.27-alpine
+    depends_on:
+      - web
+    ports:
+      - "${EFACLOUD_HTTPS_PORT:-18443}:443"
+      - "${EFACLOUD_HTTP_PROXY_PORT:-18080}:80"
+    volumes:
+      - ./docker/https-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/https-proxy/certs:/etc/nginx/certs:ro
+    restart: "no"

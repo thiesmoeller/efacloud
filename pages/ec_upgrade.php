@@ -30,12 +30,17 @@
 // $debug_log = 'https://efacloud.org/support/debug/gather.php?data=';
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
-$src_subdir = (isset($_GET["subdir"])) ? $_GET["subdir"] . "/" : "";
+$src_subdir = "";
+if (isset($_GET["subdir"])) {
+    $subdir = strval($_GET["subdir"]);
+    if (preg_match('/^[A-Za-z0-9._-]+$/', $subdir) === 1)
+        $src_subdir = $subdir . "/";
+}
 
 // Source Code path.
 // ====== Depends on the ../config/settings_tfyh file.
 $app_src_path = $toolbox->config->settings_tfyh["upgrade"]["src_path"];
-if (is_null($$app_src_path))
+if (is_null($app_src_path))
     $app_src_path = $app_root . "/_src/server.zip";
 $app_version_path = $toolbox->config->settings_tfyh["upgrade"]["version_path"];
 if (is_null($app_version_path))
@@ -58,7 +63,7 @@ if (! isset($_GET["upgrade"])) {
              htmlspecialchars(file_get_contents("../public/version"));
     $versions_string = file_get_contents($versions_request);
     $versions = explode("|", $versions_string);
-    echo i("fzBHFZ| ** Upgrade the efaCloud...", $current_version, date($dfmt_dt, $current_version_installed));
+    echo i("fzBHFZ|<h3>Upgrade the efaClou...", $current_version, date($dfmt_dt, $current_version_installed));
     $release_notes = "";
     $version_options = "";
     foreach ($versions as $version) {
@@ -71,13 +76,23 @@ if (! isset($_GET["upgrade"])) {
         }
     }
     echo $release_notes;
-    echo i("QC2brN| ** Upgrade to the follo...", $version_options, $app_root, $src_subdir);
+    echo i("QC2brN|    <br /> <label><b>Up...", $version_options, $app_root, $src_subdir);
 } else {
     
-    $version_to_install = $_POST["version"];
+    $version_to_install = (isset($_POST["version"])) ? strval($_POST["version"]) : "";
+    if (preg_match('/^[0-9]+(?:\.[0-9]+)*_[0-9]+(?:\.[0-9]+)*$/', $version_to_install) !== 1) {
+        echo "<p>Invalid upgrade version selected.</p>";
+        end_script();
+        exit();
+    }
     $agreeAutoregistration = isset($_POST["agreeAutoregistration"]) &&
              (strcasecmp($_POST["agreeAutoregistration"], "on") == 0);
-    $src_subdir = $_POST["src_subdir"];
+    $src_subdir = "";
+    if (isset($_POST["src_subdir"])) {
+        $subdir = rtrim(strval($_POST["src_subdir"]), "/");
+        if (preg_match('/^[A-Za-z0-9._-]+$/', $subdir) === 1)
+            $src_subdir = $subdir . "/";
+    }
     
     if ($agreeAutoregistration) {
         // see https://stackoverflow.com/questions/5647461/how-do-i-send-a-post-request-with-php

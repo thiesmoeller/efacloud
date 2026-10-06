@@ -514,7 +514,7 @@ class Efa_audit
                 foreach ($assert_unique_vals as $fieldnames => $value_list) {
                     foreach ($value_list as $value => $occurrences) {
                         if (count($occurrences) > 1) {
-                            $audit_result .= i("stfYYi| ** °%1° with value °%2°...", $fieldnames, $value) .
+                            $audit_result .= i("stfYYi|<li>°%1° with value °%2°...", $fieldnames, $value) .
                                      "<br>";
                             foreach ($occurrences as $occurrence) {
                                 $audit_result .= "        ";

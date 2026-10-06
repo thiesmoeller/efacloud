@@ -24,6 +24,7 @@
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
+include_once "../classes/efa_tables.php";
 $record_to_delete = false;
 if (isset($_GET["table"]) && isset($_GET["ID"])) {
     $id_name = "ID";
@@ -35,21 +36,24 @@ if (isset($_GET["table"]) && isset($_GET["ID"])) {
     $toolbox->display_error(i("VhNoKp|Not allowed."), 
             i("zcNkU0|Page °%1° must be called...", $user_requested_file), __FILE__);
 
-$record_to_delete = $socket->find_record_matched($_GET["table"], [$id_name => $id_value
+$tablename = strval($_GET["table"]);
+if (! Efa_tables::is_safe_table_name($tablename))
+    $toolbox->display_error(i("VhNoKp|Not allowed."), i("lTNFEv|Not allowed."), $user_requested_file);
+
+$record_to_delete = $socket->find_record_matched($tablename, [$id_name => $id_value
 ]);
 if ($record_to_delete !== false) {
-    include_once "../classes/efa_tables.php";
-    if (Efa_tables::is_efa_table($_GET["table"])) {
+    if (Efa_tables::is_efa_table($tablename)) {
         // efa records are propagated to clients, therefore need to keep a delete stub
         include_once "../classes/efa_record.php";
         $efa_record = new Efa_record($toolbox, $socket);
         Efa_tables::register_modification($record_to_delete, time(), $record_to_delete["ChangeCount"], "delete");
-        $delete_result = $efa_record->modify_record($_GET["table"], $record_to_delete, 3, 
+        $delete_result = $efa_record->modify_record($tablename, $record_to_delete, 3, 
                 $toolbox->users->session_user["@id"], false);
     } else {
         // efacloud records are only stored at the server side and cabn be deleted right away.
         $delete_result = $socket->delete_record($toolbox->users->session_user["@id"], 
-                $_GET["table"], $record_to_delete["ID"]);
+                $tablename, $record_to_delete["ID"]);
         $delete_result = (strlen($delete_result) == 0) ? 0 : 2;
     }
 } else
@@ -62,16 +66,16 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 echo i("9Mf4oC| ** Delete record ** ");
 if (! is_numeric($delete_result))
-    echo "<p>" . i("xq5ret|The record with the %1 °...", $id_name, $id_value, $_GET["table"]) . " " .
+    echo "<p>" . i("xq5ret|The record with the %1 °...", $id_name, $id_value, $tablename) . " " .
              $delete_result;
 else {
     if (intval($delete_result) == 1)
-        echo "<p>" . i("AUhcRm|The record with the %1 °...", $id_name, $id_value, $_GET["table"]);
+        echo "<p>" . i("AUhcRm|The record with the %1 °...", $id_name, $id_value, $tablename);
     else
-        echo "<p>" . i("uf5AMD|The record with the %1 °...", $id_name, $id_value, $_GET["table"]);
+        echo "<p>" . i("uf5AMD|The record with the %1 °...", $id_name, $id_value, $tablename);
 }
 echo "</p>";
 if (intval($delete_result) == 2)
     echo "<p>" . i("0xNazF|Unfortunately, a trash r...") . "</p>";
-echo i("QhtP9h| ** &gt;&gt; View change...");
+echo i("QhtP9h|<p><a href=°../pages/s...");
 end_script(true);

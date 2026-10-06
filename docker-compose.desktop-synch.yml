@@ -1,0 +1,56 @@
+# Overlay: production-fork efaCloud + EFA desktop SynchControl lab.
+# Does NOT modify parent docker-compose.test.yml (ROW R/8 harness stays intact).
+#
+# Usage (from this fork root):
+#   ./scripts/desktop-synch-lab.sh
+#   # or manually:
+#   docker compose -p efacloud-desktop-synch \
+#     -f docker-compose.yml -f docker-compose.desktop-synch.yml up --build -d
+#
+# Backup zip is mounted read-only from the parent workspace; never baked into images.
+
+services:
+  web:
+    environment:
+      EFACLOUD_AUTO_INSTALL: "1"
+      # Desktop reaches this service by compose DNS name `web`.
+      EFACLOUD_BASE_URL: ${EFACLOUD_BASE_URL:-http://web}
+    # Host port comes from EFACLOUD_HTTP_PORT in .env / lab script (default in
+    # docker-compose.yml is 8080; lab script sets 18082 to avoid collisions).
+
+  efa-desktop:
+    image: ${EFA_DESKTOP_IMAGE:-efa-desktop:synch-lab}
+    build:
+      context: ..
+      dockerfile: docker/efa-desktop/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
+    environment:
+      DISPLAY: :99
+      EFA_APP: boathouse
+      EFA_HOME: /home/efa
+      EFA_TEST_BACKUP_ZIP: /fixtures/efaBackup_20260607_095337.zip
+      EFA_TEST_ACCESS_FILE: /fixtures/.access
+      # Docker-network URL (desktop → web). Numeric efaCloud UserID, Rolle bths.
+      EFA_CLOUD_URL: ${EFA_CLOUD_URL:-http://web/}
+      EFA_CLOUD_USERNAME: ${EFA_CLOUD_USERNAME:-901}
+      EFA_CLOUD_PASSWORD: ${EFA_CLOUD_PASSWORD:-RehearseSync1!}
+      EFA_NOVNC_PORT: ${EFA_NOVNC_PORT:-6081}
+      EFA_SYNCH_LAB: "1"
+    ports:
+      - "${EFA_VNC_PORT:-5901}:5900"
+      - "${EFA_NOVNC_PORT:-6081}:6080"
+    volumes:
+      - ${EFA_TEST_BACKUP_DIR:-../test_backup}:/fixtures:ro
+      - efa_desktop_synch_home:/home/efa
+      - ./lab/desktop_synch/efa-start-synch-lab.sh:/usr/local/bin/efa-start-synch-lab:ro
+      - ./lab/desktop_synch/posttx-probe.sh:/usr/local/bin/efa-posttx-probe:ro
+      - ./lab/desktop_synch/gui-synch-upload-all.sh:/usr/local/bin/gui-synch-upload-all:ro
+      - ./lab/desktop_synch/bin:/opt/efa-synch-lab/bin:ro
+    command: ["sh", "/usr/local/bin/efa-start-synch-lab"]
+
+volumes:
+  efa_desktop_synch_home:

@@ -124,13 +124,13 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("hGHxvu| ** Change the %1 of %2 ...", $field_to_update, $user_name_display);
+echo i("hGHxvu|<!-- START OF content -...", $field_to_update, $user_name_display);
 echo $toolbox->form_errors_to_html($form_errors);
 echo $form_to_fill->get_html();
 
 if ($todo == 1) { // step 1. No special texts for output
 } elseif ($todo == 2) {
-    echo "<p>".i("93vxJy| ** The %1 permissions f...", $field_to_update, $user_name_display). " <br>" . $works_list .
+    echo "<p>".i("93vxJy|The %1 permissions for<b...", $field_to_update, $user_name_display). " <br>" . $works_list .
              "</p><p><a href='../forms/workflows_aendern.php?id=" . $user_to_update["ID"] .
              (($change_concessions) ? "&conc=1" : "&conc=0") . "'>".i("qGBrpj|Back to the")." " . $field_to_update .
              "</a>";

@@ -286,7 +286,8 @@ class Efa_info
         $cfg = $this->toolbox->config->get_cfg();
         if ($cfg["public_tripdata_EntryId"])
             $trip_row[] = strval($trip["EntryId"]);
-        $boat = $this->socket->find_record("efa2boats", "Id", $boat_id);
+        $boat_records = $this->socket->find_records_sorted("efa2boats", "Id", $boat_id, 10, "=", "InvalidFrom", false);
+        $boat = (count($boat_records) > 0) ? $boat_records[0] : false;
         if ($cfg["public_tripdata_BoatName"]) {
             $boatname = (($boat != false) && isset($boat["Name"])) ? $boat["Name"] : "Fremdboot";
             $trip_row[] = $boatname;
@@ -532,12 +533,10 @@ class Efa_info
      */
     public function is_allowed_info (array $client_verified, String $type)
     {
-        $cfg = $this->toolbox->config->get_cfg();
-        // be aware that hte confg parameter name has a prefix "pblic_" for better configuratuion readability
-        $publicly_allowed = isset($cfg[$type]) && (strlen("public_" . $cfg[$type]) > 1);
-        if ($publicly_allowed)
-            return true;
+        // Club logbook information is private, including direct iframe/API calls.
+        // Persisted upstream public_* settings must not grant anonymous access.
         $client_not_anonymous = isset($client_verified["Rolle"]) &&
+                 (strlen(trim($client_verified["Rolle"])) > 0) &&
                  (strcasecmp($client_verified["Rolle"], $this->toolbox->users->anonymous_role) != 0);
         return $client_not_anonymous;
     }

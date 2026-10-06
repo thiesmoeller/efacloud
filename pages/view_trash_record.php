@@ -47,7 +47,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("IknQ2j| ** Data record display ...", $tablename, $trash_record["TrashedAt"]);
+echo i("IknQ2j|<!-- START OF content -...", $tablename, $trash_record["TrashedAt"]);
 foreach ($trashed_record as $key => $value) {
     echo "<tr><td>" . $key . "</td><td>" . $value . "</td></tr>\n";
 }

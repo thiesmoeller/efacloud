@@ -80,14 +80,14 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("DR7W5h| ** Archive data ** &#94..."); 
+echo i("DR7W5h|<!-- START OF content -...");
 if ($todo == 1) { // step 1. Texts for output
-    echo i("53Wfwp| ** The permissibility o..."); 
+    echo i("53Wfwp|<p>The permissibility o...");
     echo $toolbox->form_errors_to_html($form_errors);
     echo $form_to_fill->get_html();
     echo $form_to_fill->get_help_html();
 } elseif ($todo == 2) { // step 2. Texts for output
-    echo i("cFCO2q| ** The restore is compl...", $restore_result); 
+    echo i("cFCO2q|<p>The restore is compl...", $restore_result);
 }
 echo "</div>"; 
 end_script();

@@ -558,13 +558,14 @@ class Tfyh_form
         foreach ($this->form_definition as $f) {
             $this->labels[$f["name"]] = $f["label"];
             $value = (isset($_POST[$f["name"]])) ? $_POST[$f["name"]] : "";
-            // trim value to avoid peceeding or trailing blanks
-            $value = trim($value);
-            // replacements to prevent from sql-injection and cross side
-            // scripting.
-            if ($replace_insecure_chars !== false)
-                $value = str_replace("`", "\u{055A}", 
-                        str_replace("<", "\u{227A}", str_replace(";", "\u{037E}", $value)));
+            // Passwords are opaque credentials: trimming or substituting characters
+            // makes passwords created by the installer/API impossible to verify.
+            if (strcasecmp($f["type"], "password") !== 0) {
+                $value = trim($value);
+                if ($replace_insecure_chars !== false)
+                    $value = str_replace("`", "\u{055A}",
+                            str_replace("<", "\u{227A}", str_replace(";", "\u{037E}", $value)));
+            }
             if ($this->isDate($f))
                 $_SESSION["forms"][$this->fs_id][$f["name"]] = $this->toolbox->check_and_format_date($value);
             elseif ($this->isField($f))

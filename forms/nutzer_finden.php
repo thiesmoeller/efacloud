@@ -154,7 +154,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("TN8gcV| ** Find an efaCloud use...");
+echo i("TN8gcV|<!-- START OF content -...");
 echo $toolbox->form_errors_to_html($form_errors);
 if ($todo < 2)
     echo $form_to_fill->get_html();

@@ -177,7 +177,7 @@ class Efa_logbook
                 $mailfrom = $mail_handler->system_mail_sender;
                 $mailto = $logbook_recipients[$uuid]["Email"];
                 $mailsubject = "[" . $cfg["acronym"] . "] " . i("7UNg40|Personal logbook");
-                $mailbody = "<html><body><p>" . i("oR4Ytj|All trips for %1 in logb...", 
+                $mailbody = "<html><body><p>" . i("oR4Ytj|All trips for %1 so far:",
                         $logbook_recipients[$uuid]["FirstLastName"]) . "</p>" . $personal_logbook .
                          $cfg["mail_subscript"] . $cfg["mail_footer"];
                 if (! $only_me || (strcasecmp($mailto, $this->toolbox->users->session_user["@mail"]) == 0)) {

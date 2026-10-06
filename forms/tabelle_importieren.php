@@ -71,7 +71,10 @@ if ($done > 0) {
             if (! $tmp_upload_file)
                 $form_errors .= i("xJsUjf|Unknown error during upl...");
             else {
-                $_SESSION["io_file"] = $_FILES['userfile']["name"];
+                $_SESSION["io_file"] = basename((string) $_FILES['userfile']["name"]);
+                if ($_SESSION["io_file"] === '' || $_SESSION["io_file"] === '.' || $_SESSION["io_file"] === '..') {
+                    $form_errors .= i("xJsUjf|Unknown error during upl...");
+                } else {
                 $_SESSION["io_table"] = $entered_data["Tabelle"];
                 $tfilename = "../log/io/" . $_SESSION["io_file"];
                 file_put_contents($tfilename, $tmp_upload_file);
@@ -112,6 +115,7 @@ if ($done > 0) {
                     $todo = $done + 1;
                 else
                     $form_errors .= $import_result;
+                }
             }
         }
     } elseif ($done == 2) {

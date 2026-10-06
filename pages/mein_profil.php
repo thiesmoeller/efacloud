@@ -38,7 +38,7 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
 echo i("TkljK3| ** Profile of ** "); 
 echo $toolbox->users->session_user[$toolbox->users->user_firstname_field_name] . " " .
          $toolbox->users->session_user[$toolbox->users->user_lastname_field_name];
-echo i("XLx3yi| ** This is the personal...");
+echo i("XLx3yi|</h2><h3>This is the pe...");
 $session_user = $socket->find_record_matched($toolbox->users->user_table_name, 
         [$toolbox->users->user_id_field_name => $toolbox->users->session_user["@id"]
         ]);
@@ -56,5 +56,5 @@ echo $toolbox->users->get_user_profile($toolbox->users->session_user["@id"], $so
 if (strcasecmp($toolbox->users->session_user["Rolle"], "bths") !== 0)
     echo "<br><a href='../forms/profil_aendern.php'> &gt; " . i("DAwDVx|Change profile") . "</a>";
 
-echo i("07OND4| ** Information on data ...");
+echo i("07OND4|</div><div class=°w3-c...");
 end_script();

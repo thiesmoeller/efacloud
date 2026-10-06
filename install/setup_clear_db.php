@@ -28,6 +28,9 @@
 // ===== THIS SHALL ONLY BE USED during application configuration, then access rights shall
 // be changed to "no access" - even better: or the form deleted from the site.
 
+require_once __DIR__ . "/install_guard.php";
+require_once __DIR__ . "/env_defaults.php";
+
 // ===== initialize toolbox
 include_once "../classes/init_i18n.php"; // not part of init for setup, api, logout and error
 include_once '../classes/tfyh_toolbox.php';
@@ -50,14 +53,10 @@ if ($connected !== true)
 $db_name = $socket->get_db_name();
 
 // ===== define admin user default configuration
-// set defaults
-$cfg_db_default["ecadmin_vorname"] = "Alex";
-$cfg_db_default["ecadmin_nachname"] = "Admin";
-$cfg_db_default["ecadmin_mail"] = "alex.admin@efacloud.org";
-$cfg_db_default["ecadmin_id"] = "1142";
-$cfg_db_default["ecadmin_Name"] = "alexa";
-$cfg_db_default["ecadmin_password"] = "123Test!";
-$cfg_db_default["ecadmin_password_confirm"] = $cfg_db_default["ecadmin_password"];
+$cfg_db_default = efacloud_install_admin_defaults(["ecadmin_vorname" => "Alex","ecadmin_nachname" => "Admin",
+        "ecadmin_mail" => "alex.admin@efacloud.org","ecadmin_id" => "1142","ecadmin_Name" => "alexa",
+        "ecadmin_password" => "123Test!"
+]);
 
 // ===== Form texts for admin user configuration
 $cfg_db_description["ecadmin_vorname"] = "Vorname des efacloud Server Admins";

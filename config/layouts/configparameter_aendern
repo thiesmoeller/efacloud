@@ -60,10 +60,10 @@ tags;required;name;value;label;type;class;size;maxlength
 </div></div><div class='w3-row'><div class='w3-col l1'>;;backup;;gyvihB| ** Not recommended, slo...;checkbox;;2;2
 </div></div></span><div class='w3-row'><div class='w3-col l1'>;;_no_input;;jYPnW7| ** Settings for efaWeb ...;;;;
 </div></div><div class='w3-row'><div class='w3-col l1'>;;_no_input;;"TLKuVl| ** Logbooks ** &#9432; ...";;;;
-</div></div><span class='w3-hide configGroup' id='configGroup-Fahrtenbuecher'><div class='w3-row'><div class='w3-col l2'>;*;current_logbook;;V0q9le|Logbook Boathouse #1 (mu...;text;;60%;20
-</div><div class='w3-col l2'>;;current_logbook2;;lFAuqp|Logbook Boathouse #2 (mu...;text;;60%;20
-</div></div><div class='w3-row'><div class='w3-col l2'>;;current_logbook3;;S84YVk|Logbook Boathouse #3 (mu...;text;;60%;20
-</div><div class='w3-col l2'>;;current_logbook4;;FHeG0D|Logbook Boathouse #4 (mu...;text;;60%;20
+</div></div><span class='w3-hide configGroup' id='configGroup-Fahrtenbuecher'><div class='w3-row'><div class='w3-col l2'>;*;current_logbook;;V0q9le|Logbook Boathouse #1 (mu...;text;;60%;32
+</div><div class='w3-col l2'>;;current_logbook2;;lFAuqp|Logbook Boathouse #2 (mu...;text;;60%;32
+</div></div><div class='w3-row'><div class='w3-col l2'>;;current_logbook3;;S84YVk|Logbook Boathouse #3 (mu...;text;;60%;32
+</div><div class='w3-col l2'>;;current_logbook4;;FHeG0D|Logbook Boathouse #4 (mu...;text;;60%;32
 </div></div></span><div class='w3-row'><div class='w3-col l1'><br>;;_no_input;;Bkefzy| ** Hide all ** ;;;;
 </div></div></span><br><div class='w3-row' style='margin-top:20px'><div class='w3-col l1'>;;submit;hYYtfA|Save;;submit;formbutton;;
 </div></div>;;_no_input;;;;;;

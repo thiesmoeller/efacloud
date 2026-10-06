@@ -98,7 +98,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("HixbNW| ** View client log file...");
+echo i("HixbNW|<!-- START OF content -...");
 echo $toolbox->form_errors_to_html($form_errors);
 if ($todo < 2) {
     echo $form_to_fill->get_html();

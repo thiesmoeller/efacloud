@@ -48,7 +48,7 @@ $efa_config->parse_client_configs();
 if ($do_improve) {
     $upgrade_success = $efa_tools->upgrade_efa_tables(true);
     $improvements = ($upgrade_success) ? "<b>Fertig</b><br>" . i("yXukLG|The table layout has bee...") . " " : i(
-            "8c5ooi| ** Error ** The table l...") . " ";
+            "8c5ooi|<b>Error</b><br>The tabl...") . " ";
     $improvements .= "<br>";
     if ($upgrade_success) {
         $cfg_db = $toolbox->config->get_cfg_db();
@@ -129,7 +129,7 @@ $data_integrity_result_list = "<b>" . i("7Jw6Iu|Result of data integrity...") . 
 echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
-echo i("bU8d0n| ** Audit for database %...", $socket->get_db_name());
+echo i("bU8d0n|<!-- START OF content ...", $socket->get_db_name());
 
 echo $improvements;
 echo $db_layout_config;

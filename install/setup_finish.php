@@ -28,6 +28,8 @@
 // ===== THIS SHALL ONLY BE USED during application configuration, then access rights shall
 // be changed to "no access" - even better: or the form deleted from the site.
 
+require_once __DIR__ . "/install_guard.php";
+
 // ===== initialize toolbox
 include_once "../classes/init_i18n.php"; // not part of init for setup, api, logout and error
 include_once '../classes/tfyh_toolbox.php';
@@ -38,10 +40,10 @@ $toolbox = new Tfyh_toolbox();
 $toolbox->load_throttle("inits", $toolbox->config->settings_tfyh["init"]["max_inits_per_hour"], "setup_finish.php");
 
 // remove install file from root folder
-unlink("../install.php");
-// block access to install folder
-file_put_contents("../install/.htaccess", "deny for all");
-chmod("../install", 0700);
+if (file_exists("../install.php"))
+    unlink("../install.php");
+// Mark installation complete (install lock + persisted config marker).
+efacloud_install_mark_complete();
 
 // === PAGE OUTPUT ===================================================================
 

@@ -176,7 +176,7 @@ class TfyhValidate {
         if (identifier.length < 1) 
             return _("P1cjVY|Empty identifier.");
         if (identifier.length > 64) 
-            return _("DnzOuP|The maximum identifier l...");
+            return _("");
     	const regex = "[_a-zA-Z][_a-zA-Z0-9]{0,63}";
     	const found = identifier.match(regex);
     	if (found[0].localeCompare(identifier) != 0)
@@ -218,9 +218,9 @@ class TfyhValidate {
 	 */
 	static #validatePassword (pwd)  {
         if (pwd.length < 8) 
-            return _("GLHPzt|The minimum password len...");
+            return _("");
         if (pwd.length > 32) 
-            return _("xUlaEi|The maximum password len...");
+            return _("");
         let numbers = (/\d/.test(pwd)) ? 1 : 0;
         let lowercase = (pwd.toUpperCase() == pwd) ? 0 : 1;
         let uppercase = (pwd.toLowerCase() == pwd) ? 0 : 1;
@@ -228,7 +228,7 @@ class TfyhValidate {
         let specialchars = (pwd.match(/[!-\/]+/g) || pwd.match(/[:-@]+/g) || pwd.match(/[\[-`]+/g) ||
         		pwd.match(/[{-~]+/g)) ? 1 : 0;
         if ((numbers + lowercase + uppercase + specialchars) < 3)
-            return _("ObNF6F|The password must contai..." +
+            return _("" +
                      "digits, lower case letters, upper case letters, special characters. " +
                      "A special character may be one of !\"#$%&'*+,-./:;<=>?@[\]^_`{|}~");
         return "";

@@ -63,7 +63,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("VK7X6Z| ** Test dispatch person...");
+echo i("VK7X6Z|<!-- START OF content -...");
 echo $info;
 echo i("JwFqj0|<!-- END OF Content -->...");
 end_script();

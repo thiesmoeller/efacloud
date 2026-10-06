@@ -150,7 +150,7 @@ echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
 // page heading, identical for all workflow steps
-echo i("cIbswS| ** Change ** %1 permiss...", $type, $user_to_update["Vorname"], $user_to_update["Nachname"], 
+echo i("cIbswS|<!-- START OF content --...", $type, $user_to_update["Vorname"], $user_to_update["Nachname"],
         $explanation_text);
 
 echo $toolbox->form_errors_to_html($form_errors);
@@ -158,7 +158,7 @@ echo $form_to_fill->get_html();
 
 if ($todo == 1) { // step 1. No special texts for output
 } elseif ($todo == 2) {
-    echo "<p>" . i("gmlDim| ** The %1 permissions f...", $type, $user_name_display) . "<br>" . $works_list .
+    echo "<p>" . i("gmlDim|The %1 permissions for<b...", $type, $user_name_display) . "<br>" . $works_list .
              "</p><p><a href='../forms/efa_rechte_aendern.php?id=" . $user_to_update["ID"] . "&type=efaAdmin'>" .
              i("4sJKSe|Back to his efa Admin pe...") .
              "</a></p><p><a href='../forms/efa_rechte_aendern.php?id=" . $user_to_update["ID"] .

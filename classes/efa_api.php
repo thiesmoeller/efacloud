@@ -77,7 +77,24 @@ class Efa_api
      *            execution and possibly rejected with an error message.
      * @return the api result-code and result
      */
-    public function api_modify (array $client_verified, String $tablename, array $record, int $mode, 
+    public function api_modify (array $client_verified, String $tablename, array $record, int $mode,
+            int $api_version = 1)
+    {
+        if (in_array(strtolower($tablename), ['efa2logbook', 'efa2boatstatus', 'efa2boatdamages'], true)) {
+            include_once "../classes/efa_boat_concurrency_guard.php";
+            try {
+                return Efa_boat_concurrency_guard::with_mutation_lock($this->socket,
+                        function () use ($client_verified, $tablename, $record, $mode, $api_version) {
+                            return $this->api_modify_locked($client_verified, $tablename, $record, $mode, $api_version);
+                        });
+            } catch (RuntimeException $e) {
+                return "502;" . $e->getMessage();
+            }
+        }
+        return $this->api_modify_locked($client_verified, $tablename, $record, $mode, $api_version);
+    }
+
+    private function api_modify_locked (array $client_verified, String $tablename, array $record, int $mode,
             int $api_version = 1)
     {
         $mode_str = ($mode == 1) ? "insert" : (($mode == 2) ? "update" : "delete");
@@ -88,6 +105,26 @@ class Efa_api
                              " at table $tablename, API version: $api_version.\n", FILE_APPEND);
         $efaCloudUserID = $client_verified[$this->toolbox->users->user_id_field_name];
         $key_was_modified = false;
+        include_once "../classes/efa_member_write_guard.php";
+        $member_deny = Efa_member_write_guard::deny_reason(
+                $client_verified, $tablename, $record, $mode, $this->socket);
+        if ($member_deny !== null) {
+            if ($this->debug_on)
+                file_put_contents(Tx_handler::$api_debug_log_path,
+                        date("Y-m-d H:i:s") . ": api_modify denied for member-scope client: " .
+                                 $member_deny . "\n", FILE_APPEND);
+            return "502;" . $member_deny;
+        }
+        include_once "../classes/efa_boat_concurrency_guard.php";
+        $concurrency_deny = Efa_boat_concurrency_guard::deny_reason(
+                $tablename, $record, $mode, $this->socket);
+        if ($concurrency_deny !== null) {
+            if ($this->debug_on)
+                file_put_contents(Tx_handler::$api_debug_log_path,
+                        date("Y-m-d H:i:s") . ": api_modify denied by boat concurrency guard: " .
+                                 $concurrency_deny . "\n", FILE_APPEND);
+            return "502;" . $concurrency_deny;
+        }
         include_once "../classes/efa_record.php";
         $efa_record = new Efa_record($this->toolbox, $this->socket);
         if ($this->debug_on)

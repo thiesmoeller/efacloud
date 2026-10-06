@@ -116,7 +116,7 @@ if ($list_id == 0) {
         if ($toolbox->users->is_allowed_item($l["permission"])) {
             $permissionstr = (strpos($l["permission"], "#") === 0) ? i(
                     "wTnmiM|Subskriptionen, Mask ") . $l["permission"] : $l["permission"];
-            $permissionstr = (strpos($l["permission"], "@") === 0) ? i("IVseh0|Workflows, Mask ") .
+            $permissionstr = (strpos($l["permission"], "@") === 0) ? i("IVseh0|Workflows, Mask") .
                      $l["permission"] : $l["permission"];
             $list_params = $list->get_args($l);
             if (strlen($list_params) > 0)

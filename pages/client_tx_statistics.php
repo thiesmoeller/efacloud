@@ -47,6 +47,6 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
-echo i("jToBj0| ** Access statistics fo...", $client_id, 
+echo i("jToBj0|<div class=°w3-containe...", $client_id,
         date($dfmt_dt, $statistics->timestamps_last[$client_id]), $stats_html);
 end_script();

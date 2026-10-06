@@ -16,3 +16,4 @@ ID;Name;Titel;Beschreibung;Flag
 15;ewLogbookEntryBths2;n2dNm8|efaWeb: Enter trips in t...;;16384
 16;ewLogbookEntryBths3;iKutaN|efaWeb: enter trips in l...;;32768
 17;ewLogbookEntryBths4;EzjqFN|efaWeb: enter trips in l...;;65536
+18;portalTrainer;pTrn01|Portal: manage any crew trips (not admin/repair);;131072
