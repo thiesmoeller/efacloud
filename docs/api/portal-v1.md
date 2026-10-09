@@ -153,7 +153,8 @@ Query: `onlyOpen=0` to include fixed.
 
 #### `GET /persons?search=`
 
-Scoped to currently valid persons.
+Scoped to currently valid persons. Search is case/umlaut insensitive, accepts word prefixes,
+tolerates small typing errors, and returns closer matches first.
 
 #### `GET /destinations`
 
@@ -204,7 +205,10 @@ Attribution is stored in `portal_checkouts` keyed by `(logbook_name, trip_ecrid)
 }
 ```
 
-Does **not** force `BoatCaptain=1`.
+Does **not** force `BoatCaptain=1`. If `startTime` is omitted, the departure defaults
+to the current server minute in `Europe/Berlin`; the desktop-only
+`StartSessionTimeAdd` suggestion is intentionally not applied. An explicitly supplied
+`startTime` is preserved.
 
 #### `GET /trips/{entryId}`
 

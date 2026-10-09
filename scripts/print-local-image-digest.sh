@@ -19,11 +19,13 @@ FULL_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
 echo "== docker build -t ${IMAGE_TAG} . =="
 docker build -t "${IMAGE_TAG}" .
 
-echo "== smoke (portal + apache config) =="
+echo "== smoke (portal + stats + apache config) =="
 docker run --rm --entrypoint sh "${IMAGE_TAG}" -c '
   set -e
   test -f /var/www/html/portal/index.html
+  test -f /var/www/html/stats/index.html
   test -f /var/www/html/api/portal/v1/index.php
+  test -f /var/www/html/api/stats/v1/index.php
   test -f /etc/apache2/conf-enabled/efacloud.conf
   # apache2 -t needs envvars from the official image
   . /etc/apache2/envvars

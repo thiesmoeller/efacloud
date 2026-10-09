@@ -238,12 +238,13 @@ try {
         $list = [];
         foreach ($app->store->all_persons() as $p) {
             $name = trim(($p['FirstName'] ?? '') . ' ' . ($p['LastName'] ?? ''));
-            if ($q !== '' && mb_strpos(Portal_constants::fold_umlauts_lower($name), $q) === false) {
-                continue;
-            }
             // Scope: only currently valid persons
             $now = (int) (microtime(true) * 1000);
             if (!Portal_constants::version_valid_at($p, $now)) {
+                continue;
+            }
+            $score = Portal_constants::person_search_score($name, $q);
+            if ($score === null) {
                 continue;
             }
             $list[] = [
@@ -251,8 +252,19 @@ try {
                 'firstName' => $p['FirstName'] ?? '',
                 'lastName' => $p['LastName'] ?? '',
                 'displayName' => $name,
+                '_searchScore' => $score,
             ];
         }
+        if ($q !== '') {
+            usort($list, static function (array $a, array $b): int {
+                return $a['_searchScore'] <=> $b['_searchScore']
+                    ?: strnatcasecmp($a['displayName'], $b['displayName']);
+            });
+        }
+        foreach ($list as &$person) {
+            unset($person['_searchScore']);
+        }
+        unset($person);
         portal_json(['persons' => $list]);
     }
 

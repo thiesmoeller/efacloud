@@ -477,7 +477,7 @@ export function TripFormScreen() {
           </div>
         )}
 
-        <div className="field"><label htmlFor="start-time">Abfahrt (leer: mit Zeitvorgabe des Vereins)</label><input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} /></div>
+        <div className="field"><label htmlFor="start-time">Abfahrt (leer: aktuelle Zeit)</label><input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} /></div>
         <div className="field"><label htmlFor="start-date">Startdatum (leer: heute)</label><input id="start-date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></div>
         </>}
         <div className="field">

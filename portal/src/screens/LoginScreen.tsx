@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { PortalApiError } from "../api/errors";
 import { useOnline } from "../hooks/useOnline";
+import { BrandIntro } from "../components/BrandIntro";
 
 export function LoginScreen() {
   const { login } = useAuth();
@@ -40,12 +41,10 @@ export function LoginScreen() {
   return (
     <div className="screen">
       <div className="login-panel">
-        <div>
-          <div className="brand-mark">efaPortal</div>
-          <p className="muted" style={{ margin: "6px 0 0" }}>
-            Steg-Anmeldung — ein Verein, Europa/Berlin
-          </p>
-        </div>
+        <BrandIntro />
+        <p className="muted login-explainer">
+          Mit deinem efaCloud-Konto kannst du Boote auschecken und nach der Fahrt wieder zurückmelden.
+        </p>
         <form className="stack" onSubmit={onSubmit}>
           <div className="field">
             <label htmlFor="account">Konto</label>

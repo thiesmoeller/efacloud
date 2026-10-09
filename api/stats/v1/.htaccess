@@ -1,0 +1,7 @@
+# Front-controller for /api/stats/v1/*
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/stats/v1/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

@@ -61,18 +61,19 @@ deadline=$((SECONDS + TIMEOUT_SEC))
 ready=0
 while (( SECONDS < deadline )); do
   portal_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/portal/" || true)"
+  stats_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/stats/" || true)"
   login_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/forms/login.php" || true)"
   session_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/portal/v1/session" || true)"
   install_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/install/setup_db_connection.php" || true)"
 
   if [[ "$AUTO_INSTALL" == "1" ]]; then
-    if [[ "$portal_code" == "200" && "$login_code" == "200" && "$session_code" == "200" ]]; then
+    if [[ "$portal_code" == "200" && "$stats_code" == "200" && "$login_code" == "200" && "$session_code" == "200" ]]; then
       ready=1
       break
     fi
   else
     # Manual install path: installer reachable OR app already complete
-    if [[ "$install_code" == "200" || "$portal_code" == "200" ]]; then
+      if [[ "$install_code" == "200" || ( "$portal_code" == "200" && "$stats_code" == "200" ) ]]; then
       ready=1
       break
     fi
@@ -82,12 +83,12 @@ done
 
 if [[ "$ready" != "1" ]]; then
   echo "Compose smoke timed out." >&2
-  echo "Last codes: portal=$portal_code login=$login_code session=$session_code install=$install_code" >&2
+  echo "Last codes: portal=$portal_code stats=$stats_code login=$login_code session=$session_code install=$install_code" >&2
   docker compose logs --tail=80 web db >&2 || true
   exit 1
 fi
 
-echo "OK: HTTP readiness (portal=$portal_code login=$login_code session=$session_code install=$install_code)"
+echo "OK: HTTP readiness (portal=$portal_code stats=$stats_code login=$login_code session=$session_code install=$install_code)"
 
 if [[ "$AUTO_INSTALL" == "1" ]]; then
   # Confirm installer is locked

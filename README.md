@@ -18,6 +18,11 @@ docker compose up --build
 
 Open `http://localhost:8080/`.
 
+Member-facing applications in the same container:
+
+- `/portal/` — phone-first dockside trip handling
+- `/stats/` — authenticated long-term club, fleet, and personal statistics
+
 With `EFACLOUD_AUTO_INSTALL=1` in `.env`, the container runs the installer automatically on first start. With `EFACLOUD_AUTO_INSTALL=0`, complete the web installer manually. Form fields are prefilled from the same environment variables.
 
 Default local database settings when using `.env.example`:

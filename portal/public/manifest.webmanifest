@@ -1,7 +1,7 @@
 {
-  "name": "efaCloud Portal",
-  "short_name": "efaPortal",
-  "description": "Steg-Anmeldung und Bootsauswahl für efaCloud",
+  "name": "efaCloud Fahrtenbuch",
+  "short_name": "efaCloud",
+  "description": "Boote auschecken und Fahrten am Steg zurückmelden",
   "start_url": "/portal/",
   "scope": "/portal/",
   "display": "standalone",

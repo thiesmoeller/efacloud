@@ -5,6 +5,7 @@ import type { Trip } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { useVisibleRefresh } from "../hooks/useVisibleRefresh";
+import { BrandIntro } from "../components/BrandIntro";
 
 export function MyTripsScreen() {
   const { user, logout } = useAuth();
@@ -27,9 +28,11 @@ export function MyTripsScreen() {
   useEffect(() => { void load(); return () => { generation.current++; }; }, [load]);
   useVisibleRefresh(load);
   return <main className="screen">
+    <BrandIntro showGuide />
     <ScreenHeader title="Meine gestarteten Fahrten" trailing={<button className="btn btn-ghost" onClick={() => void logout()}>Abmelden</button>} />
     <p className="muted">{user?.firstName} {user?.lastName} · Am Steg</p>
     <Link className="btn btn-primary" to="/boats">Weitere Fahrt starten</Link>
+    <a className="btn btn-secondary" href="/stats/">Vereinsstatistik ansehen</a>
     {error && <div role="alert" className="error-box">{error}<button className="btn btn-secondary" onClick={() => void load()}>Erneut laden</button></div>}
     {!loaded && !error && <p role="status">Fahrten werden geladen…</p>}
     {loaded && trips.length === 0 && <p className="empty">Du hast keine offenen Fahrten gestartet.</p>}

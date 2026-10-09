@@ -61,6 +61,9 @@ expect_true(
     || Portal_constants::fold_umlauts_lower('Düne') === 'dune',
     'umlaut fold produces ascii-ish key'
 );
+expect_eq(Portal_constants::person_search_score('Anna Müller', 'Anna Mull'), 0, 'person search accepts folded prefix');
+expect_true(Portal_constants::person_search_score('Anna Müller', 'Ana Muler') !== null, 'person search tolerates one typo per name');
+expect_true(Portal_constants::person_search_score('Anna Müller', 'Schmidt') === null, 'person search rejects unrelated names');
 
 echo "== boats listing ==\n";
 $app = fresh_app($fixtures, $throttleBase);

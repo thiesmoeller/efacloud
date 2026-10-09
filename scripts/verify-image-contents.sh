@@ -8,7 +8,7 @@
 #   - Efa_boat_concurrency_guard (desktop↔portal split-brain prevention)
 #   - portal in Tfyh_audit public allowlist (dockside SPA not chmod 0700)
 #   - X-Forwarded-Proto / request_is_https Secure cookie detection
-#   - built /portal/ assets; no fixtures / node_modules / .env
+#   - built /portal/ and /stats/ assets; no fixtures / node_modules / .env
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -51,18 +51,23 @@ check grep -q "Efa_boat_concurrency_guard" /var/www/html/classes/efa_api.php
 check grep -q "\"portal\"" /var/www/html/classes/tfyh_audit.php
 check grep -n "portal" /var/www/html/classes/tfyh_audit.php | grep -q tfyh_public_dirs || \
   grep -A6 "tfyh_public_dirs" /var/www/html/classes/tfyh_audit.php | grep -q portal
+check grep -A6 "tfyh_public_dirs" /var/www/html/classes/tfyh_audit.php | grep -q stats
 
 check grep -q "function request_is_https" /var/www/html/classes/portal/Portal_session.php
 check grep -q "X-Forwarded-Proto" /var/www/html/classes/portal/Portal_session.php
 
 check test -f /var/www/html/portal/index.html
+check test -f /var/www/html/stats/index.html
 check test -f /var/www/html/classes/portal/Portal_admin.php
+check test -f /var/www/html/classes/stats/Stats_service.php
 check test -f /var/www/html/api/portal/v1/index.php
+check test -f /var/www/html/api/stats/v1/index.php
 check grep -q "password-reset" /var/www/html/api/portal/v1/index.php
 
 # Must NOT be in production image
 if [ -d /var/www/html/fixtures ]; then echo "LEAK: fixtures/"; fail=1; else echo "OK: no fixtures/"; fi
 if [ -d /var/www/html/portal/node_modules ]; then echo "LEAK: portal/node_modules"; fail=1; else echo "OK: no portal/node_modules"; fi
+if [ -d /var/www/html/stats/node_modules ]; then echo "LEAK: stats/node_modules"; fail=1; else echo "OK: no stats/node_modules"; fi
 if [ -f /var/www/html/.env ]; then echo "LEAK: .env"; fail=1; else echo "OK: no .env"; fi
 if [ -f /var/www/html/config/settings_db ]; then echo "LEAK: settings_db"; fail=1; else echo "OK: no settings_db"; fi
 
