@@ -140,4 +140,47 @@ class Portal_constants
         ];
         return strtr($s, $replacements);
     }
+
+    /**
+     * Rank a partial person-name query. Lower is better; null means no useful match.
+     * Each typed word may be a prefix or contain a small typo.
+     */
+    public static function person_search_score(string $name, string $query): ?int
+    {
+        $name = trim(self::fold_umlauts_lower($name));
+        $query = trim(self::fold_umlauts_lower($query));
+        if ($query === '') {
+            return 0;
+        }
+        $substring = mb_strpos($name, $query, 0, 'UTF-8');
+        if ($substring !== false) {
+            return (int) $substring;
+        }
+
+        $nameWords = preg_split('/[\s,.-]+/u', $name, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $queryWords = preg_split('/[\s,.-]+/u', $query, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $score = 10;
+        foreach ($queryWords as $typed) {
+            $best = null;
+            foreach ($nameWords as $word) {
+                if (str_starts_with($word, $typed)) {
+                    $best = 0;
+                    break;
+                }
+                if (strlen($typed) < 3) {
+                    continue;
+                }
+                $distance = levenshtein($typed, substr($word, 0, max(strlen($typed), min(strlen($word), strlen($typed) + 1))));
+                $allowed = max(1, (int) floor(strlen($typed) / 4));
+                if ($distance <= $allowed && ($best === null || $distance < $best)) {
+                    $best = $distance;
+                }
+            }
+            if ($best === null) {
+                return null;
+            }
+            $score += $best;
+        }
+        return $score;
+    }
 }

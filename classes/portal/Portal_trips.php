@@ -394,11 +394,9 @@ class Portal_trips
     {
         $cfg = $this->store->club_config();
         $tz = new DateTimeZone('Europe/Berlin');
-        $now = new DateTime('now', $tz);
-        $add = intval($cfg['StartSessionTimeAdd'] ?? 5);
-        $start = clone $now;
-        $start->modify('+' . $add . ' minutes');
-        $this->round_desktop_time($start);
+        // A phone checkout happens at the dock: default to the actual server time.
+        // Desktop EFA continues to apply its configured StartSessionTimeAdd itself.
+        $start = new DateTime('now', $tz);
 
         $trip = [
             'BoatId' => $body['boatId'] ?? ($boat['Id'] ?? ''),

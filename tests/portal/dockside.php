@@ -73,7 +73,7 @@ $fail = new Portal_trips($failStore);
 try { $fail->start($trainer, ['boatId' => $boats[0], 'crew' => [['id' => $person]], 'destinationName' => 'Test', 'idempotencyKey' => 'failed']); } catch (RuntimeException $e) { check($e->getMessage() === 'attribution failure', 'attribution failure surfaced'); }
 check(count($failStore->open_trips()) === 1 && $failStore->trips_started_by(102) === [], 'checkout rolls back when attribution fails');
 check($failStore->boat_status($boats[0])['CurrentStatus'] === 'AVAILABLE', 'failed checkout does not occupy boat');
-// Midnight and default-time behavior follows the desktop's five-minute rounding.
+// Midnight behavior and the PWA's current-time checkout default.
 $timeStore = new Portal_fixture_store(__DIR__ . '/../../fixtures/sanitized');
 $timeApp = new Portal_trips($timeStore);
 $today = new DateTime('now', new DateTimeZone('Europe/Berlin'));
@@ -82,8 +82,10 @@ $midnight = $timeApp->start($trainer, ['boatId' => $boats[0], 'crew' => [['id' =
 check($midnight['distance'] === '8 km' && $midnight['destinationName'] === 'Übungskanal', 'destination fills name and distance');
 $return = $timeApp->finish($trainer, $midnight['entryId'], ['expectedChangeCount' => 1, 'endTime' => '00:15'])['trip'];
 check($return['endDate'] === $today->format('Y-m-d'), 'midnight return retains next calendar day');
+$currentMinuteBefore = (new DateTime('now', new DateTimeZone('Europe/Berlin')))->format('H:i');
 $short = $timeApp->start($trainer, ['boatId' => $boats[0], 'crew' => [['id' => $person]], 'destinationName' => 'Short'])['trip'];
-check(intval(substr($short['startTime'], 3, 2)) % 5 === 0, 'desktop five-minute default rounding');
+$currentMinuteAfter = (new DateTime('now', new DateTimeZone('Europe/Berlin')))->format('H:i');
+check(in_array($short['startTime'], [$currentMinuteBefore, $currentMinuteAfter], true), 'PWA checkout defaults to current time');
 $return = $timeApp->finish($trainer, $short['entryId'], ['expectedChangeCount' => 1, 'distance' => '0'])['trip'];
 check($return['endTime'] === $short['startTime'] && $return['endDate'] === '', 'short trip time offsets do not invent an overnight trip');
 $coxed = $timeApp->start($trainer, ['boatId' => $boats[2], 'boatVariant' => '1', 'crew' => [['id' => $person]], 'coxId' => '22222222-2222-4222-a222-222222222202', 'boatCaptain' => '0', 'destinationName' => 'Cox'])['trip'];

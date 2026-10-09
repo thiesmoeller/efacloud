@@ -112,7 +112,7 @@ Club keys relevant to PWA (sampled from local backup config, not committed raw):
 | `InputWarnOnlyCriticalBoatDamages` | false | Do not warn FULLYUSEABLE |
 | `StartSessionMustSelectDestination` | true | Dest required at start |
 | `MustEnterDistance` | false | Do **not** allow empty distance (`getValueAllowSessionsWithoutDistance`) |
-| `StartSessionTimeAdd` / `FinishSessionTimeSubstract` | 5 / 5 | Default time skew |
+| `StartSessionTimeAdd` / `FinishSessionTimeSubstract` | 5 / 5 | Desktop default-time skew; PWA intentionally ignores the start offset because checkout occurs at the dock |
 | `BoatCaptainShow` / `BoatCaptainAutoSelect` / `InputMustSelectBoatCaptain` | true / true / false | Obmann UX |
 | `BoatCaptainDefault` | BOW | Stroke default |
 | `InputAllowOnlyMaxCrewNumber` | true | Clamp crew to seats |

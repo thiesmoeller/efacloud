@@ -72,7 +72,7 @@ Authoritative order in `EfaBoathouseFrame.checkStartSessionForBoat` (mode 1 = st
 
 | ID | Action | Logbook | BoatStatus | Desktop entry |
 | --- | --- | --- | --- | --- |
-| T1 | **Start** | insert; `SessionIsOpen`/`Open=true`; date today; start ≈ now+`StartSessionTimeAdd` | `CurrentStatus=ONTHEWATER`; set `EntryNo`, `Logbook`, comment | `MODE_BOATHOUSE_START` |
+| T1 | **Start** | insert; `SessionIsOpen`/`Open=true`; date today; PWA start defaults to current server time | `CurrentStatus=ONTHEWATER`; set `EntryNo`, `Logbook`, comment | PWA intentionally differs from `MODE_BOATHOUSE_START`, whose suggestion adds `StartSessionTimeAdd` |
 | T2 | **Correct** | update open entry | refresh OTW; if boat changed, old boat → available | `MODE_BOATHOUSE_START_CORRECT` |
 | T3 | **Finish** | update; close session; end ≈ now−`FinishSessionTimeSubstract`; distance enabled | back to `BaseStatus` (usually AVAILABLE); clear entry/logbook/comment | `MODE_BOATHOUSE_FINISH` |
 | T4 | **Abort** | **delete** open entry (trip never happened) | same as finish (available) | `MODE_BOATHOUSE_ABORT` after confirm |
@@ -84,7 +84,7 @@ Authoritative order in `EfaBoathouseFrame.checkStartSessionForBoat` (mode 1 = st
 | T7 | Destination required at start | `StartSessionMustSelectDestination = true` | match-desktop |
 | T8 | Distance required on finish (unless allow-without) | Config key `MustEnterDistance` = **false** means **do not** allow empty distance (`getValueAllowSessionsWithoutDistance`) | match-desktop |
 | T9 | Default destination / distance from boat & destination records | `DefaultDestinationId`; known dest fills distance | match-desktop |
-| T10 | Times ±5 min | `StartSessionTimeAdd=5`, `FinishSessionTimeSubstract=5` | match-desktop |
+| T10 | Default times | PWA start uses current time; finish uses `FinishSessionTimeSubstract=5` | intentional start-time divergence; return matches desktop |
 | T11 | Session type default | `SessionTypeDefault = NORMAL` | match-desktop |
 
 Abort dialog strings (`actionAbortSession`): title „Fahrt abbrechen“; body that abort only if trip never happened; buttons „Fahrt abbrechen“ | „Fahrt abbrechen (Bootsschaden)“ | „Nichts“.

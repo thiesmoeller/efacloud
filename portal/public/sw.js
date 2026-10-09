@@ -1,5 +1,5 @@
 /* efaPortal service worker — cache application shell/assets only; APIs always network. */
-const CACHE = "efaportal-shell-v3";
+const CACHE = "efaportal-shell-v4";
 const SHELL = [
   "/portal/",
   "/portal/index.html",
