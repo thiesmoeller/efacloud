@@ -6,7 +6,15 @@ RUN npm ci
 COPY portal/ ./
 RUN npm run build
 
-# Stage 2: efaCloud PHP application
+# Stage 2: build member statistics site
+FROM node:20-bookworm-slim AS stats-build
+WORKDIR /build
+COPY stats/package.json stats/package-lock.json* ./
+RUN npm ci
+COPY stats/ ./
+RUN npm run build
+
+# Stage 3: efaCloud PHP application
 FROM php:8.2-apache
 
 RUN apt-get update \
@@ -44,6 +52,7 @@ COPY templates /var/www/html/templates
 
 # Built PWA only (never portal source / node_modules)
 COPY --from=portal-build /build/dist /var/www/html/portal
+COPY --from=stats-build /build/dist /var/www/html/stats
 
 RUN set -eux; \
     mkdir -p /opt/efacloud-defaults \

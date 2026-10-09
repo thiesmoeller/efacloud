@@ -547,12 +547,23 @@ expect_true(is_string($apache) && str_contains($apache, "DirectoryMatch"),
         "apache conf denies sensitive application directories");
 expect_true(is_string($apache) && str_contains($apache, "Alias /portal"),
         "apache conf aliases /portal to dockside PWA assets");
+expect_true(is_string($apache) && str_contains($apache, "Alias /stats"),
+        "apache conf aliases /stats to member statistics assets");
+
+$statsIndex = file_get_contents($root . "/api/stats/v1/index.php");
+expect_true(is_string($statsIndex)
+        && str_contains($statsIndex, "require_user()")
+        && str_contains($statsIndex, "Stats_repository::from_mysqli"),
+        "stats API requires a portal session and reads live data");
 
 echo "== portal directory must stay publicly readable (audit allowlist) ==\n";
 $auditPhp = file_get_contents($root . "/classes/tfyh_audit.php");
 expect_true(is_string($auditPhp)
         && preg_match('/\$tfyh_public_dirs\s*=\s*\[[^\]]*["\']portal["\']/s', $auditPhp) === 1,
         "tfyh_audit public dirs include portal (prevents deny-for-all lock)");
+expect_true(is_string($auditPhp)
+        && preg_match('/\$tfyh_public_dirs\s*=\s*\[[^\]]*["\']stats["\']/s', $auditPhp) === 1,
+        "tfyh_audit public dirs include stats (prevents deny-for-all lock)");
 
 require __DIR__ . '/auth-privacy.php';
 

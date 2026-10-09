@@ -58,6 +58,9 @@ efaBackup*
 portal/node_modules
 portal/dist
 portal/.vite
+stats/node_modules
+stats/dist
+stats/.vite
 **/node_modules
 **/.vite
 

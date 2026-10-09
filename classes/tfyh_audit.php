@@ -50,8 +50,8 @@ class Tfyh_audit
      */
     private static $tfyh_public_dirs = ["_src","src","demo","efa","efacloud","img","naerrischegesellen",
             "helpdocs","api","forms","i18n","js","license","pages","public","resources",
-            // Dockside PWA static assets (same-origin /portal/); must stay world-readable.
-            "portal"
+            // Same-origin PWA/static assets; must stay world-readable.
+            "portal","stats"
     ];
 
     /**

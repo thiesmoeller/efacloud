@@ -64,15 +64,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Smoke (portal assets + Apache config)
+      - name: Smoke (portal/stats assets + Apache config)
         run: |
           set -euo pipefail
           echo "Smoke testing: ${IMAGE}:smoke-local"
           docker run --rm --entrypoint sh "${IMAGE}:smoke-local" -c '
             set -e
             test -f /var/www/html/portal/index.html
+            test -f /var/www/html/stats/index.html
             test -f /var/www/html/api/portal/v1/index.php
+            test -f /var/www/html/api/stats/v1/index.php
             test -f /var/www/html/classes/portal/Portal_session.php
+            test -f /var/www/html/classes/stats/Stats_service.php
             test -f /etc/apache2/conf-enabled/efacloud.conf
             . /etc/apache2/envvars
             apache2 -t
@@ -84,6 +87,7 @@ jobs:
           set -euo pipefail
           docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/security/run.php
           docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/portal/run.php
+          docker run --rm -v "$PWD:/app:ro" -w /app --entrypoint php "${IMAGE}:smoke-local" tests/stats/run.php
           sh tests/security/config-migration.sh
 
       # Multi-arch manifest list — CapRover arm64 pulls the arm64 variant.

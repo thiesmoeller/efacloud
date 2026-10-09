@@ -1,6 +1,7 @@
 id;permission;headline;link
 publicHome;.anonymous;D6ZypP|Homepage;../public/index.php
 efaWeb;member;wUV9W1|efaWeb;../pages/efaWeb.php
+efaStats;member;efaStats;../stats/
 Fahrtenbuch;member;yFgddS|logbook;../public/fahrtenbuch.php
 Info;.member;vkPG2M|Info;../public/info.php
 list;board;SomMhj|Sports operation;

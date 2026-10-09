@@ -23,10 +23,11 @@ Local release-candidate gates (fail-fast). CapRover deploys are out of scope.
 Default gates:
   1. ./tests/security/run.sh
   2. ./tests/portal/run.sh
-  3. cd portal && npm run test && npm run build
-  4. compose-local-smoke.sh --down (port EFACLOUD_RC_SMOKE_PORT, default 18084)
-  5. SKIP backup/restore drill unless --full
-  6. If efacloud-desktop-synch is up on :18083: live synch / conflict / browser E2E
+  3. ./tests/stats/run.sh
+  4. portal + stats npm test/build
+  5. compose-local-smoke.sh --down (port EFACLOUD_RC_SMOKE_PORT, default 18084)
+  6. SKIP backup/restore drill unless --full
+  7. If efacloud-desktop-synch is up on :18083: live synch / conflict / browser E2E
      else SKIP with how to start the lab
 
 Environment:
@@ -121,8 +122,11 @@ rc_run "tests/security/run.sh" ./tests/security/run.sh || exit 1
 rc_run "tests/portal/run.sh" ./tests/portal/run.sh || exit 1
 
 # --- 3. Portal npm test + build ---
+rc_run "tests/stats/run.sh" ./tests/stats/run.sh || exit 1
 rc_run "portal npm test" bash -c 'cd portal && npm run test' || exit 1
 rc_run "portal npm build" bash -c 'cd portal && npm run build' || exit 1
+rc_run "stats npm test" bash -c 'cd stats && npm run test' || exit 1
+rc_run "stats npm build" bash -c 'cd stats && npm run build' || exit 1
 
 # --- 4. Compose local smoke (dedicated free port; tear down) ---
 if [[ ! -f .env ]]; then

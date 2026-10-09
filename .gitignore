@@ -48,3 +48,7 @@ portal/node_modules/
 portal/dist/
 portal/e2e/node_modules/
 portal/e2e/package-lock.json
+
+# efaStats frontend deps / local build
+stats/node_modules/
+stats/dist/
