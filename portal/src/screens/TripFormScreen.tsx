@@ -10,6 +10,7 @@ import type {
   Destination,
   Person,
   Trip,
+  Water,
 } from "../api/types";
 import { AckDialog } from "../components/AckDialog";
 import { PersonPicker } from "../components/PersonPicker";
@@ -46,6 +47,7 @@ export function TripFormScreen() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [detail, setDetail] = useState<BoatDetailResponse | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [knownWaters, setKnownWaters] = useState<Water[]>([]);
   const [config, setConfig] = useState<Record<string, unknown>>({});
 
   const [boatId, setBoatId] = useState(boatIdParam);
@@ -55,6 +57,7 @@ export function TripFormScreen() {
   const [boatCaptain, setBoatCaptain] = useState("");
   const [destinationId, setDestinationId] = useState("");
   const [destinationName, setDestinationName] = useState("");
+  const [waters, setWaters] = useState("");
   const [distance, setDistance] = useState("");
   const [startTime, setStartTime] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -99,10 +102,11 @@ export function TripFormScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const [cfg, dests] = await Promise.all([api.getConfig(), api.listDestinations()]);
+        const [cfg, dests, waterList] = await Promise.all([api.getConfig(), api.listDestinations(), api.listWaters()]);
         if (cancelled) return;
         setConfig(cfg.config);
         setDestinations(dests.destinations);
+        setKnownWaters(waterList.waters);
 
         if (isExisting && entryId) {
           const { trip: t } = await api.getTrip(entryId, logbookName);
@@ -114,6 +118,7 @@ export function TripFormScreen() {
           setVariant(t.boatVariant || "1");
           setDestinationId(t.destinationId || "");
           setDestinationName(t.destinationName || "");
+          setWaters(t.waters || "");
           setDistance(t.distance || "");
           setBoatCaptain(t.boatCaptain || "");
           setCox(t.cox?.id || t.cox?.name ? { id: t.cox.id, firstName: "", lastName: "", displayName: t.cox.name } : null);
@@ -132,6 +137,7 @@ export function TripFormScreen() {
             setDestinationId(defaultDest);
             setDestinationName(dests.destinations.find(dest => dest.id === defaultDest)?.name ?? "");
             setDistance(String(dests.destinations.find(dest => dest.id === defaultDest)?.distance ?? ""));
+            setWaters(dests.destinations.find(dest => dest.id === defaultDest)?.waters ?? "");
           }
         }
       } catch (err) {
@@ -206,6 +212,7 @@ export function TripFormScreen() {
           boatCaptain: boatCaptain || undefined,
           destinationId: destinationId || undefined,
           destinationName,
+          waters,
           distance: distance || undefined,
           acknowledgmentTokens: tokens,
           date: startDate || undefined,
@@ -228,7 +235,7 @@ export function TripFormScreen() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, distance, startDate, startTime]
+    [boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, waters, distance, startDate, startTime]
   );
 
   const runCorrect = useCallback(
@@ -249,6 +256,7 @@ export function TripFormScreen() {
           boatCaptain: boatCaptain || "",
           destinationId: destinationId || "",
           destinationName,
+          waters,
           distance: distance || "",
           acknowledgmentTokens: tokens,
         }, b => api.correctTrip(trip.entryId, b));
@@ -269,7 +277,7 @@ export function TripFormScreen() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trip, boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, distance, startDate, startTime]
+    [trip, boatId, variant, crew, cox, coxNeeded, boatCaptain, destinationId, destinationName, waters, distance, startDate, startTime]
   );
 
   const onConfirmAck = async () => {
@@ -322,6 +330,7 @@ export function TripFormScreen() {
         endDate: endDate || undefined,
         destinationId,
         destinationName,
+        waters,
       }, b => api.finishTrip(trip.entryId, b as Parameters<typeof api.finishTrip>[1]));
       setTrip(res.trip);
       setSuccess("Fahrt beendet.");
@@ -490,6 +499,7 @@ export function TripFormScreen() {
               setDestinationId(e.target.value);
               const d = destinations.find((x) => x.id === e.target.value);
               setDestinationName(d?.name ?? "");
+              setWaters(d?.waters ?? "");
               if (d?.distance) setDistance(String(d.distance));
             }}
           >
@@ -506,6 +516,22 @@ export function TripFormScreen() {
           <label htmlFor="custom-destination">Individuelles Fahrtziel</label>
           <input id="custom-destination" value={destinationName} required={mustDest && !isExisting} onChange={e => setDestinationName(e.target.value)} />
         </div>}
+
+        <div className="field">
+          <label htmlFor="waters">Gewässer{config.MustEnterWatersForUnknownDestinations && !destinationId ? " *" : ""}</label>
+          <input
+            id="waters"
+            list="known-waters"
+            value={waters}
+            required={!!config.MustEnterWatersForUnknownDestinations && !destinationId}
+            onChange={e => setWaters(e.target.value)}
+            placeholder="z. B. Elbe, Dove Elbe"
+          />
+          <datalist id="known-waters">
+            {knownWaters.map(water => <option key={water.id} value={water.name} />)}
+          </datalist>
+          <small className="muted">Bei mehreren Gewässern die Namen mit Komma trennen.</small>
+        </div>
 
         {(mode === "finish" || isExisting) && (
           <div className="field">

@@ -10,6 +10,7 @@ import type {
   Person,
   SessionResponse,
   StartTripBody,
+  Water,
   Trip,
 } from "./types";
 
@@ -170,6 +171,10 @@ export const api = {
     return portalFetch("/destinations");
   },
 
+  listWaters(): Promise<{ waters: Water[] }> {
+    return portalFetch("/waters");
+  },
+
   getConfig(): Promise<ClubConfigResponse> {
     return portalFetch("/config");
   },
@@ -215,6 +220,7 @@ export const api = {
       distance?: string;
       destinationId?: string;
       destinationName?: string;
+      waters?: string;
       idempotencyKey: string;
     }
   ): Promise<{ trip: Trip }> {

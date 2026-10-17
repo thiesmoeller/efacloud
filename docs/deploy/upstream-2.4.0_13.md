@@ -4,6 +4,10 @@ Integrated on 2026-10-05 from the official release published 2026-05-20.
 The upstream GitHub master/tag still contains 2.4.0_12, so this update uses the
 official distribution rather than an unrelated development branch.
 
+Weekly upstream check on 2026-10-17: the official release feed still ends at
+2.4.0_13 and GitHub `master`/latest tag still point to 2.4.0_12. No newer
+upstream changes were available to integrate.
+
 - Release feed: https://efacloud.org/src/scanversions.php?own=2.4.0_12
 - Release notes: https://efacloud.org/src/2.4.0_13/release_notes.html
 - Archive: https://efacloud.org/src/2.4.0_13/efacloud_server.zip

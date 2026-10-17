@@ -7,7 +7,14 @@ const people = fixture('persons').map(p => ({id:p.Id, firstName:p.FirstName,last
 const config = fixture('club-config').keys;
 const source = fixture('boats').slice(0,3);
 const boats = source.map(b => ({boatId:b.Id,name:b.Name,variantIndex:0,variant:'1',seatCategory:b.TypeSeats.split(';')[0].replace('X',''),seatCategoryLabel:b.TypeSeats.split(';')[0]+' Plätze',typeRigging:b.TypeRigging.split(';')[0],typeCoxing:b.TypeCoxing.split(';')[0],typeType:'RACING',typeDescription:'',defaultVariant:'1',listView:'available',status:'AVAILABLE',damage:{hasOpen:false,count:0},badges:{rigging:'SCULL',coxing:'COXLESS',hullType:'RACING'}}));
-const destinations = fixture('destinations').map(d=>({id:d.Id,name:d.Name,distance:d.Distance || '5'}));
+const waters = fixture('waters').map(w=>({id:w.Id,name:w.Name}));
+const waterNames = new Map(waters.map(w=>[w.id,w.name]));
+const destinations = fixture('destinations').map(d=>({
+  id:d.Id,
+  name:d.Name,
+  distance:d.Distance || '5',
+  waters:(d.WatersIdList || '').split(';').map(id=>waterNames.get(id)).filter(Boolean).join(', '),
+}));
 const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/usr/bin/google-chrome',headless:true,args:['--no-sandbox']});
 try {
 for (const device of ['Pixel 7', 'iPhone 13']) {
@@ -23,6 +30,7 @@ for (const device of ['Pixel 7', 'iPhone 13']) {
     if(path==='/session') return send({authenticated:true,csrfToken:'test',user:{efaCloudUserID:account,firstName:'Organisator',lastName:'Test'},privileges:{trainer:true}});
     if(path==='/config') return send({config,logbookName:'2026'});
     if(path==='/destinations') return send({destinations});
+    if(path==='/waters') return send({waters});
     if(path==='/persons') return send({persons:people.filter(p=>p.displayName.toLowerCase().includes((url.searchParams.get('search')||'').toLowerCase()))});
     if(path==='/boats') return send({boats,seatCategories:[{code:'1',label:'Einer'},{code:'2',label:'Zweier'},{code:'4',label:'Vierer'}]});
     if(path.startsWith('/boats/')) {
@@ -58,6 +66,7 @@ for (const device of ['Pixel 7', 'iPhone 13']) {
     await page.getByLabel('Sitz 1',{exact:true}).fill(people[i].firstName);
     await page.getByRole('button',{name:people[i].displayName,exact:true}).click();
     await page.getByRole('combobox',{name:/^Ziel(?: \*)?$/}).selectOption(destinations[0].id);
+    assert.equal(await page.getByLabel('Gewässer',{exact:true}).inputValue(), destinations[0].waters);
     if(i===0) {
       await page.getByRole('button',{name:'Schaden melden',exact:true}).click();
       assert.equal(await page.locator('dialog[open]').count(),1);

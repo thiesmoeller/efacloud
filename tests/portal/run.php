@@ -272,6 +272,37 @@ expect_true(!empty($s1['trip']['entryId']), 'trip started');
 $s2 = $app->trips->start($member, $startBody);
 expect_true(!empty($s2['_idempotentReplay']), 'idempotent replay');
 expect_eq($s2['trip']['entryId'], $s1['trip']['entryId'], 'same entry on replay');
+expect_eq(
+    $s1['trip']['watersIdList'],
+    '44444444-4444-4444-a444-444444444402',
+    'known destination supplies configured waters ID'
+);
+expect_eq($s1['trip']['waters'], 'Elbe', 'known destination returns readable waters name');
+
+echo "== touring trip waters ==\n";
+$app = fresh_app($fixtures, $throttleBase);
+$member = $app->store->user_by_id(101);
+$tour = $app->trips->start($member, [
+    'boatId' => '11111111-1111-4111-a111-111111111101',
+    'crew' => [['id' => '22222222-2222-4222-a222-222222222201']],
+    'destinationName' => 'Hamburg bis Geesthacht',
+    'waters' => 'Elbe, Geesthachter Schleusenkanal',
+]);
+expect_eq(
+    $tour['trip']['watersIdList'],
+    '44444444-4444-4444-a444-444444444402',
+    'known touring water is persisted by ID'
+);
+expect_eq(
+    $tour['trip']['watersNameList'],
+    'Geesthachter Schleusenkanal',
+    'free touring water is persisted by name'
+);
+expect_eq(
+    $tour['trip']['waters'],
+    'Elbe, Geesthachter Schleusenkanal',
+    'mixed known and free waters round-trip for editing'
+);
 
 echo "== damage report does not abort trip ==\n";
 $app = fresh_app($fixtures, $throttleBase);

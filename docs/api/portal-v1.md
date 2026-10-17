@@ -158,6 +158,12 @@ tolerates small typing errors, and returns closer matches first.
 
 #### `GET /destinations`
 
+Returns destinations with distance and their configured `waters` names.
+
+#### `GET /waters`
+
+Returns the currently valid efa waters for suggestions in the trip form.
+
 #### `GET /config`
 
 Boathouse-relevant club keys + trainer grant help + password-reset workflow + current logbook name.
@@ -200,6 +206,7 @@ Attribution is stored in `portal_checkouts` keyed by `(logbook_name, trip_ecrid)
   "coxId": "…",
   "boatCaptain": "1",
   "destinationId": "…",
+  "waters": "Elbe, Dove Elbe",
   "acknowledgmentTokens": [ "ack_…" ],
   "idempotencyKey": "…"
 }
@@ -209,6 +216,11 @@ Does **not** force `BoatCaptain=1`. If `startTime` is omitted, the departure def
 to the current server minute in `Europe/Berlin`; the desktop-only
 `StartSessionTimeAdd` suggestion is intentionally not applied. An explicitly supplied
 `startTime` is preserved.
+
+`waters` accepts the same comma/plus/semicolon-separated input as efa desktop.
+Known names are persisted in `WatersIdList`; free names remain in
+`WatersNameList`. A configured destination supplies its default waters when the
+field is omitted. Unknown destinations honor `MustEnterWatersForUnknownDestinations`.
 
 #### `GET /trips/{entryId}`
 

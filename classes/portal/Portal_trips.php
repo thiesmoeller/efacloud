@@ -44,6 +44,11 @@ class Portal_trips
                 && empty($trip['DestinationId']) && empty($trip['DestinationName'])) {
                 throw Portal_error::validation('DESTINATION_REQUIRED', 'Bitte ein Ziel wählen.');
             }
+            if (!empty($cfg['MustEnterWatersForUnknownDestinations'])
+                && empty($trip['DestinationId'])
+                && empty($trip['WatersIdList']) && empty($trip['WatersNameList'])) {
+                throw Portal_error::validation('WATERS_REQUIRED', 'Bitte das Gewässer angeben.');
+            }
 
             $this->validate_crew($trip, $boat);
             Portal_permissions::assert_can_manage_trip($user, $trip);
@@ -219,6 +224,11 @@ class Portal_trips
             }
             if (array_key_exists('destinationName', $body)) {
                 $update['DestinationName'] = $body['destinationName'];
+            }
+            if (array_key_exists('waters', $body)
+                || array_key_exists('watersIdList', $body)
+                || array_key_exists('watersNameList', $body)) {
+                $this->apply_waters_from_body($update, $body);
             }
 
             $startAt = new DateTime($existing['Date'] . ' ' . $existing['StartTime'], $tz);
@@ -406,6 +416,8 @@ class Portal_trips
             'StartTime' => $body['startTime'] ?? $start->format('H:i'),
             'DestinationId' => $body['destinationId'] ?? '',
             'DestinationName' => $body['destinationName'] ?? '',
+            'WatersIdList' => $body['watersIdList'] ?? '',
+            'WatersNameList' => $body['watersNameList'] ?? '',
             'Distance' => $body['distance'] ?? '',
             'SessionType' => $body['sessionType'] ?? ($cfg['SessionTypeDefault'] ?? 'NORMAL'),
             'BoatCaptain' => isset($body['boatCaptain']) ? (string) $body['boatCaptain'] : '',
@@ -458,8 +470,14 @@ class Portal_trips
             if (($dest['Id'] ?? '') === $trip['DestinationId']) {
                 if ($trip['DestinationName'] === '') $trip['DestinationName'] = $dest['Name'] ?? '';
                 if ($trip['Distance'] === '') $trip['Distance'] = $dest['Distance'] ?? '';
+                if ($trip['WatersIdList'] === '' && $trip['WatersNameList'] === '') {
+                    $trip['WatersIdList'] = $dest['WatersIdList'] ?? '';
+                }
                 break;
             }
+        }
+        if (array_key_exists('waters', $body)) {
+            $this->apply_waters_from_body($trip, $body);
         }
         return $trip;
     }
@@ -474,6 +492,8 @@ class Portal_trips
             'startTime' => $trip['StartTime'] ?? '',
             'destinationId' => $trip['DestinationId'] ?? '',
             'destinationName' => $trip['DestinationName'] ?? '',
+            'watersIdList' => $trip['WatersIdList'] ?? '',
+            'watersNameList' => $trip['WatersNameList'] ?? '',
             'distance' => $trip['Distance'] ?? '',
             'sessionType' => $trip['SessionType'] ?? '',
             'boatCaptain' => $trip['BoatCaptain'] ?? '',
@@ -542,6 +562,60 @@ class Portal_trips
         return trim(($p['FirstName'] ?? '') . ' ' . ($p['LastName'] ?? ''));
     }
 
+    /**
+     * Parse the same comma/plus/semicolon-separated water input accepted by
+     * efa desktop. Known names are stored as stable IDs; unknown names remain
+     * in WatersNameList so touring trips never lose their water information.
+     *
+     * @param array<string,mixed> $trip
+     * @param array<string,mixed> $body
+     */
+    private function apply_waters_from_body(array &$trip, array $body): void
+    {
+        if (!array_key_exists('waters', $body)) {
+            $trip['WatersIdList'] = trim((string) ($body['watersIdList'] ?? ''));
+            $trip['WatersNameList'] = trim((string) ($body['watersNameList'] ?? ''));
+            return;
+        }
+
+        $known = [];
+        foreach ($this->store->all_waters() as $water) {
+            $name = trim((string) ($water['Name'] ?? ''));
+            $id = trim((string) ($water['Id'] ?? ''));
+            if ($name !== '' && $id !== '') {
+                $known[Portal_constants::fold_umlauts_lower($name)] = $id;
+            }
+        }
+
+        $ids = [];
+        $names = [];
+        foreach (preg_split('/[,+;]/u', (string) $body['waters']) ?: [] as $rawName) {
+            $name = trim($rawName);
+            if ($name === '') continue;
+            $key = Portal_constants::fold_umlauts_lower($name);
+            if (isset($known[$key])) $ids[] = $known[$key];
+            else $names[] = str_replace([';', '<', '>'], '', $name);
+        }
+        $trip['WatersIdList'] = implode(';', array_values(array_unique($ids)));
+        $trip['WatersNameList'] = implode(';', array_values(array_unique($names)));
+    }
+
+    private function waters_display(array $trip): string
+    {
+        $names = [];
+        $known = [];
+        foreach ($this->store->all_waters() as $water) {
+            $known[(string) ($water['Id'] ?? '')] = (string) ($water['Name'] ?? '');
+        }
+        foreach (explode(';', (string) ($trip['WatersIdList'] ?? '')) as $id) {
+            if ($id !== '' && isset($known[$id]) && $known[$id] !== '') $names[] = $known[$id];
+        }
+        foreach (explode(';', (string) ($trip['WatersNameList'] ?? '')) as $name) {
+            if (trim($name) !== '') $names[] = trim($name);
+        }
+        return implode(', ', array_values(array_unique($names)));
+    }
+
     private function on_water_comment(array $trip): string
     {
         $names = [];
@@ -586,6 +660,9 @@ class Portal_trips
             'boatCaptain' => $t['BoatCaptain'] ?? '',
             'destinationId' => $t['DestinationId'] ?? '',
             'destinationName' => $t['DestinationName'] ?? '',
+            'waters' => $this->waters_display($t),
+            'watersIdList' => $t['WatersIdList'] ?? '',
+            'watersNameList' => $t['WatersNameList'] ?? '',
             'distance' => $t['Distance'] ?? '',
             'sessionType' => $t['SessionType'] ?? '',
             'open' => $this->is_open($t),

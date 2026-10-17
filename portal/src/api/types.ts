@@ -128,6 +128,12 @@ export interface Destination {
   id: string;
   name: string;
   distance: string;
+  waters: string;
+}
+
+export interface Water {
+  id: string;
+  name: string;
 }
 
 export interface TripCrewMember {
@@ -151,6 +157,9 @@ export interface Trip {
   boatCaptain: string;
   destinationId: string;
   destinationName: string;
+  waters: string;
+  watersIdList: string;
+  watersNameList: string;
   distance: string;
   sessionType: string;
   open: boolean;
@@ -194,6 +203,7 @@ export interface StartTripBody {
   boatCaptain?: string;
   destinationId?: string;
   destinationName?: string;
+  waters?: string;
   distance?: string;
   acknowledgmentTokens?: string[];
   idempotencyKey: string;

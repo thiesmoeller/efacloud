@@ -37,6 +37,9 @@ interface Portal_store
     /** @return array<int,array<string,mixed>> */
     public function all_destinations(): array;
 
+    /** @return array<int,array<string,mixed>> */
+    public function all_waters(): array;
+
     /** @return array<string,mixed> club config key => value */
     public function club_config(): array;
 
@@ -130,6 +133,7 @@ class Portal_fixture_store implements Portal_store
     private array $reservations = [];
     private array $persons = [];
     private array $destinations = [];
+    private array $waters = [];
     private array $config = [];
     private array $trips = [];
     private array $users = [];
@@ -147,6 +151,7 @@ class Portal_fixture_store implements Portal_store
         $this->reservations = $this->load_json($fixturesDir . '/boatreservations.json');
         $this->persons = $this->load_json($fixturesDir . '/persons.json');
         $this->destinations = $this->load_json($fixturesDir . '/destinations.json');
+        $this->waters = $this->load_json($fixturesDir . '/waters.json');
         $cfg = $this->load_json_object($fixturesDir . '/club-config.json');
         $this->config = isset($cfg['keys']) && is_array($cfg['keys']) ? $cfg['keys'] : $cfg;
         $this->trips = $this->load_json($fixturesDir . '/logbook-2026.json');
@@ -308,6 +313,11 @@ class Portal_fixture_store implements Portal_store
     public function all_destinations(): array
     {
         return $this->destinations;
+    }
+
+    public function all_waters(): array
+    {
+        return $this->waters;
     }
 
     public function club_config(): array

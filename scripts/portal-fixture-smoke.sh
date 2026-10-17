@@ -156,6 +156,8 @@ curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/persons" -o /tmp/portal-smoke-
   || fail "GET /persons"
 curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/destinations" -o /tmp/portal-smoke-dest.json \
   || fail "GET /destinations"
+curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$API/waters" -o /tmp/portal-smoke-waters.json \
+  || fail "GET /waters"
 curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   "$API/boats/11111111-1111-4111-a111-111111111107/damages" \
   -o /tmp/portal-smoke-damages.json \
@@ -181,7 +183,8 @@ python_assert /tmp/portal-smoke-boats.json boats || fail "expected available boa
 python_assert /tmp/portal-smoke-onwater.json boats || fail "expected on-water boats"
 python_assert /tmp/portal-smoke-persons.json persons || fail "expected persons"
 python_assert /tmp/portal-smoke-dest.json destinations || fail "expected destinations"
-pass "boats / persons / destinations / on-water"
+python_assert /tmp/portal-smoke-waters.json waters || fail "expected waters"
+pass "boats / persons / destinations / waters / on-water"
 
 # Damage report must not abort trips
 curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
@@ -209,9 +212,11 @@ curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   || fail "POST /trips start"
 ENTRY="$(json_get /tmp/portal-smoke-start.json trip.entryId)"
 STATUS="$(json_get /tmp/portal-smoke-start.json boatStatus.CurrentStatus)"
+WATERS="$(json_get /tmp/portal-smoke-start.json trip.waters)"
 [[ -n "$ENTRY" && "$ENTRY" != "null" ]] || fail "start missing entryId"
 [[ "$STATUS" == "ONTHEWATER" ]] || fail "expected boatStatus ONTHEWATER after start"
-pass "trip start entryId=$ENTRY status=$STATUS"
+[[ "$WATERS" == "Elbe" ]] || fail "expected destination waters Elbe after start (got $WATERS)"
+pass "trip start entryId=$ENTRY status=$STATUS waters=$WATERS"
 
 # Logout
 curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
