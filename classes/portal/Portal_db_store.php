@@ -287,6 +287,11 @@ class Portal_db_store implements Portal_store
         return $this->rows('efa2destinations');
     }
 
+    public function all_waters(): array
+    {
+        return $this->rows('efa2waters');
+    }
+
     public function club_config(): array
     {
         return $this->configCache;

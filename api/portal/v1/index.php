@@ -232,7 +232,7 @@ try {
         throw Portal_error::not_found('Unbekannte Boots-Route.');
     }
 
-    // -------- Persons / destinations --------
+    // -------- Persons / destinations / waters --------
     if (($parts[0] ?? '') === 'persons' && $method === 'GET') {
         $q = Portal_constants::fold_umlauts_lower(trim((string) ($_GET['search'] ?? $_GET['q'] ?? '')));
         $list = [];
@@ -269,15 +269,38 @@ try {
     }
 
     if (($parts[0] ?? '') === 'destinations' && $method === 'GET') {
+        $waterNames = [];
+        foreach ($app->store->all_waters() as $water) {
+            $waterNames[(string) ($water['Id'] ?? '')] = (string) ($water['Name'] ?? '');
+        }
         $list = [];
         foreach ($app->store->all_destinations() as $d) {
+            $names = [];
+            foreach (explode(';', (string) ($d['WatersIdList'] ?? '')) as $waterId) {
+                if ($waterId !== '' && isset($waterNames[$waterId])) $names[] = $waterNames[$waterId];
+            }
             $list[] = [
                 'id' => $d['Id'] ?? '',
                 'name' => $d['Name'] ?? '',
                 'distance' => $d['Distance'] ?? '',
+                'waters' => implode(', ', $names),
             ];
         }
         portal_json(['destinations' => $list]);
+    }
+
+    if (($parts[0] ?? '') === 'waters' && $method === 'GET') {
+        $list = [];
+        $now = (int) (microtime(true) * 1000);
+        foreach ($app->store->all_waters() as $water) {
+            if (!Portal_constants::version_valid_at($water, $now)) continue;
+            $list[] = [
+                'id' => $water['Id'] ?? '',
+                'name' => $water['Name'] ?? '',
+            ];
+        }
+        usort($list, static fn(array $a, array $b): int => strnatcasecmp($a['name'], $b['name']));
+        portal_json(['waters' => $list]);
     }
 
     // -------- Acknowledgments --------

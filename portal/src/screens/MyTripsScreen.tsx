@@ -41,7 +41,7 @@ export function MyTripsScreen() {
         <span className="badge">Auf Fahrt</span>
         <h2 className="boat-name">{t.boatName}</h2>
         <p>{t.crew.map(c => `${c.position}. ${c.name}`).join(" · ")}{t.cox.name && ` · Stm. ${t.cox.name}`}</p>
-        <p className="muted">Start {t.date} · {t.startTime} Uhr<br />Ziel: {t.destinationName || "Offen"}</p>
+        <p className="muted">Start {t.date} · {t.startTime} Uhr<br />Ziel: {t.destinationName || "Offen"}{t.waters && <><br />Gewässer: {t.waters}</>}</p>
         <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(t.entryId)}?logbookName=${encodeURIComponent(t.logbookName)}`}>Fahrt beenden</Link>
       </li>)}
     </ul>

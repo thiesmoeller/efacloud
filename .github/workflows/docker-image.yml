@@ -8,7 +8,7 @@ name: Docker image
 on:
   push:
     branches:
-      - main
+      - master
       - feature/caprover
   workflow_dispatch:
 
