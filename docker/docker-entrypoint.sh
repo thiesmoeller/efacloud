@@ -74,6 +74,22 @@ seed_missing_resources() {
 
 seed_missing_resources
 
+# HTML shell snippets live under the persistent config volume. New files (e.g.
+# page_01_start_no_menu) never appear after first boot, so splash pages render
+# without <head>/CSS. Always refresh snippets from the image — they are app chrome,
+# not club settings (layouts/settings stay on the volume + baseline updater).
+sync_bundled_snippets() {
+    defaults="/opt/efacloud-defaults/config/snippets"
+    target="/var/www/html/config/snippets"
+    if [ -d "$defaults" ]; then
+        mkdir -p "$target"
+        cp -a "$defaults"/. "$target/"
+        echo "efacloud-entrypoint: synced config/snippets from image"
+    fi
+}
+
+sync_bundled_snippets
+
 sh /usr/local/bin/efacloud-update-bundled-config
 
 mkdir -p \
