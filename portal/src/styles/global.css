@@ -63,12 +63,26 @@ a {
 }
 
 .app-shell {
+  /* Phone-first default; widens on desktop so explorers see the full fleet */
   max-width: 480px;
   margin: 0 auto;
   min-height: 100dvh;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .app-shell {
+    max-width: 1120px;
+  }
 }
 
 .app-switcher-bar {
@@ -337,6 +351,20 @@ a {
   gap: 10px;
 }
 
+@media (min-width: 768px) {
+  .boat-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .boat-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .boat-row {
   width: 100%;
   text-align: left;
@@ -429,6 +457,58 @@ a {
   padding: 20px 18px;
   box-shadow: var(--shadow);
   gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .dialog-backdrop {
+    align-items: center;
+  }
+
+  .dialog {
+    border-radius: 18px;
+    width: min(520px, 100%);
+  }
+
+  .dialog-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .dialog-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .row-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .row-actions .btn {
+    flex: 1 1 180px;
+  }
+
+  .chip-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .login-panel {
+    margin-top: 10vh;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .screen {
+    padding: 20px 28px 40px;
+    gap: 18px;
+  }
+
+  .screen-header h1 {
+    font-size: 1.6rem;
+  }
 }
 
 .dialog[open] { display: flex; flex-direction: column; }
