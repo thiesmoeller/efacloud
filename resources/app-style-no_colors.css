@@ -137,8 +137,10 @@ tr:hover {
 .splashscreen {
 	margin: auto;
 	margin-top: 10%;
-    width: 60%;
+	width: 60%;
 }
+
+/* Modern login hub overrides live in efacloud-style.css */
 
 /* --------- FORM ELEMENT STYLES --------------------- */
 /* =================================================== */

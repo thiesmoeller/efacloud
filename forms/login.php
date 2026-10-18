@@ -328,15 +328,47 @@ if (isset($form_filled) && ($todo == $form_filled->get_index())) {
 // === PAGE OUTPUT ===================================================================
 // ===== start page output
 
-$legacy = $toolbox->config->mode_classic;
-$start_snippet = ($legacy) ? "page_01_start" : "page_01_start_no_menu";
-$nav_snippet = ($legacy) ? "page_02_nav_to_body" : "page_02_nav_to_body_no_menu";
+// Login always uses the branded splash hub (no sidebar), independent of classic mode.
+$legacy = false;
+$start_snippet = "page_01_start_no_menu";
+$nav_snippet = "page_02_nav_to_body_no_menu";
 echo file_get_contents('../config/snippets/' . $start_snippet);
-$menu->set_style(($legacy) ? 1 : 3);
+$menu->set_style(3);
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/' . $nav_snippet);
-if (! $legacy)
-    echo "<div class='splashscreen'>\n";
+
+$app_links_html = "<nav class='login-apps' aria-label='" .
+         htmlspecialchars(i("aK7mQp|Club apps"), ENT_QUOTES) . "'>" .
+         "<a class='login-app' href='../portal/'>" .
+         "<span class='login-app-title'>" . i("pR8nWt|Portal") . "</span>" .
+         "<span class='login-app-desc'>" . i("qL3vXs|Dockside logbook") . "</span></a>" .
+         "<a class='login-app' href='../stats/'>" .
+         "<span class='login-app-title'>" . i("sT4yUm|Statistics") . "</span>" .
+         "<span class='login-app-desc'>" . i("uN6zKp|Club fleet insights") . "</span></a>" .
+         "</nav>";
+$legal_footer_html = "<footer class='login-legal'>" .
+         "<p class='login-fork'>" . i("fK4nRd|Club fork of %1.", 
+                 "<a href='https://www.efacloud.org/' rel='noopener noreferrer' target='_blank'>efaCloud</a>") .
+         "</p>" .
+         "<a href='../public/impressum.php'>" . i("rhfArk|Imprint") . "</a>" .
+         "<span aria-hidden='true'>·</span>" .
+         "<a href='../public/datenschutz.php'>" . i("dS9wFx|Privacy policy") . "</a>" .
+         "<span aria-hidden='true'>·</span>" .
+         "<a href='https://www.wrc1895.de/' rel='noopener noreferrer' target='_blank'>" .
+         i("wR1cLb|Club website") . "</a>" .
+         "</footer>";
+
+if (! $legacy) {
+    echo "<div class='splashscreen login-hub'>\n";
+    echo "<div class='login-brand'>\n";
+    echo "<img class='login-club-logo' src='../resources/logo_verein.png' " .
+             "alt='" . htmlspecialchars(i("mW2hRc|Wilhelmsburger Ruderclub"), ENT_QUOTES) . "'>\n";
+    echo "<p class='login-club-name'>" . i("mW2hRc|Wilhelmsburger Ruderclub") . "</p>\n";
+    echo "<p class='login-brand-mark'>efa<span>Cloud</span></p>\n";
+    echo "<p class='login-tagline'>" . i("tG5bYn|Your club entry to admin, ...") . "</p>\n";
+    echo "</div>\n";
+    echo "<div class='login-panel'>\n";
+}
 
 // redirection to login page due to an error. Show the reason.
 if ($onerror && ($done == 0))
@@ -344,18 +376,20 @@ if ($onerror && ($done == 0))
             ($legacy) ? 1 : 2);
 
 // page heading, identical for all workflow steps
-    $applogo = str_replace(">", " style='width:8rem'>", str_replace("_64", "", file_get_contents("../public/applogo")));
-$applogo = "<p style='text-align: center; line-height: 1.1rem'>$applogo</p>";
-$legacy_login_text = "<!-- START OF content -->\n<div class='w3-container'>" . "<h3>" .
-         i("XPLjLc|Login for registered use...") . "</h3>\n</div>\n<div class='w3-container'><p style='text-align:center;'>";
-echo ($legacy) ? $legacy_login_text : $applogo;
+if ($legacy) {
+    echo "<!-- START OF content -->\n<div class='w3-container'><h3>" .
+             i("XPLjLc|Login for registered use...") . "</h3>\n</div>\n" .
+             "<div class='w3-container'><p style='text-align:center;'>";
+} else {
+    echo "<h2 class='login-heading'>" . i("XPLjLc|Login for registered use...") . "</h2>\n";
+}
 echo $toolbox->form_errors_to_html($form_errors);
 echo $form_result;
 echo $form_to_fill->get_html();
 
 // ======== start with the display of either the next form, or the error messages.
 if ($todo == 1) { // step 1.
-    echo "<p style='text-align: center'><a href='../forms/reset_password.php'>" .
+    echo "<p class='login-reset'><a href='../forms/reset_password.php'>" .
              i("SjwGi5|Password forgotten?") . "</a></p>";
 } elseif ($todo == 2) { // step 2. no special texts for output
 } elseif ($todo == 3) { // step 3.
@@ -363,7 +397,11 @@ if ($todo == 1) { // step 1.
 
 // Help texts and page footer for output.
 echo $form_to_fill->get_help_html();
+echo $app_links_html;
+echo $legal_footer_html;
 if (! $legacy)
+    echo "</div></div>\n";
+elseif ($legacy)
     echo "</p></div>\n";
 echo "</div>";
 end_script();

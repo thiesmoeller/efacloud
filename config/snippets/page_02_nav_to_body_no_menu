@@ -1,0 +1,12 @@
+<!-- !PAGE CONTENT! (no sidebar) -->
+<div class="w3-main splash-main">
+
+  <!-- The Modal -->
+  <div id="cModal" class="modal" style="z-index: 4">
+    <!-- Modal content -->
+	<div id="cModal_content" class="modal-content">
+	  <span class="close">&times;</span>
+	  <p>Common Modal Box - empty.</p>
+	</div>
+  </div>
+                                        
