@@ -22,9 +22,15 @@
 
 /**
  * The boathouse client start page.
+ *
+ * Classic efaWeb UI is retired for this fork — use Portal (React) instead.
+ * Backend APIs and permission bits remain until the React migration is complete.
  * 
  * @author mgSoft
  */
+
+header("Location: ../portal/");
+exit;
 
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;

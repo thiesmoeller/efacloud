@@ -55,10 +55,10 @@ if ($is_admin) {
         $version_notification = "Ihr efaCloud Server ist auf dem neuesten Stand.";
 }
 
-// if the login is for the boathouse user, force it always to efaWeb. No efaCloud for this role.
+// Boathouse role: use Portal (dockside React) instead of classic efaWeb.
 if (strcasecmp($verified_user["Rolle"], "bths") == 0) {
     end_script(false);
-    header("Location: ../pages/efaWeb.php");
+    header("Location: ../portal/");
 }
 
 // ==== parse configurations
@@ -98,7 +98,8 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
     echo "<h4 class='app-section-title'>" . i("Z4VNs0|Active clients") . "</h4>";
     echo $efa_config->get_last_accesses_API($socket, true, true);
 } else {
-    echo i("pARkCd|<p>Please use efaWeb to ...");
+    echo "<p>" . i("pR8nGu|Please use Portal for yo...") . " " .
+             "<a href='../portal/'>" . i("pR8nWt|Portal") . "</a>.</p>";
 }
 ?>
 </section>

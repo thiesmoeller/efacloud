@@ -90,6 +90,22 @@ sync_bundled_snippets() {
 
 sync_bundled_snippets
 
+# Anonymous / app menus: keep fork copies in sync so retired entries (efaWeb) disappear
+# even when the CapRover config volume predates the change.
+sync_bundled_access_menus() {
+    defaults="/opt/efacloud-defaults/config/access"
+    target="/var/www/html/config/access"
+    for f in pmenu imenu; do
+        if [ -f "$defaults/$f" ]; then
+            mkdir -p "$target"
+            cp -a "$defaults/$f" "$target/$f"
+            echo "efacloud-entrypoint: synced config/access/$f from image"
+        fi
+    done
+}
+
+sync_bundled_access_menus
+
 sh /usr/local/bin/efacloud-update-bundled-config
 
 mkdir -p \
