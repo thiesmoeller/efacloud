@@ -45,6 +45,12 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
   <h2>Aufsichtsbehörde</h2>
   <p>Hamburger Sportbund</p>
 
+  <h2>Software</h2>
+  <p>
+    <?= i("fK4nRd|Club fork of %1.",
+            "<a href='https://www.efacloud.org/' rel='noopener noreferrer' target='_blank'>efaCloud</a>") ?>
+  </p>
+
   <p>
     <a href="https://www.wrc1895.de/impressum/" rel="noopener noreferrer" target="_blank">
       <?= i("iM3pQr|Imprint on the club website") ?>

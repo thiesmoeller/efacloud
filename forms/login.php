@@ -347,6 +347,9 @@ $app_links_html = "<nav class='login-apps' aria-label='" .
          "<span class='login-app-desc'>" . i("uN6zKp|Club fleet insights") . "</span></a>" .
          "</nav>";
 $legal_footer_html = "<footer class='login-legal'>" .
+         "<p class='login-fork'>" . i("fK4nRd|Club fork of %1.", 
+                 "<a href='https://www.efacloud.org/' rel='noopener noreferrer' target='_blank'>efaCloud</a>") .
+         "</p>" .
          "<a href='../public/impressum.php'>" . i("rhfArk|Imprint") . "</a>" .
          "<span aria-hidden='true'>·</span>" .
          "<a href='../public/datenschutz.php'>" . i("dS9wFx|Privacy policy") . "</a>" .

@@ -172,6 +172,18 @@ body.splash-body {
 	color: #5a6570;
 }
 
+.login-fork {
+	flex-basis: 100%;
+	margin: 0 0 4px;
+	text-align: center;
+	font-size: 0.8rem;
+	color: #5a6570;
+}
+
+.login-fork a {
+	color: #204c71 !important;
+}
+
 .login-legal a {
 	color: #204c71 !important;
 }
