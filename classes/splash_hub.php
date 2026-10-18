@@ -38,13 +38,14 @@ class Splash_hub
 
     /**
      * Open hub + brand + panel. Pass $wide for long-form content (legal, help).
+     * Compact app-switcher stays inside logged-in / React shells — not on splash
+     * (landing uses the larger dispatcher tiles instead).
      */
     public static function open_hub (bool $wide = false): void
     {
         $hub_class = $wide ? "splashscreen login-hub legal-hub" : "splashscreen login-hub";
         echo "<div class='" . $hub_class . "'>\n";
         echo self::render_brand();
-        echo self::render_app_switcher("cloud");
         echo "<div class='login-panel'>\n";
     }
 
@@ -92,6 +93,26 @@ class Splash_hub
         return $html;
     }
 
+    /**
+     * Landing dispatcher: three equal tiles for Verwaltung / Portal / Statistik.
+     */
+    public static function render_dispatcher (): string
+    {
+        return "<nav class='login-apps login-apps-three' aria-label='" .
+                 htmlspecialchars(i("aK7mQp|Club apps"), ENT_QUOTES) . "'>" .
+                 "<a class='login-app' href='/forms/login.php'>" .
+                 "<span class='login-app-title'>" . i("vW3nAd|Admin") . "</span>" .
+                 "<span class='login-app-desc'>" . i("yQ1qgk|Start efaCloud") . "</span></a>" .
+                 "<a class='login-app' href='/portal/'>" .
+                 "<span class='login-app-title'>" . i("pR8nWt|Portal") . "</span>" .
+                 "<span class='login-app-desc'>" . i("qL3vXs|Dockside logbook") . "</span></a>" .
+                 "<a class='login-app' href='/stats/'>" .
+                 "<span class='login-app-title'>" . i("sT4yUm|Statistics") . "</span>" .
+                 "<span class='login-app-desc'>" . i("uN6zKp|Club fleet insights") . "</span></a>" .
+                 "</nav>";
+    }
+
+    /** Portal + Stats tiles (e.g. under the login form). */
     public static function render_apps (): string
     {
         return "<nav class='login-apps' aria-label='" .

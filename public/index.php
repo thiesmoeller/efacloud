@@ -26,13 +26,11 @@ $user_requested_file = __FILE__;
 include_once "../classes/init.php";
 include_once "../classes/splash_hub.php";
 
-// Branded splash landing (same chrome as login); classic sidebar removed.
+// Branded splash: three equal frontends (Verwaltung / Portal / Statistik).
 Splash_hub::begin_page($menu);
 Splash_hub::open_hub();
 echo "<p class='login-lead'>" . i("lN8wPq|Administration, efaWeb and ...") . "</p>\n";
-echo "<a class='formbutton login-cta' href='../forms/login.php'>" .
-         i("yQ1qgk|Start efaCloud") . "</a>\n";
-echo Splash_hub::render_apps();
+echo Splash_hub::render_dispatcher();
 Splash_hub::close_hub();
 
 end_script();
