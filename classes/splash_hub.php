@@ -44,6 +44,7 @@ class Splash_hub
         $hub_class = $wide ? "splashscreen login-hub legal-hub" : "splashscreen login-hub";
         echo "<div class='" . $hub_class . "'>\n";
         echo self::render_brand();
+        echo self::render_app_switcher("cloud");
         echo "<div class='login-panel'>\n";
     }
 
@@ -67,14 +68,38 @@ class Splash_hub
                  "</div>\n";
     }
 
+    /**
+     * Compact cross-app switcher (efaCloud / Portal / Stats).
+     * $active: cloud | portal | stats
+     */
+    public static function render_app_switcher (string $active = "cloud"): string
+    {
+        $items = [
+                ["cloud", "/pages/home.php", i("vW3nAd|Admin")],
+                ["portal", "/portal/", i("pR8nWt|Portal")],
+                ["stats", "/stats/", i("sT4yUm|Statistics")],
+        ];
+        $html = "<nav class='app-switcher' aria-label='" .
+                 htmlspecialchars(i("aK7mQp|Club apps"), ENT_QUOTES) . "'>\n";
+        foreach ($items as $item) {
+            [$id, $href, $label] = $item;
+            $cls = "app-switcher-link" . ($id === $active ? " is-active" : "");
+            $aria = ($id === $active) ? " aria-current='page'" : "";
+            $html .= "<a class='" . $cls . "' href='" . htmlspecialchars($href, ENT_QUOTES) . "'" .
+                     $aria . ">" . htmlspecialchars($label, ENT_QUOTES) . "</a>\n";
+        }
+        $html .= "</nav>\n";
+        return $html;
+    }
+
     public static function render_apps (): string
     {
         return "<nav class='login-apps' aria-label='" .
                  htmlspecialchars(i("aK7mQp|Club apps"), ENT_QUOTES) . "'>" .
-                 "<a class='login-app' href='../portal/'>" .
+                 "<a class='login-app' href='/portal/'>" .
                  "<span class='login-app-title'>" . i("pR8nWt|Portal") . "</span>" .
                  "<span class='login-app-desc'>" . i("qL3vXs|Dockside logbook") . "</span></a>" .
-                 "<a class='login-app' href='../stats/'>" .
+                 "<a class='login-app' href='/stats/'>" .
                  "<span class='login-app-title'>" . i("sT4yUm|Statistics") . "</span>" .
                  "<span class='login-app-desc'>" . i("uN6zKp|Club fleet insights") . "</span></a>" .
                  "</nav>";

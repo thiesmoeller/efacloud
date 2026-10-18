@@ -18,6 +18,60 @@
 	cursor:pointer;
 }
 
+/* ---- Cross-app switcher (efaCloud / Portal / Stats) ---- */
+
+.app-switcher {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px;
+	margin: 0 auto 18px;
+	padding: 4px;
+	width: fit-content;
+	max-width: 100%;
+	background: rgba(255, 255, 255, 0.7);
+	border: 1px solid rgba(32, 76, 113, 0.14);
+	border-radius: 999px;
+	box-sizing: border-box;
+}
+
+.app-switcher-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 36px;
+	padding: 6px 14px;
+	border-radius: 999px;
+	font-size: 0.88rem;
+	font-weight: 600;
+	text-decoration: none !important;
+	color: #4a6f8f !important;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-switcher-link:hover,
+.app-switcher-link:focus {
+	background: #e8eef4;
+	color: #204c71 !important;
+}
+
+.app-switcher-link.is-active {
+	background: #204c71;
+	color: #fff !important;
+}
+
+.app-switcher-sidebar {
+	margin: 14px auto 0;
+	width: 100%;
+	justify-content: stretch;
+}
+
+.app-switcher-sidebar .app-switcher-link {
+	flex: 1;
+	padding: 6px 8px;
+	font-size: 0.78rem;
+}
+
 /* ---- Login hub (modern splash) ---- */
 
 body.splash-body {

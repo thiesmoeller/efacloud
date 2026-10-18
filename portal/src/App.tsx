@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
+import { AppSwitcher } from "./components/AppSwitcher";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { SwUpdateBanner } from "./components/SwUpdateBanner";
 import { useOnline } from "./hooks/useOnline";
@@ -38,6 +39,9 @@ export function App() {
     <div className="app-shell">
       <OfflineBanner online={online} />
       <SwUpdateBanner visible={!!waiting && !editing} onUpdate={applyUpdate} />
+      <div className="app-switcher-bar">
+        <AppSwitcher active="portal" />
+      </div>
       <Routes>
         <Route
           path="/login"

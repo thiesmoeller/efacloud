@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { api, ApiError } from "./api/client";
 import type { Fleet, Metadata, Overview, Personal, Session } from "./api/types";
 import { yearRange } from "./lib/format";
+import { AppSwitcher } from "./components/AppSwitcher";
 import { LoginScreen } from "./screens/LoginScreen";
 
 const OverviewScreen = lazy(() => import("./screens/OverviewScreen").then((module) => ({ default: module.OverviewScreen })));
@@ -61,9 +62,15 @@ export function App() {
   async function logout() { try { await api.logout(); } finally { setSession({ authenticated: false }); setMetadata(null); } }
 
   if (!session || (loading && !session)) return <div className="splash"><span>efaStats</span><i /></div>;
-  if (!session.authenticated) return <LoginScreen onLogin={login} />;
+  if (!session.authenticated) {
+    return <div className="site-shell">
+      <div className="app-switcher-bar"><AppSwitcher active="stats" /></div>
+      <LoginScreen onLogin={login} />
+    </div>;
+  }
 
   return <div className="site-shell">
+    <div className="app-switcher-bar"><AppSwitcher active="stats" /></div>
     <header className="topbar"><a className="brand" href="/stats/" onClick={(event) => { event.preventDefault(); navigate("overview"); }}>efa<span>Stats</span></a>
       <nav aria-label="Hauptnavigation"><button className={view === "overview" ? "active" : ""} onClick={() => navigate("overview")}>Übersicht</button><button className={view === "fleet" ? "active" : ""} onClick={() => navigate("fleet")}>Flotte</button><button className={view === "me" ? "active" : ""} onClick={() => navigate("me")}>Meine Statistik</button></nav>
       <div className="account"><span>{session.user?.firstName || "Mitglied"}</span><button onClick={() => void logout()}>Abmelden</button></div>
