@@ -543,6 +543,17 @@ body.app-body {
 	background: #f7f9fb;
 }
 
+.app-home-boats {
+	overflow-x: auto;
+	border-radius: 8px;
+	background: #f7f9fb;
+	padding: 8px;
+}
+
+.app-home-boats table {
+	margin: 0;
+}
+
 @media (max-width: 560px) {
 	.login-apps,
 	.login-apps-three {

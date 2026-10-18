@@ -96,8 +96,18 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
   <?php } ?>
 
   <h4 class="app-section-title"><?= i("bW4tOn|Boats underway") ?></h4>
-  <iframe class="app-home-frame" src="../public/info.php?type=onthewater&mode=7"
-          title="<?= htmlspecialchars(i("bW4tOn|Boats underway"), ENT_QUOTES) ?>"></iframe>
+  <div class="app-home-boats">
+<?php
+// Embed directly — an iframe of info.php nested the full shell on ACL errors.
+include_once "../classes/efa_info.php";
+$efa_info = new Efa_info($toolbox, $socket);
+if ($efa_info->is_allowed_info($toolbox->users->session_user, "public_onthewater")) {
+    echo $efa_info->get_on_the_water(7);
+} else {
+    echo "<p class='app-meta'>" . i("Apulhe|Access to this informati...") . "</p>";
+}
+?>
+  </div>
 
 <?php if (! $short_home) {
     include_once "../classes/efa_config.php";
