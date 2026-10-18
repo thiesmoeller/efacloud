@@ -104,16 +104,43 @@ body.splash-body {
 	color: #204c71;
 }
 
+.login-lead {
+	margin: 0 0 20px;
+	text-align: center;
+	font-size: 1rem;
+	line-height: 1.45;
+	color: #4a5560;
+}
+
 .login-hub .w3-row {
 	margin-bottom: 10px;
 }
 
-.login-hub .formbutton {
+.login-hub .formbutton,
+.login-hub a.login-cta {
 	width: 100%;
 	min-height: 44px;
 	border-radius: 8px;
 	font-size: 1rem;
 	letter-spacing: 0.03em;
+	box-sizing: border-box;
+}
+
+.login-hub a.login-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none !important;
+	color: inherit;
+}
+
+.login-hub .login-cta + .login-apps,
+.login-hub .login-lead + .login-cta {
+	margin-top: 0;
+}
+
+.login-hub a.login-cta + .login-apps {
+	margin-top: 22px;
 }
 
 .login-reset {
@@ -205,26 +232,250 @@ body.splash-body {
 	margin-right: auto;
 }
 
-/* Legal content pages */
+/* Legal / help content inside splash panel */
+.legal-hub {
+	width: min(720px, 94vw);
+}
+
 .legal-page {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: 24px 16px 48px;
+	margin: 0;
+	padding: 0;
 	line-height: 1.55;
+	color: #2a3340;
 }
 
 .legal-page h1 {
 	margin-top: 0;
+	color: #204c71;
 }
 
 .legal-page h2 {
 	margin-top: 1.6em;
 	font-size: 1.25rem;
+	color: #204c71;
 }
 
 .legal-page h3 {
 	margin-top: 1.2em;
 	font-size: 1.05rem;
+	color: #204c71;
+}
+
+.legal-page a {
+	color: #204c71 !important;
+}
+
+/* ---- Logged-in app shell ---- */
+
+body.app-body {
+	margin: 0;
+	max-width: none;
+	min-height: 100vh;
+	background:
+		radial-gradient(ellipse 70% 50% at 100% 0%, rgba(32, 76, 113, 0.08), transparent 55%),
+		linear-gradient(165deg, #f7f9fb 0%, #eef3f7 50%, #e8eef4 100%);
+}
+
+.app-sidebar.menubar {
+	background: #f4f7fa !important;
+	border-right: 1px solid rgba(32, 76, 113, 0.12);
+	box-shadow: 4px 0 24px rgba(32, 76, 113, 0.04);
+}
+
+.app-sidebar-brand {
+	padding: 20px 16px 12px;
+	text-align: center;
+	border-bottom: 1px solid rgba(32, 76, 113, 0.1);
+	margin-bottom: 8px;
+}
+
+.app-sidebar-logo {
+	display: block;
+	width: min(160px, 70%);
+	height: auto;
+	margin: 0 auto 10px;
+}
+
+.app-sidebar-mark {
+	margin: 0 0 6px;
+	font-size: 1.35rem;
+	font-weight: 700;
+	color: #204c71;
+	letter-spacing: -0.02em;
+}
+
+.app-sidebar-mark span {
+	font-weight: 500;
+	color: #4a6f8f;
+}
+
+#sidebar_clubname,
+#sidebar_logbook {
+	display: block;
+	font-size: 0.8rem;
+	color: #5a6570;
+	line-height: 1.35;
+}
+
+.app-menu-nav {
+	padding: 8px 0 16px;
+}
+
+.app-sidebar .menuitem.app-menuitem,
+.app-sidebar .menuitem {
+	background-color: transparent !important;
+	color: #204c71 !important;
+	border-radius: 8px;
+	margin: 2px 10px;
+	padding: 10px 12px !important;
+	font-size: 0.95rem;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-sidebar .menuitem.app-menuitem-sub {
+	margin-left: 18px;
+	font-size: 0.9rem;
+	color: #4a6f8f !important;
+}
+
+.app-sidebar .menuitem:hover,
+.app-sidebar .menuitem:focus {
+	background-color: #e8eef4 !important;
+	color: #204c71 !important;
+}
+
+.app-sidebar-footer {
+	padding: 16px 12px 24px;
+	margin-top: 12px;
+	border-top: 1px solid rgba(32, 76, 113, 0.1);
+	color: #5a6570;
+}
+
+.app-sidebar-user {
+	margin: 0 0 6px;
+	font-weight: 600;
+	color: #204c71;
+	font-size: 0.85rem;
+}
+
+.app-sidebar-meta {
+	margin: 0;
+	font-size: 0.75rem;
+	line-height: 1.4;
+}
+
+.app-sidebar-applogo {
+	margin-top: 8px;
+}
+
+.app-sidebar-applogo img {
+	max-width: 48px;
+	height: auto;
+}
+
+.app-topbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 14px;
+	background: rgba(247, 249, 251, 0.94);
+	border-bottom: 1px solid rgba(32, 76, 113, 0.12);
+	backdrop-filter: blur(8px);
+}
+
+.app-menu-toggle {
+	border: none;
+	background: transparent !important;
+	font-size: 1.4rem;
+	line-height: 1;
+	padding: 6px 10px !important;
+	border-radius: 8px;
+	cursor: pointer;
+	color: #204c71 !important;
+}
+
+.app-menu-toggle:hover,
+.app-menu-toggle:focus {
+	background: #e8eef4 !important;
+}
+
+.app-topbar-mark {
+	flex: 1;
+	margin: 0;
+	font-size: 1.2rem;
+	font-weight: 700;
+	color: #204c71;
+	letter-spacing: -0.02em;
+}
+
+.app-topbar-mark span {
+	font-weight: 500;
+	color: #4a6f8f;
+}
+
+.app-topbar-logo {
+	width: 36px;
+	height: auto;
+}
+
+.app-topbar-spacer {
+	height: 56px;
+}
+
+.app-main {
+	min-height: 100vh;
+	padding: 20px 20px 40px;
+	box-sizing: border-box;
+}
+
+.app-main > .w3-container,
+.app-panel {
+	background: rgba(255, 255, 255, 0.82);
+	border: 1px solid rgba(32, 76, 113, 0.12);
+	border-radius: 12px;
+	padding: clamp(18px, 3vw, 28px);
+	box-shadow: 0 10px 32px rgba(32, 76, 113, 0.06);
+	box-sizing: border-box;
+}
+
+.app-panel h3,
+.app-main > .w3-container > h3 {
+	margin-top: 0;
+}
+
+.app-meta {
+	margin: 0 0 1rem;
+	font-size: 0.95rem;
+	line-height: 1.45;
+	color: #4a5560;
+}
+
+.app-notice {
+	margin: 0 0 1.25rem;
+	padding: 12px 14px;
+	border-radius: 8px;
+	background: #eef3f7;
+	border: 1px solid rgba(32, 76, 113, 0.12);
+	color: #2a3340;
+	font-size: 0.95rem;
+}
+
+.app-notice a {
+	color: #204c71 !important;
+}
+
+.app-section-title {
+	margin: 1.4rem 0 0.6rem;
+	font-size: 1.15rem;
+	color: #204c71;
+}
+
+.app-home-frame {
+	width: 100%;
+	border: none;
+	min-height: 280px;
+	border-radius: 8px;
+	background: #f7f9fb;
 }
 
 @media (max-width: 560px) {
@@ -234,5 +485,9 @@ body.splash-body {
 
 	.splashscreen.login-hub {
 		padding-top: 28px;
+	}
+
+	.app-main {
+		padding: 14px 12px 32px;
 	}
 }

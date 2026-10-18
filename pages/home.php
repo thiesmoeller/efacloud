@@ -66,23 +66,41 @@ include_once "../classes/efa_config.php";
 $efa_config = new Efa_config($toolbox);
 $efa_config->parse_client_configs();
 
+$display_name = htmlspecialchars(
+        $verified_user["Vorname"] . " " . $verified_user["Nachname"], ENT_QUOTES);
+$email = (isset($verified_user["EMail"]) && (strlen($verified_user["EMail"]) > 0))
+        ? htmlspecialchars($verified_user["EMail"], ENT_QUOTES)
+        : i("2hvcxV|not provided.");
+
 // ===== start page output
 echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
-echo i("UXT258| ** Welcome, %1 ** ", $verified_user["Vorname"] . " " . $verified_user["Nachname"]);
-echo "<p>efaCloudUserID: " . $verified_user[$toolbox->users->user_id_field_name] . ", ";
-echo "efaAdmin Name: " . $verified_user["efaAdminName"] . ", ";
-echo "e-Mail: " . ((isset($verified_user["EMail"]) && (strlen($verified_user["EMail"]) > 0)) ? $verified_user["EMail"] : i(
-        "2hvcxV|not provided.")) . ".<br>";
-echo $version_notification . ".</p>";
-echo i("le6KSU| ** Boats underway ** ");
-if (! $short_home) {
+?>
+<section class="app-panel">
+  <h3><?= i("wH3mLc|Welcome, %1", $display_name) ?></h3>
+  <p class="app-meta">
+    efaCloudUserID: <?= htmlspecialchars($verified_user[$toolbox->users->user_id_field_name], ENT_QUOTES) ?>,
+    efaAdmin Name: <?= htmlspecialchars($verified_user["efaAdminName"], ENT_QUOTES) ?>,
+    e-Mail: <?= $email ?>.
+  </p>
+  <?php if (strlen($version_notification) > 0) { ?>
+  <p class="app-notice"><?= $version_notification ?></p>
+  <?php } ?>
+
+  <h4 class="app-section-title"><?= i("bW4tOn|Boats underway") ?></h4>
+  <iframe class="app-home-frame" src="../public/info.php?type=onthewater&mode=7"
+          title="<?= htmlspecialchars(i("bW4tOn|Boats underway"), ENT_QUOTES) ?>"></iframe>
+
+<?php if (! $short_home) {
     include_once "../classes/efa_config.php";
     $efa_config = new Efa_config($toolbox);
-    echo "<h4>" . i("Z4VNs0|Active clients") . "</h4>" .
-             $efa_config->get_last_accesses_API($socket, true, true) . "";
-    echo "</div>";
-} else
+    echo "<h4 class='app-section-title'>" . i("Z4VNs0|Active clients") . "</h4>";
+    echo $efa_config->get_last_accesses_API($socket, true, true);
+} else {
     echo i("pARkCd|<p>Please use efaWeb to ...");
+}
+?>
+</section>
+<?php
 end_script();
