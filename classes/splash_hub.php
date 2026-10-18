@@ -7,14 +7,33 @@ class Splash_hub
 {
 
     /**
+     * Prefer image-bundled snippets over the persistent config volume.
+     * CapRover mounts config/ across deploys; new splash snippets would otherwise
+     * be missing and pages render as unstyled body HTML (no head / CSS links).
+     */
+    private static function read_snippet (string $name): string
+    {
+        $bundled = "/opt/efacloud-defaults/config/snippets/" . $name;
+        $volume = __DIR__ . "/../config/snippets/" . $name;
+        if (is_readable($bundled)) {
+            $html = file_get_contents($bundled);
+            if ($html !== false && strlen($html) > 0) {
+                return $html;
+            }
+        }
+        $html = @file_get_contents($volume);
+        return ($html !== false) ? $html : "";
+    }
+
+    /**
      * Emit the no-sidebar splash document shell (head + main open).
      */
     public static function begin_page ($menu): void
     {
-        echo file_get_contents(__DIR__ . '/../config/snippets/page_01_start_no_menu');
+        echo self::read_snippet("page_01_start_no_menu");
         $menu->set_style(3);
         echo $menu->get_menu();
-        echo file_get_contents(__DIR__ . '/../config/snippets/page_02_nav_to_body_no_menu');
+        echo self::read_snippet("page_02_nav_to_body_no_menu");
     }
 
     /**
