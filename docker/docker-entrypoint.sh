@@ -46,6 +46,34 @@ for dir in config log uploads attachements pdfs resources; do
     seed_dir "$dir"
 done
 
+# Persistent resources volumes keep admin uploads (e.g. logo_hochladen → logo_verein.png)
+# and colour overrides. Empty-dir seed above never runs again after first boot, so new
+# packaged files from later images would 404. Fill only *missing* files from defaults.
+seed_missing_resources() {
+    defaults="/opt/efacloud-defaults/resources"
+    target="/var/www/html/resources"
+    if [ ! -d "$defaults" ]; then
+        return 0
+    fi
+    # Portable: no find -print0 / read -d (busybox / dash).
+    for src in "$defaults"/* "$defaults"/.[!.]* "$defaults"/..?*; do
+        [ -e "$src" ] || continue
+        [ -f "$src" ] || continue
+        base="$(basename "$src")"
+        dst="$target/$base"
+        if [ ! -f "$dst" ]; then
+            cp -a "$src" "$dst"
+            echo "efacloud-entrypoint: seeded missing resource $base"
+        fi
+    done
+    # Fork branding stylesheet is not edited by farben_aendern (that writes app-style.css).
+    if [ -f "$defaults/efacloud-style.css" ]; then
+        cp -a "$defaults/efacloud-style.css" "$target/efacloud-style.css"
+    fi
+}
+
+seed_missing_resources
+
 sh /usr/local/bin/efacloud-update-bundled-config
 
 mkdir -p \
