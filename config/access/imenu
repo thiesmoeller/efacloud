@@ -4,6 +4,7 @@ Portal;member;pR8nWt|Portal;../portal/
 efaStats;member;sT4yUm|Statistics;../stats/
 Fahrtenbuch;member;yFgddS|logbook;../public/fahrtenbuch.php
 Info;.member;vkPG2M|Info;../public/fahrtenbuch.php
+InfoFrame;.member;iFrAm1|Info frame;../public/info.php
 list;board;SomMhj|Sports operation;
 _list_trips;board;htDoQ0|Show trips;../pages/show_lists.php?satz=bearbeiten&id=3
 _list_damage;board;dnQoBs|Show damage reports;../pages/show_lists.php?satz=bearbeiten&id=1
