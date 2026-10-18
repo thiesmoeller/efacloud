@@ -24,4 +24,9 @@
     <p class="app-sidebar-mark">efa<span>Cloud</span></p>
     <span id='sidebar_clubname'></span>
     <span id='sidebar_logbook'></span>
+    <nav class="app-switcher app-switcher-sidebar" aria-label="Vereins-Apps">
+      <a class="app-switcher-link is-active" href="/pages/home.php" aria-current="page">Verwaltung</a>
+      <a class="app-switcher-link" href="/portal/">Portal</a>
+      <a class="app-switcher-link" href="/stats/">Statistik</a>
+    </nav>
   </div>

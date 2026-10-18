@@ -71,6 +71,48 @@ a {
   flex-direction: column;
 }
 
+.app-switcher-bar {
+  padding: 10px 16px 0;
+}
+
+.app-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 4px;
+  width: fit-content;
+  max-width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.app-switcher-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink-muted);
+}
+
+.app-switcher-link:hover,
+.app-switcher-link:focus {
+  color: var(--ink);
+  background: var(--bg-soft);
+}
+
+.app-switcher-link.is-active {
+  background: var(--accent);
+  color: var(--ink-on-soft);
+}
+
 .screen {
   flex: 1;
   display: flex;
