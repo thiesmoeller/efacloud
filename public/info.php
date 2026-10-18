@@ -33,6 +33,15 @@ include_once "../classes/init.php";
 $info_type = (isset($_GET["type"])) ? $_GET["type"] : ""; // identify the type of information requested
 $info_mode = (isset($_GET["mode"])) ? intval($_GET["mode"]) : - 1; // identify the mode of formatting
                                                                    // requested
+
+// Bare /public/info.php (no type) is linked from menus — send users to the full page
+// instead of the iframe-only "Error 502: no valid info type".
+if (strlen(trim($info_type)) == 0) {
+    header("Location: ../public/fahrtenbuch.php");
+    end_script(false);
+    exit();
+}
+
 include_once "../classes/efa_info.php";
 $efa_info = new Efa_info($toolbox, $socket);
 

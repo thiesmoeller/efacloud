@@ -209,6 +209,17 @@ body.splash-body {
 	margin: 28px 0 18px;
 }
 
+.login-apps-three {
+	grid-template-columns: 1fr;
+	margin-top: 8px;
+}
+
+@media (min-width: 520px) {
+	.login-apps-three {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+
 .login-app {
 	display: flex;
 	flex-direction: column;
@@ -533,7 +544,8 @@ body.app-body {
 }
 
 @media (max-width: 560px) {
-	.login-apps {
+	.login-apps,
+	.login-apps-three {
 		grid-template-columns: 1fr;
 	}
 
