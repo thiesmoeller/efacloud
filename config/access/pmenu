@@ -1,6 +1,5 @@
 id;permission;headline;link
 Startseite;.anonymous;YakGpo|Homepage;../public/index.php
-efaWeb;anonymous;9H3wls|Start efaWeb;../forms/login.php?goto=pages/efaWeb.php
 Login;anonymous;yQ1qgk|Start efaCloud;../forms/login.php
 Logout;.anonymous;tk0t49|Logout;../pages/logout.php
 ResetPW;.anonymous;DMXYCB|Password forgotten?;../forms/reset_password.php

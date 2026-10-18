@@ -116,6 +116,14 @@ class Tfyh_menu
                     ["../public/fahrtenbuch.php", "../public/info.php"], true)) {
                 $menu_def["permission"] = "member";
             }
+            // efaWeb UI is retired in favour of Portal / React; hide launchers even if
+            // a persistent CapRover config volume still lists them.
+            $link = isset($menu_def["link"]) ? $menu_def["link"] : "";
+            if (strcasecmp($menu_def["id"], "efaWeb") == 0 ||
+                    strpos($link, "efaWeb.php") !== false) {
+                $line_index ++;
+                continue;
+            }
             // check whether i18n replacement is needed
             if ($this->toolbox->is_valid_i18n_reference($menu_def["headline"]))
                 $menu_def["headline"] = i($menu_def["headline"]);
