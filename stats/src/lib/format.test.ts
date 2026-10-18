@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { yearRange } from "./format";
+import { escapeHtml, yearRange } from "./format";
+
+describe("escapeHtml", () => {
+  it("neutralises markup in names shown in HTML tooltips", () => {
+    expect(escapeHtml(`<img src=x onerror="a">& 'B'`)).toBe("&lt;img src=x onerror=&quot;a&quot;&gt;&amp; &#39;B&#39;");
+  });
+});
 
 describe("yearRange", () => {
   it("builds complete and five-year ranges", () => {

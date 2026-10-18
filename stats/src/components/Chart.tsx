@@ -4,6 +4,7 @@ import { GridComponent, LegendComponent, TooltipComponent, VisualMapComponent } 
 import { CanvasRenderer } from "echarts/renderers";
 import { useEffect, useRef, type ReactNode } from "react";
 import type { EChartsOption } from "echarts";
+import { decimal } from "../lib/format";
 
 echarts.use([
   BarChart,
@@ -32,7 +33,10 @@ export function Chart({ title, kicker, summary, option, children, tall = false }
   useEffect(() => {
     if (!ref.current) return;
     const chart = echarts.init(ref.current, undefined, { renderer: "canvas" });
-    chart.setOption(option);
+    const tooltip = option.tooltip && !Array.isArray(option.tooltip)
+      ? { valueFormatter: (value: unknown) => typeof value === "number" ? decimal.format(value) : String(value ?? "–"), ...option.tooltip }
+      : option.tooltip;
+    chart.setOption({ ...option, tooltip });
     const observer = new ResizeObserver(() => chart.resize());
     observer.observe(ref.current);
     return () => {

@@ -1,6 +1,10 @@
 export const integer = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 export const decimal = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 });
 
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] as string);
+}
+
 export function dateLabel(value: string): string {
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(`${value}T12:00:00`));
 }
