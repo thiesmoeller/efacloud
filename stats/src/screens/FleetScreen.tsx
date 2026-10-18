@@ -3,7 +3,7 @@ import type { EChartsOption } from "echarts";
 import type { Fleet, FleetBoat } from "../api/types";
 import { Chart } from "../components/Chart";
 import { DataTable } from "../components/DataTable";
-import { decimal, integer } from "../lib/format";
+import { decimal, escapeHtml, integer } from "../lib/format";
 
 type Metric = "trips" | "kilometers" | "hours";
 
@@ -34,9 +34,9 @@ export function FleetScreen({ data }: { data: Fleet }) {
     const maxHours = Math.max(1, ...plotted.map((boat) => boat.hours));
     return {
       color: ["#0b5964"],
-      tooltip: { renderMode: "richText", formatter: (value: unknown) => {
+      tooltip: { formatter: (value: unknown) => {
         const point = value as { data: [number, number, number, string] };
-        return `${point.data[3]}\n${integer.format(point.data[0])} Fahrten\n${decimal.format(point.data[1])} km Ø\n${decimal.format(point.data[2])} h`;
+        return `<b>${escapeHtml(point.data[3])}</b><br>${integer.format(point.data[0])} Fahrten<br>${decimal.format(point.data[1])} km Ø<br>${decimal.format(point.data[2])} h`;
       } },
       grid: { left: 55, right: 25, top: 22, bottom: 48 },
       xAxis: { type: "log", name: "Fahrten", nameLocation: "middle", nameGap: 30, min: 1, splitLine: { show: true }, axisLabel: { formatter: (value: number) => integer.format(value) } },
