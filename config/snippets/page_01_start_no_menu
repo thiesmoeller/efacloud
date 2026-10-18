@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>efaCloud - efa2 in der Wolke</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../resources/w3-style.css">
+  <link rel="stylesheet" href="../resources/app-style.css">
+  <link rel="stylesheet" href="../resources/efacloud-style.css">
+  <link rel="icon" href="../resources/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="../resources/favicon.ico" type="image/x-icon" />
+  <script defer src="https://umami.project-park.de/script.js" data-website-id="3a0e8d3b-4e4d-4830-bbe2-86396391dae1"></script>
+</head>
+
+<body class="body splash-body">

@@ -17,3 +17,210 @@
 .configHead {
 	cursor:pointer;
 }
+
+/* ---- Login hub (modern splash) ---- */
+
+body.splash-body {
+	margin: 0;
+	min-height: 100vh;
+	background:
+		radial-gradient(ellipse 80% 60% at 15% 10%, rgba(32, 76, 113, 0.12), transparent 55%),
+		radial-gradient(ellipse 70% 50% at 90% 85%, rgba(163, 184, 204, 0.35), transparent 50%),
+		linear-gradient(165deg, #f7f9fb 0%, #e8eef4 45%, #dfe8f0 100%);
+}
+
+.splash-main {
+	margin-left: 0 !important;
+	min-height: 100vh;
+}
+
+.splashscreen.login-hub {
+	margin: 0 auto;
+	margin-top: 0;
+	width: min(520px, 92vw);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 48px 0 36px;
+	box-sizing: border-box;
+}
+
+.login-brand {
+	text-align: center;
+	margin-bottom: 28px;
+}
+
+.login-club-logo {
+	display: block;
+	width: min(220px, 55vw);
+	height: auto;
+	margin: 0 auto 14px;
+}
+
+.login-club-name {
+	margin: 0 0 4px;
+	font-size: 0.95rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #204c71;
+	font-weight: 600;
+}
+
+.login-brand-mark {
+	margin: 0 0 10px;
+	font-size: clamp(2.2rem, 6vw, 3rem);
+	line-height: 1.05;
+	font-weight: 700;
+	color: #204c71;
+	letter-spacing: -0.02em;
+}
+
+.login-brand-mark span {
+	font-weight: 500;
+	color: #4a6f8f;
+}
+
+.login-tagline {
+	margin: 0 auto;
+	max-width: 28rem;
+	font-size: 1.05rem;
+	line-height: 1.45;
+	color: #4a5560;
+}
+
+.login-panel {
+	background: rgba(255, 255, 255, 0.82);
+	border: 1px solid rgba(32, 76, 113, 0.12);
+	border-radius: 12px;
+	padding: clamp(22px, 4vw, 36px);
+	box-shadow: 0 12px 40px rgba(32, 76, 113, 0.08);
+}
+
+.login-heading {
+	margin: 0 0 18px;
+	font-size: 1.35rem;
+	text-align: center;
+	color: #204c71;
+}
+
+.login-hub .w3-row {
+	margin-bottom: 10px;
+}
+
+.login-hub .formbutton {
+	width: 100%;
+	min-height: 44px;
+	border-radius: 8px;
+	font-size: 1rem;
+	letter-spacing: 0.03em;
+}
+
+.login-reset {
+	text-align: center;
+	margin: 14px 0 0;
+}
+
+.login-apps {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin: 28px 0 18px;
+}
+
+.login-app {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 14px 16px;
+	border-radius: 10px;
+	border: 1px solid rgba(32, 76, 113, 0.18);
+	background: #f4f7fa;
+	text-decoration: none !important;
+	color: #204c71 !important;
+	transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.login-app:hover,
+.login-app:focus {
+	background: #e8eef4;
+	border-color: #204c71;
+	transform: translateY(-1px);
+}
+
+.login-app-title {
+	font-weight: 700;
+	font-size: 1.05rem;
+}
+
+.login-app-desc {
+	font-size: 0.85rem;
+	color: #5a6570;
+	line-height: 1.3;
+}
+
+.login-legal {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	margin: 8px 0 0;
+	padding-top: 16px;
+	border-top: 1px solid rgba(32, 76, 113, 0.12);
+	font-size: 0.85rem;
+	color: #5a6570;
+}
+
+.login-legal a {
+	color: #204c71 !important;
+}
+
+.login-legal a:hover {
+	color: #12125b !important;
+}
+
+/* Classic mode: keep app/legal links readable under the form */
+.w3-container .login-apps {
+	max-width: 420px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.w3-container .login-legal {
+	max-width: 420px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Legal content pages */
+.legal-page {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 24px 16px 48px;
+	line-height: 1.55;
+}
+
+.legal-page h1 {
+	margin-top: 0;
+}
+
+.legal-page h2 {
+	margin-top: 1.6em;
+	font-size: 1.25rem;
+}
+
+.legal-page h3 {
+	margin-top: 1.2em;
+	font-size: 1.05rem;
+}
+
+@media (max-width: 560px) {
+	.login-apps {
+		grid-template-columns: 1fr;
+	}
+
+	.splashscreen.login-hub {
+		padding-top: 28px;
+	}
+}
