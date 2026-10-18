@@ -4630,6 +4630,15 @@ iM3pQr|Impressum auf der Vereinswebsite
 fK4nRd|Vereins-Fork von %1.
 lN8wPq|Verwaltung und Vereins-Apps — ein Einstieg.
 pR8nGu|Für eigene Fahrten bitte das Portal nutzen:
+uP4vRs|Upstream-efaCloud:
+fK8wRc|Vereins-Fork:
+uN7wPq|Upstream-efaCloud %1 ist verfügbar (neuer als die integrierte Basis).
+gI2tMr|Bitte per Git-Merge und Image-Pipeline integrieren — nicht den Zip-Updater nutzen.
+uP9kLm|Integriertes Upstream ist aktuell.
+uP0fEd|Upstream-Versionsliste konnte nicht geladen werden.
+eC9xUp|Upstream-efaCloud-Upgrade
+eC1zBl|Dieser Vereins-Fork darf den offiziellen Zip-Updater nicht nutzen — er würde Portal, CapRover und Fork-Code überschreiben.
+eC2dOc|Siehe docs/deploy/versioning.md und docs/deploy/upstream-*.md.
 bK2nHm|Zurück zum Start
 wH3mLc|Willkommen, %1
 bW4tOn|Boote unterwegs

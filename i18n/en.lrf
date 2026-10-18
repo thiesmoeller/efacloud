@@ -4558,6 +4558,15 @@ iM3pQr|Imprint on the club website
 fK4nRd|Club fork of %1.
 lN8wPq|Administration and club apps — one entry.
 pR8nGu|Please use Portal for your own trips:
+uP4vRs|Upstream efaCloud:
+fK8wRc|Club fork:
+uN7wPq|Upstream efaCloud %1 is available (newer than the integrated base).
+gI2tMr|Integrate via git merge and the image pipeline — do not use the zip updater.
+uP9kLm|Integrated upstream is current.
+uP0fEd|Could not reach the upstream version feed.
+eC9xUp|Upstream efaCloud upgrade
+eC1zBl|This club fork must not use the official zip updater — it would overwrite Portal, CapRover, and fork code.
+eC2dOc|See docs/deploy/versioning.md and docs/deploy/upstream-*.md.
 bK2nHm|Back to start
 wH3mLc|Welcome, %1
 bW4tOn|Boats underway
