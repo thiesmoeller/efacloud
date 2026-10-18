@@ -328,11 +328,12 @@ if (isset($form_filled) && ($todo == $form_filled->get_index())) {
 // === PAGE OUTPUT ===================================================================
 // ===== start page output
 
-$legacy = $toolbox->config->mode_classic;
-$start_snippet = ($legacy) ? "page_01_start" : "page_01_start_no_menu";
-$nav_snippet = ($legacy) ? "page_02_nav_to_body" : "page_02_nav_to_body_no_menu";
+// Login always uses the branded splash hub (no sidebar), independent of classic mode.
+$legacy = false;
+$start_snippet = "page_01_start_no_menu";
+$nav_snippet = "page_02_nav_to_body_no_menu";
 echo file_get_contents('../config/snippets/' . $start_snippet);
-$menu->set_style(($legacy) ? 1 : 3);
+$menu->set_style(3);
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/' . $nav_snippet);
 
