@@ -55,9 +55,35 @@ $current_version_installed = (file_exists("../public/version")) ? filemtime("../
 // file_get_contents($app_version_path) : "undefined";
 
 // ===== start page output
+include_once "../classes/efa_version.php";
 echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
+
+// Club fork: never run the upstream zip installer — it would wipe Portal/CapRover changes.
+echo "<section class='app-panel'>";
+echo "<h3>" . i("eC9xUp|Upstream efaCloud upgra...") . "</h3>";
+echo "<p class='app-notice'><b>" . i("p71s5H|Note:") . "</b> " .
+         i("eC1zBl|This club fork must not ...") . "</p>";
+echo "<p><b>" . i("uP4vRs|Upstream efaCloud:") . "</b> " .
+         htmlspecialchars(Efa_version::upstream(), ENT_QUOTES);
+if (strlen(Efa_version::fork()) > 0)
+    echo " · <b>" . i("fK8wRc|Club fork:") . "</b> " .
+             htmlspecialchars(Efa_version::fork(), ENT_QUOTES);
+echo "</p>";
+$latest_feed = "";
+if (Efa_version::upstream_update_available($latest_feed)) {
+    echo "<p>" . i("uN7wPq|Upstream efaCloud %1 is ...", htmlspecialchars($latest_feed, ENT_QUOTES)) .
+             " " . i("gI2tMr|Integrate via git and th...") . "</p>";
+} elseif (strlen($latest_feed) > 0) {
+    echo "<p>" . i("uP9kLm|Integrated upstream is c...") . "</p>";
+}
+echo "<p>" . i("eC2dOc|See docs/deploy/upstream...") . "</p>";
+echo "<p><a href='../pages/home.php'>" . i("bK2nHm|Back to start") . "</a></p>";
+echo "</section>";
+end_script();
+exit();
+
 if (! isset($_GET["upgrade"])) {
     $versions_request = "https://efacloud.org/src/" . $src_subdir . "scanversions.php?own=" .
              htmlspecialchars(file_get_contents("../public/version"));

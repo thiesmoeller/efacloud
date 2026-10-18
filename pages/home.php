@@ -36,23 +36,30 @@ $verified_user = $socket->find_record_matched($toolbox->users->user_table_name,
 $short_home = (strcasecmp($verified_user["Rolle"], "admin") != 0) &&
          (strcasecmp($verified_user["Rolle"], "board") != 0);
 
-// ==== check for updates
+// ==== upstream / fork version notice (admins)
+include_once "../classes/efa_version.php";
 $is_admin = (strcasecmp($verified_user["Rolle"], "admin") == 0);
 $version_notification = "";
 if ($is_admin) {
-    $versions_string = file_get_contents(
-            'https://efacloud.org/src/scanversions.php?own=' .
-                     htmlspecialchars(file_get_contents("../public/version")));
-    $versions = explode("|", $versions_string);
-    rsort($versions);
-    $latest_version = $versions[0];
-    $current_version = (file_exists("../public/version")) ? file_get_contents("../public/version") : "";
-    if (strcasecmp($latest_version, $current_version) != 0)
-        $version_notification = "<b>" . i("p71s5H|Note:") . "</b> " . i("4XUWj8|A more recent program ve...") .
-                 " " . $latest_version . ". <a href='../pages/ec_upgrade.php'>&nbsp;&nbsp;<b>==&gt; " .
-                 i("hB8ltL|UPDATE") . "</a></b>.";
-    else
-        $version_notification = "Ihr efaCloud Server ist auf dem neuesten Stand.";
+    $upstream = Efa_version::upstream();
+    $fork = Efa_version::fork();
+    $latest = "";
+    $update = Efa_version::upstream_update_available($latest);
+    $version_notification = "<b>" . i("uP4vRs|Upstream efaCloud:") . "</b> " .
+             htmlspecialchars($upstream, ENT_QUOTES);
+    if (strlen($fork) > 0)
+        $version_notification .= " · <b>" . i("fK8wRc|Club fork:") . "</b> " .
+                 htmlspecialchars($fork, ENT_QUOTES);
+    $version_notification .= "<br>";
+    if ($update && strlen($latest) > 0) {
+        $version_notification .= "<b>" . i("p71s5H|Note:") . "</b> " .
+                 i("uN7wPq|Upstream efaCloud %1 is ...", htmlspecialchars($latest, ENT_QUOTES)) .
+                 " " . i("gI2tMr|Integrate via git and th...");
+    } elseif (strlen($latest) > 0) {
+        $version_notification .= i("uP9kLm|Integrated upstream is c...");
+    } else {
+        $version_notification .= i("uP0fEd|Could not reach the upst...");
+    }
 }
 
 // Boathouse role: use Portal (dockside React) instead of classic efaWeb.

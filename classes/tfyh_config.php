@@ -343,18 +343,25 @@ class Tfyh_config
      */
     private function init_version_information ()
     {
+        include_once __DIR__ . "/efa_version.php";
         // generate the app_info array with information on version and copyright
         $this->app_info = [];
-        $this->app_info["version_string"] = (file_exists("../public/version")) ? file_get_contents(
-                "../public/version") : " ";
+        // Numeric / feed fields always use upstream public/version (not the fork label).
+        $upstream = Efa_version::upstream();
+        $this->app_info["upstream_version"] = $upstream;
+        $this->app_info["fork_version"] = Efa_version::fork();
+        // Display string shows upstream efaCloud clearly, then club fork build.
+        $this->app_info["version_string"] = Efa_version::display_string();
         $this->app_info["copyright"] = (file_exists("../public/copyright")) ? file_get_contents(
                 "../public/copyright") : " ";
         $this->app_info["applogo"] = (file_exists("../public/applogo")) ? file_get_contents(
                 "../public/applogo") : " ";
-        if (strlen($this->app_info["version_string"]) > 0) {
-            $parts = explode("_", $this->app_info["version_string"]);
+        if (strlen($upstream) > 0) {
+            $parts = explode("_", $upstream);
             if (count($parts) > 1)
                 $this->app_info["drop"] = intval($parts[1]);
+            else
+                $this->app_info["drop"] = 0;
             $dotted = explode(".", $parts[0]);
             $this->app_info["release"] = intval($dotted[0]);
             $this->app_info["major"] = (count($dotted) > 1) ? intval($dotted[1]) : 0;
@@ -362,7 +369,7 @@ class Tfyh_config
         } else {
             $this->app_info["release"] = 0;
             $this->app_info["major"] = 0;
-            $this->app_info["drop"] = 0;
+            $this->app_info["minor"] = 0;
             $this->app_info["drop"] = 0;
         }
     }
