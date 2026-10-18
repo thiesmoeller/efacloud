@@ -61,5 +61,17 @@ $private = $service->personal('person-private', '2024-01-01', '2025-12-31');
 same($private['available'], false, 'excluded person receives no personal statistics');
 same(Stats_service::distance_value(' 12,75 km '), 12.75, 'distance normalization is locale tolerant');
 
+// PHP turns numeric-string array keys into ints; ranked labels must survive that.
+$numeric = new Stats_service([
+    ['Date' => '2024-05-01', 'BoatId' => 'boat-1', 'DestinationName' => '1000', 'Distance' => '5', 'Open' => 'false'],
+    ['Date' => '2024-05-02', 'BoatId' => 'boat-1', 'DestinationName' => 'Südrunde', 'Distance' => '5', 'Open' => 'false'],
+], $boats, [], $persons);
+try {
+    $numericOverview = $numeric->overview('2024-01-01', '2024-12-31');
+    check(strpos(json_encode($numericOverview), '"label":"1000"') !== false, 'numeric destination names stay string labels');
+} catch (Throwable $error) {
+    check(false, 'numeric destination names do not crash ranking: ' . $error->getMessage());
+}
+
 echo "\n$passed passed, $failed failed\n";
 exit($failed === 0 ? 0 : 1);

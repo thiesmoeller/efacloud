@@ -9,6 +9,8 @@ header('Cache-Control: private, max-age=60, must-revalidate');
 $root = dirname(__DIR__, 3);
 @error_reporting(E_ERROR);
 @ini_set('error_log', $root . '/log/php_error.log');
+// All trips of all logbook years are aggregated in memory (about 128 MB for 20 years).
+@ini_set('memory_limit', '512M');
 
 require_once $root . '/classes/portal/Portal_app.php';
 Portal_app::require_classes();

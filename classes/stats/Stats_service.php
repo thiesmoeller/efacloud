@@ -414,7 +414,7 @@ final class Stats_service
     private function ranked_metrics(array $groups, int $limit): array
     {
         $rows = [];
-        foreach ($groups as $label => $metric) $rows[] = ['label' => $label] + $this->finish_metrics($metric);
+        foreach ($groups as $label => $metric) $rows[] = ['label' => (string) $label] + $this->finish_metrics($metric);
         usort($rows, static fn(array $a, array $b): int => $b['trips'] <=> $a['trips'] ?: strnatcasecmp($a['label'], $b['label']));
         return array_slice($rows, 0, $limit);
     }

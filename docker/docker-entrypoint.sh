@@ -109,6 +109,7 @@ sync_bundled_access_menus
 sh /usr/local/bin/efacloud-update-bundled-config
 
 mkdir -p \
+    /var/www/html/config/client_cfg \
     /var/www/html/log/api_errors \
     /var/www/html/log/api_inits \
     /var/www/html/log/backup \

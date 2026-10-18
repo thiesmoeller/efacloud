@@ -27,17 +27,29 @@ export function FleetScreen({ data }: { data: Fleet }) {
     .filter((boat) => !underused || boat.trips < classMedian(data.boats, boat))
     .sort((a, b) => b[metric] - a[metric]), [data, search, boatClass, metric, underused, activeOnly]);
 
-  const scatterOption = useMemo<EChartsOption>(() => ({
-    color: ["#0b5964"],
-    tooltip: { renderMode: "richText", formatter: (value: unknown) => {
-      const point = value as { data: [number, number, number, string] };
-      return `<b>${point.data[3]}</b><br>${point.data[0]} Fahrten<br>${point.data[1]} km Ø<br>${point.data[2]} h`;
-    } },
-    grid: { left: 55, right: 25, top: 22, bottom: 48 },
-    xAxis: { type: "value", name: "Fahrten", nameLocation: "middle", nameGap: 30 },
-    yAxis: { type: "value", name: "Ø Kilometer" },
-    series: [{ type: "scatter", symbolSize: (value: unknown) => 10 + Math.sqrt((value as number[])[2] || 0) * 2.2, data: boats.map((boat) => [boat.trips, boat.averageDistance || 0, boat.hours, boat.name]), emphasis: { focus: "self" } }],
-  }), [boats]);
+  const scatterOption = useMemo<EChartsOption>(() => {
+    // Multi-year ranges span 1…1000+ trips and a few long-distance outliers, hence log axes;
+    // bubble area is relative to the busiest boat so it stays bounded for any range.
+    const plotted = boats.filter((boat) => boat.trips > 0 && boat.averageDistance !== null && boat.averageDistance > 0);
+    const maxHours = Math.max(1, ...plotted.map((boat) => boat.hours));
+    return {
+      color: ["#0b5964"],
+      tooltip: { renderMode: "richText", formatter: (value: unknown) => {
+        const point = value as { data: [number, number, number, string] };
+        return `${point.data[3]}\n${integer.format(point.data[0])} Fahrten\n${decimal.format(point.data[1])} km Ø\n${decimal.format(point.data[2])} h`;
+      } },
+      grid: { left: 55, right: 25, top: 22, bottom: 48 },
+      xAxis: { type: "log", name: "Fahrten", nameLocation: "middle", nameGap: 30, min: 1, splitLine: { show: true }, axisLabel: { formatter: (value: number) => integer.format(value) } },
+      yAxis: { type: "log", name: "Ø Kilometer", min: 1, splitLine: { show: true }, axisLabel: { formatter: (value: number) => integer.format(value) } },
+      series: [{
+        type: "scatter",
+        symbolSize: (value: unknown) => 6 + 38 * Math.sqrt(((value as number[])[2] || 0) / maxHours),
+        itemStyle: { opacity: 0.55, borderColor: "#ffffff", borderWidth: 1 },
+        data: plotted.map((boat) => [boat.trips, boat.averageDistance as number, boat.hours, boat.name]),
+        emphasis: { focus: "self", itemStyle: { opacity: 0.95 } },
+      }],
+    };
+  }, [boats]);
 
   const top = boats.slice(0, 18);
   const barOption = useMemo<EChartsOption>(() => ({
