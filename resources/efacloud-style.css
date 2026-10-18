@@ -74,8 +74,19 @@
 
 /* ---- Login hub (modern splash) ---- */
 
+/*
+ * .body in app-style.css caps the page at 1280px. splash-body sets margin:0 which
+ * cancels that rule's centering — on wide desktops the gradient column sticks left.
+ * Force a full-bleed canvas for anonymous splash pages.
+ */
+html:has(body.splash-body) {
+	background: #e8eef4;
+}
+
 body.splash-body {
 	margin: 0;
+	max-width: none;
+	width: 100%;
 	min-height: 100vh;
 	background:
 		radial-gradient(ellipse 80% 60% at 15% 10%, rgba(32, 76, 113, 0.12), transparent 55%),
@@ -85,19 +96,28 @@ body.splash-body {
 
 .splash-main {
 	margin-left: 0 !important;
+	margin-right: 0 !important;
+	width: 100%;
+	max-width: none;
 	min-height: 100vh;
+	box-sizing: border-box;
 }
 
 .splashscreen.login-hub {
 	margin: 0 auto;
 	margin-top: 0;
-	width: min(520px, 92vw);
+	width: min(560px, 92vw);
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	padding: 48px 0 36px;
 	box-sizing: border-box;
+}
+
+/* Landing dispatcher: room for three equal tiles on desktop */
+.splashscreen.login-hub.login-hub-dispatch {
+	width: min(840px, 94vw);
 }
 
 .login-brand {
@@ -212,11 +232,20 @@ body.splash-body {
 .login-apps-three {
 	grid-template-columns: 1fr;
 	margin-top: 8px;
+	gap: 14px;
 }
 
-@media (min-width: 520px) {
+@media (min-width: 640px) {
 	.login-apps-three {
 		grid-template-columns: 1fr 1fr 1fr;
+	}
+
+	.login-apps-three .login-app {
+		min-height: 120px;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+		padding: 22px 16px;
 	}
 }
 

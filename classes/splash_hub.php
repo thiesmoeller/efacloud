@@ -38,12 +38,17 @@ class Splash_hub
 
     /**
      * Open hub + brand + panel. Pass $wide for long-form content (legal, help).
+     * Pass $dispatcher for the three-tile landing (wider desktop hub).
      * Compact app-switcher stays inside logged-in / React shells — not on splash
      * (landing uses the larger dispatcher tiles instead).
      */
-    public static function open_hub (bool $wide = false): void
+    public static function open_hub (bool $wide = false, bool $dispatcher = false): void
     {
-        $hub_class = $wide ? "splashscreen login-hub legal-hub" : "splashscreen login-hub";
+        $hub_class = "splashscreen login-hub";
+        if ($wide)
+            $hub_class .= " legal-hub";
+        if ($dispatcher)
+            $hub_class .= " login-hub-dispatch";
         echo "<div class='" . $hub_class . "'>\n";
         echo self::render_brand();
         echo "<div class='login-panel'>\n";
