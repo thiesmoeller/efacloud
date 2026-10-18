@@ -37,14 +37,14 @@ class Tfyh_menu
     /**
      * HTML snippet at start of level 1 list
      */
-    private $html_list_l1 = '<div class="w3-padding-64 w3-large">' . "\n";
+    private $html_list_l1 = '<div class="app-menu-nav w3-large">' . "\n";
 
     /**
      * HTML snippet at start of level 1 item. In case of top for submenus use {link} = "javascript:void(0)"
      * for a submenu open trigger, {onclick} = 'onclick="openSubMenu([idOfParent])"', and {caret} =
      * '<b>&#x23f7</b>'. Else set {onclick} = '', {caret} = '', and {link} to target link.
      */
-    private $html_item_l1 = '<a{href} class="w3-bar-item menuitem" id="{id}" ' .
+    private $html_item_l1 = '<a{href} class="w3-bar-item menuitem app-menuitem" id="{id}" ' .
              '{onclick}{hidden}>{headline}{caret}</a>' . "\n";
 
     /**
@@ -56,14 +56,17 @@ class Tfyh_menu
      * HTML snippet at start of level 2 item.
      */
     private $html_item_l2 = '<div class="w3-bar-block w3-hide w3-medium subMenu{parent}">' . "\n" .
-             '<a{href} class="w3-bar-item w3-bar-item-2 menuitem" id="{id}" ' .
+             '<a{href} class="w3-bar-item w3-bar-item-2 menuitem app-menuitem app-menuitem-sub" id="{id}" ' .
              '{onclick}{hidden}>{headline}</a>' . "\n" . '</div>' . "\n";
 
     /**
      * HTML snippet at end of menu
      */
-    private $html_menu_end = '<footer class="w3-small w3-center" id="footer">' .
-             '<br><br>##user##<br>##version## (##language_code##)<br>##copyright##<br>##applogo##<br>&nbsp;</footer></div>' . "\n" .
+    private $html_menu_end = '<footer class="app-sidebar-footer w3-small w3-center" id="footer">' .
+             '<p class="app-sidebar-user">##user##</p>' .
+             '<p class="app-sidebar-meta">##version## (##language_code##)<br>##copyright##</p>' .
+             '<div class="app-sidebar-applogo">##applogo##</div>' .
+             '</footer></div>' . "\n" .
              "<!--============================== menu - end ===========================-->" . "\n";
 
     /**

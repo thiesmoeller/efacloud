@@ -31,6 +31,7 @@
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
 include_once '../classes/tfyh_form.php';
+include_once '../classes/splash_hub.php';
 
 // === APPLICATION LOGIC ==============================================================
 // if validation fails, the same form will be displayed anew with error messgaes
@@ -137,17 +138,13 @@ if (isset($form_filled) && ($todo == $form_filled->get_index())) {
 
 // === PAGE OUTPUT ===================================================================
 
-// ===== start page output
-echo file_get_contents('../config/snippets/page_01_start');
-echo $menu->get_menu();
-echo file_get_contents('../config/snippets/page_02_nav_to_body');
+// ===== start page output — branded splash (same chrome as login)
+Splash_hub::begin_page($menu);
+Splash_hub::open_hub();
 
-// page heading, identical for all workflow steps
-echo "<!-- START OF content -->\n<div class='w3-container'>\n";
-echo "<h3>" . i("6Eagok|Delete password") . "</h3>";
-echo "<p>" .
-         i(
-                "eaMVsh|Delete the permanent pas...") .
+echo "<h2 class='login-heading'>" . i("6Eagok|Delete password") . "</h2>\n";
+echo "<p class='login-lead'>" .
+         i("eaMVsh|Delete the permanent pas...") .
          "</p>";
 echo $form_result;
 echo $toolbox->form_errors_to_html($form_errors);
@@ -161,6 +158,9 @@ if ($todo == 1) { // step 1. no special texts for output
 }
 
 echo $form_to_fill->get_help_html();
-echo i("0Wguyh|</div>");
+echo "<p class='login-reset'><a href='../forms/login.php'>" .
+         i("XPLjLc|Login for registered use...") . "</a></p>\n";
+echo Splash_hub::render_back_home();
+Splash_hub::close_hub();
 end_script();
 

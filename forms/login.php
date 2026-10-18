@@ -33,6 +33,7 @@ $user_requested_file = __FILE__;
 // ===== page shall be available for anonymous users.
 include_once "../classes/init.php";
 include_once '../classes/tfyh_form.php';
+include_once '../classes/splash_hub.php';
 
 $deeplink = "";
 if (isset($_SESSION["getps"][$fs_id]["goto"]) && (strlen($_SESSION["getps"][$fs_id]["goto"]) > 0))
@@ -330,44 +331,12 @@ if (isset($form_filled) && ($todo == $form_filled->get_index())) {
 
 // Login always uses the branded splash hub (no sidebar), independent of classic mode.
 $legacy = false;
-$start_snippet = "page_01_start_no_menu";
-$nav_snippet = "page_02_nav_to_body_no_menu";
-echo file_get_contents('../config/snippets/' . $start_snippet);
-$menu->set_style(3);
-echo $menu->get_menu();
-echo file_get_contents('../config/snippets/' . $nav_snippet);
-
-$app_links_html = "<nav class='login-apps' aria-label='" .
-         htmlspecialchars(i("aK7mQp|Club apps"), ENT_QUOTES) . "'>" .
-         "<a class='login-app' href='../portal/'>" .
-         "<span class='login-app-title'>" . i("pR8nWt|Portal") . "</span>" .
-         "<span class='login-app-desc'>" . i("qL3vXs|Dockside logbook") . "</span></a>" .
-         "<a class='login-app' href='../stats/'>" .
-         "<span class='login-app-title'>" . i("sT4yUm|Statistics") . "</span>" .
-         "<span class='login-app-desc'>" . i("uN6zKp|Club fleet insights") . "</span></a>" .
-         "</nav>";
-$legal_footer_html = "<footer class='login-legal'>" .
-         "<p class='login-fork'>" . i("fK4nRd|Club fork of %1.", 
-                 "<a href='https://www.efacloud.org/' rel='noopener noreferrer' target='_blank'>efaCloud</a>") .
-         "</p>" .
-         "<a href='../public/impressum.php'>" . i("rhfArk|Imprint") . "</a>" .
-         "<span aria-hidden='true'>·</span>" .
-         "<a href='../public/datenschutz.php'>" . i("dS9wFx|Privacy policy") . "</a>" .
-         "<span aria-hidden='true'>·</span>" .
-         "<a href='https://www.wrc1895.de/' rel='noopener noreferrer' target='_blank'>" .
-         i("wR1cLb|Club website") . "</a>" .
-         "</footer>";
+Splash_hub::begin_page($menu);
+$app_links_html = Splash_hub::render_apps();
+$legal_footer_html = ""; // close_hub emits legal; keep var for legacy path
 
 if (! $legacy) {
-    echo "<div class='splashscreen login-hub'>\n";
-    echo "<div class='login-brand'>\n";
-    echo "<img class='login-club-logo' src='../resources/logo_verein.png' " .
-             "alt='" . htmlspecialchars(i("mW2hRc|Wilhelmsburger Ruderclub"), ENT_QUOTES) . "'>\n";
-    echo "<p class='login-club-name'>" . i("mW2hRc|Wilhelmsburger Ruderclub") . "</p>\n";
-    echo "<p class='login-brand-mark'>efa<span>Cloud</span></p>\n";
-    echo "<p class='login-tagline'>" . i("tG5bYn|Your club entry to admin, ...") . "</p>\n";
-    echo "</div>\n";
-    echo "<div class='login-panel'>\n";
+    Splash_hub::open_hub();
 }
 
 // redirection to login page due to an error. Show the reason.
@@ -398,10 +367,11 @@ if ($todo == 1) { // step 1.
 // Help texts and page footer for output.
 echo $form_to_fill->get_help_html();
 echo $app_links_html;
-echo $legal_footer_html;
-if (! $legacy)
-    echo "</div></div>\n";
-elseif ($legacy)
+if (! $legacy) {
+    Splash_hub::close_hub();
+} elseif ($legacy) {
+    echo $legal_footer_html;
     echo "</p></div>\n";
+}
 echo "</div>";
 end_script();

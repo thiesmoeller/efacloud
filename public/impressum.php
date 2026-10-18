@@ -6,12 +6,12 @@
 
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
+include_once "../classes/splash_hub.php";
 
-echo file_get_contents('../config/snippets/page_01_start');
-echo $menu->get_menu();
-echo file_get_contents('../config/snippets/page_02_nav_to_body');
+Splash_hub::begin_page($menu);
+Splash_hub::open_hub(true);
 ?>
-<article class="legal-page w3-container">
+<article class="legal-page">
   <h1><?= i("rhfArk|Imprint") ?></h1>
 
   <h2>Verantwortlich</h2>
@@ -57,5 +57,7 @@ echo file_get_contents('../config/snippets/page_02_nav_to_body');
     </a>
   </p>
 </article>
+<?= Splash_hub::render_back_home() ?>
 <?php
+Splash_hub::close_hub();
 end_script();

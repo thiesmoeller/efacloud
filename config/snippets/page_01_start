@@ -12,13 +12,16 @@
   <script defer src="https://umami.project-park.de/script.js" data-website-id="3a0e8d3b-4e4d-4830-bbe2-86396391dae1"></script>
 </head>
 
-<body class="body" style='margin-top:50px'>
+<body class="body app-body">
 
 <!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-bar-block w3-collapse w3-top menubar" 
-            style="z-index:3;width:200px;overflow-y: hidden;" id="menuSidebar">
-  <div class="w3-container">
-    <a href='../public/index.php'><img src="../resources/logo_verein.png" alt="bitte Vereinslogo in der Konfiguration hochladen." style="width:180px"></a>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-top menubar app-sidebar" 
+            style="z-index:3;width:220px;overflow-y:auto;" id="menuSidebar">
+  <div class="app-sidebar-brand">
+    <a href='../public/index.php' class="app-sidebar-logo-link">
+      <img class="app-sidebar-logo" src="../resources/logo_verein.png" alt="Vereinslogo">
+    </a>
+    <p class="app-sidebar-mark">efa<span>Cloud</span></p>
     <span id='sidebar_clubname'></span>
     <span id='sidebar_logbook'></span>
   </div>

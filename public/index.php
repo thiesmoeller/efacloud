@@ -24,12 +24,15 @@
 // ===== initialize toolbox and socket and start session.
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
+include_once "../classes/splash_hub.php";
 
-// ===== start page output
-echo file_get_contents('../config/snippets/page_01_start');
-echo $menu->get_menu();
-echo file_get_contents('../config/snippets/page_02_nav_to_body');
-?>
-<?= i("U1NXw3|<!-- Image header -->..."); ?>
-<?php
+// Branded splash landing (same chrome as login); classic sidebar removed.
+Splash_hub::begin_page($menu);
+Splash_hub::open_hub();
+echo "<p class='login-lead'>" . i("lN8wPq|Administration, efaWeb and ...") . "</p>\n";
+echo "<a class='formbutton login-cta' href='../forms/login.php'>" .
+         i("yQ1qgk|Start efaCloud") . "</a>\n";
+echo Splash_hub::render_apps();
+Splash_hub::close_hub();
+
 end_script();
