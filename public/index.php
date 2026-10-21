@@ -29,7 +29,7 @@ include_once "../classes/splash_hub.php";
 // Branded splash: three equal frontends (Verwaltung / Portal / Statistik).
 Splash_hub::begin_page($menu);
 Splash_hub::open_hub(false, true);
-echo "<p class='login-lead'>" . i("lN8wPq|Administration, efaWeb and ...") . "</p>\n";
+// Tagline in the brand block already covers the entry pitch — no second lead.
 echo Splash_hub::render_dispatcher();
 Splash_hub::close_hub();
 

@@ -81,6 +81,8 @@
  */
 html:has(body.splash-body) {
 	background: #e8eef4;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
 }
 
 body.splash-body {
@@ -88,6 +90,7 @@ body.splash-body {
 	max-width: none;
 	width: 100%;
 	min-height: 100vh;
+	min-height: 100dvh;
 	background:
 		radial-gradient(ellipse 80% 60% at 15% 10%, rgba(32, 76, 113, 0.12), transparent 55%),
 		radial-gradient(ellipse 70% 50% at 90% 85%, rgba(163, 184, 204, 0.35), transparent 50%),
@@ -100,24 +103,30 @@ body.splash-body {
 	width: 100%;
 	max-width: none;
 	min-height: 100vh;
+	min-height: 100dvh;
 	box-sizing: border-box;
 }
 
 .splashscreen.login-hub {
 	margin: 0 auto;
 	margin-top: 0;
-	width: min(560px, 92vw);
+	width: min(560px, 100%);
 	min-height: 100vh;
+	min-height: 100dvh;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	padding: 48px 0 36px;
+	padding: 48px 20px 36px;
+	padding-top: max(48px, env(safe-area-inset-top, 0px));
+	padding-bottom: max(36px, env(safe-area-inset-bottom, 0px));
+	padding-left: max(20px, env(safe-area-inset-left, 0px));
+	padding-right: max(20px, env(safe-area-inset-right, 0px));
 	box-sizing: border-box;
 }
 
 /* Landing dispatcher: room for three equal tiles on desktop */
 .splashscreen.login-hub.login-hub-dispatch {
-	width: min(840px, 94vw);
+	width: min(840px, 100%);
 }
 
 .login-brand {
@@ -127,9 +136,10 @@ body.splash-body {
 
 .login-club-logo {
 	display: block;
-	width: min(220px, 55vw);
+	/* Keep display width ≤ ~480/3 so the 480px club PNG stays sharp on 3× DPR phones */
+	width: min(160px, 42vw);
 	height: auto;
-	margin: 0 auto 14px;
+	margin: 0 auto 12px;
 }
 
 .login-club-name {
@@ -143,7 +153,7 @@ body.splash-body {
 
 .login-brand-mark {
 	margin: 0 0 10px;
-	font-size: clamp(2.2rem, 6vw, 3rem);
+	font-size: clamp(2.4rem, 9vw, 3rem);
 	line-height: 1.05;
 	font-weight: 700;
 	color: #204c71;
@@ -164,10 +174,10 @@ body.splash-body {
 }
 
 .login-panel {
-	background: rgba(255, 255, 255, 0.82);
+	background: rgba(255, 255, 255, 0.9);
 	border: 1px solid rgba(32, 76, 113, 0.12);
-	border-radius: 12px;
-	padding: clamp(22px, 4vw, 36px);
+	border-radius: 14px;
+	padding: clamp(18px, 4vw, 36px);
 	box-shadow: 0 12px 40px rgba(32, 76, 113, 0.08);
 }
 
@@ -232,7 +242,7 @@ body.splash-body {
 .login-apps-three {
 	grid-template-columns: 1fr;
 	margin-top: 8px;
-	gap: 14px;
+	gap: 12px;
 }
 
 @media (min-width: 640px) {
@@ -252,9 +262,11 @@ body.splash-body {
 .login-app {
 	display: flex;
 	flex-direction: column;
+	justify-content: center;
 	gap: 4px;
-	padding: 14px 16px;
-	border-radius: 10px;
+	min-height: 64px;
+	padding: 16px 18px;
+	border-radius: 12px;
 	border: 1px solid rgba(32, 76, 113, 0.18);
 	background: #f4f7fa;
 	text-decoration: none !important;
@@ -271,13 +283,14 @@ body.splash-body {
 
 .login-app-title {
 	font-weight: 700;
-	font-size: 1.05rem;
+	font-size: 1.15rem;
+	line-height: 1.2;
 }
 
 .login-app-desc {
-	font-size: 0.85rem;
+	font-size: 0.92rem;
 	color: #5a6570;
-	line-height: 1.3;
+	line-height: 1.35;
 }
 
 .login-legal {
@@ -285,11 +298,11 @@ body.splash-body {
 	flex-wrap: wrap;
 	justify-content: center;
 	align-items: center;
-	gap: 8px;
+	gap: 10px 12px;
 	margin: 8px 0 0;
 	padding-top: 16px;
 	border-top: 1px solid rgba(32, 76, 113, 0.12);
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	color: #5a6570;
 }
 
@@ -306,6 +319,10 @@ body.splash-body {
 }
 
 .login-legal a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 4px 2px;
 	color: #204c71 !important;
 }
 
@@ -589,8 +606,80 @@ body.app-body {
 		grid-template-columns: 1fr;
 	}
 
+	/*
+	 * Phones (Pixel ~410 CSS px): top-align the stack so brand + tiles fill the
+	 * tall 20:9 viewport instead of floating in empty centered space.
+	 */
 	.splashscreen.login-hub {
-		padding-top: 28px;
+		justify-content: flex-start;
+		padding-top: max(20px, env(safe-area-inset-top, 0px));
+		padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+		padding-left: max(16px, env(safe-area-inset-left, 0px));
+		padding-right: max(16px, env(safe-area-inset-right, 0px));
+	}
+
+	.login-brand {
+		margin-bottom: 18px;
+	}
+
+	.login-club-logo {
+		width: min(148px, 38vw);
+		margin-bottom: 10px;
+	}
+
+	.login-club-name {
+		font-size: 0.82rem;
+	}
+
+	.login-brand-mark {
+		font-size: clamp(2.35rem, 11vw, 2.75rem);
+		margin-bottom: 8px;
+	}
+
+	.login-tagline {
+		font-size: 0.98rem;
+		max-width: 22rem;
+		padding: 0 4px;
+	}
+
+	/* Tagline already states the entry pitch — drop the redundant lead */
+	.login-hub-dispatch .login-lead {
+		display: none;
+	}
+
+	.login-panel {
+		padding: 16px;
+		border-radius: 16px;
+	}
+
+	.login-apps,
+	.login-apps-three {
+		margin: 0 0 8px;
+		gap: 10px;
+	}
+
+	.login-app {
+		min-height: 72px;
+		padding: 16px 16px;
+	}
+
+	.login-app-title {
+		font-size: 1.2rem;
+	}
+
+	.login-app-desc {
+		font-size: 0.95rem;
+	}
+
+	.login-legal {
+		gap: 6px 10px;
+		padding-top: 12px;
+		font-size: 0.88rem;
+	}
+
+	.login-fork {
+		font-size: 0.78rem;
+		margin-bottom: 2px;
 	}
 
 	.app-main {
