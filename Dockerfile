@@ -18,6 +18,7 @@ RUN npm run build
 FROM php:8.2-apache
 
 RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends curl libonig-dev libzip-dev unzip \
     && docker-php-ext-install calendar exif gettext mbstring mysqli pdo_mysql sockets zip \
     && a2enmod rewrite headers access_compat \
