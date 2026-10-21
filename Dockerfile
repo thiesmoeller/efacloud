@@ -15,10 +15,10 @@ COPY stats/ ./
 RUN npm run build
 
 # Stage 3: efaCloud PHP application
-FROM php:8.2-apache
+# Pin the security release for CVE-2026-109618 / CVE-2026-109619 (PHP2Shell).
+# Floating 8.2-apache can lag while Hub rebuilds; the gate below still rejects stale bases.
+FROM php:8.2.35-apache
 
-# CVE-2026-109618 and CVE-2026-109619 are fixed in PHP 8.2.35.
-# Keep the minor tag moving for future security releases, but reject stale images.
 RUN php -r 'if (version_compare(PHP_VERSION, "8.2.35", "<")) { fwrite(STDERR, "PHP 8.2.35 or newer is required\n"); exit(1); }'
 
 RUN apt-get update \
