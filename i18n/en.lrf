@@ -31,7 +31,7 @@ U1NXw3|
 |</ul>
 |</li>
 |</ul>
-|<p>I am always happy to receive feedback to support(at)efacloud.org!</p>
+|<p>Feedback on this club fork goes to the fork maintainer (not efacloud.org).</p>
 |</div>
 qMjfvd|
 |
@@ -542,8 +542,8 @@ zmwOIb|
 |be carried out (no undo possible).</p>
 dH58zd|
 |<p>Please let me know your request or a wish for the
-|functionality of efaCloud. I will try to help as soon as possible. During holiday periods there may be delays, but normally you can expect an answer within a week.</p>
-|<p>I am also happy to receive feedback on efaCloud, suggestions and requests. This form goes to 'efacloud.org'.</p>
+|functionality of this club efaCloud fork. I will try to help as soon as possible.</p>
+|<p>This form reaches the fork maintainer (not the upstream efacloud.org project).</p>
 02b3TQ|
 |<p>The file import was carried out. <br />The protocol for this is:
 |</p>
@@ -1836,7 +1836,7 @@ zqMZlN|efaCloud users can also be assigned an efa admin privilege, their privile
 zbSX9F|efaCloudUser ID
 6lYbjM|efaCloudUser password
 15iRSs|efaCloudUserID - or -
-PfwuLC|efaWeb is currently only a demo. Whether efaWeb application will be developed further depends on your feedback to 'info@efacloud.org'.
+PfwuLC|efaWeb is currently only a demo. Whether efaWeb will be developed further depends on your feedback to the fork maintainer.
 5GosWb|efaWeb: Display the logbook
 fIyhiE|efaWeb: Display the logbook
 4JGwyS|efaWeb: enter trips in logbook for boathouse #3
@@ -2995,7 +2995,7 @@ PlKD7C|other
 Y3mUTK|other
 bpH6Mx|Other
 zPPByG|other
-2iK73T|Our club uses efaCloud and may be named as a using club on efacloud.org.
+2iK73T|Our club uses this efaCloud fork and may be named in fork release notes / GitHub.
 DJV8m7|Output efa table
 MBZSgY|Output of the last uploaded log file
 5jvc1j|Overload at '%1'. Monitoring period: %2 seconds, limit value: %3 events, waited so far: %4 seconds.
@@ -3350,7 +3350,6 @@ KM1cke|Server overload detected, more than the allowed actions or errors within 
 EJM8uI|Server returned status code 500
 fUNLos|server timestamp
 LMP2yc|server URL
-IEwtHj|Service / Feedback
 RHGlRZ|Session context: %1, current: %2
 K7p76O|Session inactivity timeout
 n6IV9Y|Session lifetime end
@@ -3596,7 +3595,7 @@ jMEMEQ|text View
 5nzLeq|Text
 dNEp9w|text
 oslDj7|Thank you for updating!
-02SBJ9|Thank you for your request. The efacloud.org server reports:
+02SBJ9|Thank you for your request. Result:
 93vxJy|The %1 permissions for<b>%2</b>have been changed.</p><p>From the next login, the following applies to him:
 gmlDim|The %1 permissions for<b>%2</b>have been changed.</p><p>From the next login, the following applies to him:
 9tMKlx|The '%1' page must be called with the id of the record to be displayed.
@@ -4571,3 +4570,11 @@ vW3nAd|Admin
 bK2nHm|Back to start
 wH3mLc|Welcome, %1
 bW4tOn|Boats underway
+fK9sUp|Fork support request
+fK9sOk|Your request was emailed to the fork maintainer.
+fK9sFl|Automatic e-mail failed. Please write directly to %1.
+fK9sTo|Requests go to %1 (%2).
+fK9sGh|This club fork is maintained by Thies Möller — not by the upstream efacloud.org maintainer.
+fK9sHp|Fork support: %1 · issues: %2
+IEwtHj|Support (club fork)
+fK9sIs|GitHub issues

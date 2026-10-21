@@ -31,7 +31,7 @@ U1NXw3|
 |</ul>
 |</li>
 |</ul>
-|<p>Je suis toujours heureux de recevoir vos commentaires à support(at)efacloud.org !</p>
+|<p>Les retours sur ce fork associatif vont au mainteneur du fork (pas à efacloud.org).</p>
 |</div>
 qMjfvd|
 |
@@ -541,8 +541,8 @@ zmwOIb|
 |<p>Dans l'étape suivante, le tableau est téléchargé et importé tel qu'il est présenté. Veuillez confirmer que l'importation doit être effectuée (pas d'annulation possible).</p>
 dH58zd|
 |<p>Merci de me faire part de ta préoccupation ou d'un souhait concernant la
-|fonctionnalité d'efaCloud. J'essaierai de vous aider dès que possible. En période de vacances, il peut y avoir des retards, mais la réponse est généralement attendue dans un délai d'une semaine environ.</p>
-|<p>Je suis également heureux de recevoir vos commentaires sur efaCloud, vos suggestions et vos demandes. Ce formulaire est à envoyer à 'efacloud.org'.</p>
+|fonctionnalité de ce fork associatif d'efaCloud. J'essaierai de vous aider dès que possible.</p>
+|<p>Ce formulaire atteint le mainteneur du fork (pas le projet upstream efacloud.org).</p>
 02b3TQ|
 |<p>
 |L'importation du fichier a été effectuée. <br />Le protocole correspondant est:
@@ -1860,7 +1860,7 @@ zqMZlN|Les utilisateurs efaCloud peuvent également se voir attribuer des droits
 zbSX9F|ID de l'utilisateur efaCloud
 6lYbjM|Mot de passe de l'utilisateur efaCloud
 15iRSs|efaCloudUserID - ou -
-PfwuLC|efaWeb n'est actuellement qu'une démo. La poursuite du développement de l'application efaWeb dépendra de vos commentaires à l'adresse "info@efacloud.org".
+PfwuLC|efaWeb n'est actuellement qu'une démo. La poursuite du développement dépend de vos retours au mainteneur du fork.
 5GosWb|efaWeb pour les bateaux : Afficher le carnet de route
 fIyhiE|efaWeb pour les bateaux : Afficher le carnet de route
 4JGwyS|efaWeb : Inscrire des trajets dans le carnet de route pour le hangar à bateaux #3
@@ -3017,7 +3017,7 @@ PlKD7C|Autre
 Y3mUTK|Autre
 bpH6Mx|Autre
 zPPByG|Autre
-2iK73T|Notre association utilise efaCloud et peut être désignée comme association utilisatrice sur efacloud.org.
+2iK73T|Notre association utilise ce fork efaCloud et peut être nommée dans les notes de version / GitHub du fork.
 DJV8m7|éditer la table efa
 MBZSgY|Sortie du dernier fichier journal téléchargé
 5jvc1j|Surcharge pour '%1'. Période de surveillance : %2 secondes, limite : %3 événements, attente jusqu'à présent : %4 secondes.
@@ -3372,7 +3372,7 @@ KM1cke|Surcharge du serveur détectée, plus d'actions ou d'erreurs autorisées 
 EJM8uI|Le serveur a renvoyé le code d'état 500
 fUNLos|Horodatage du serveur
 LMP2yc|URL du serveur
-IEwtHj|Service / Feedback
+IEwtHj|Support (fork du club)
 RHGlRZ|Contexte de la session : %1, actuel : %2
 K7p76O|
 n6IV9Y|
@@ -3618,7 +3618,7 @@ jMEMEQ|Affichage du texte
 5nzLeq|texte
 dNEp9w|texte
 oslDj7|Merci pour cette mise à jour !
-02SBJ9|Merci pour votre demande. Le serveur efacloud.org signale :
+02SBJ9|Merci pour votre demande. Résultat :
 93vxJy|Les %1 autorisations de<b>%2</b>ont été modifiées.</p><p>A partir de la prochaine connexion, il sera soumis à :
 gmlDim|Les %1 autorisations de<b>%2</b>ont été modifiées.</p><p>A partir de la prochaine connexion, il sera soumis à :
 9tMKlx|La page '%1' doit être appelée en indiquant l'id de l'ensemble de données à afficher.
@@ -4566,3 +4566,10 @@ BznhBV|Les mots à rechercher
 yByDpt|Zipper des fichiers.
 KtXJLq|{paramètre non valide avec point-virgule}
 c6AQAt|'%1' est écrit ...
+fK9sUp|Demande de support (fork)
+fK9sOk|Votre demande a été envoyée par e-mail au mainteneur du fork.
+fK9sFl|L'envoi automatique d'e-mail a échoué. Veuillez écrire directement à %1.
+fK9sTo|Les demandes vont à %1 (%2).
+fK9sGh|Ce fork associatif est maintenu par Thies Möller — pas par le mainteneur upstream d'efacloud.org.
+fK9sHp|Support du fork : %1 · issues : %2
+fK9sIs|Issues GitHub

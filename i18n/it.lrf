@@ -28,7 +28,7 @@ U1NXw3|
 |</ul>
 |</li>
 |</ul>
-|<p>Sono sempre felice di ricevere feedback a support(at)efacloud.org!</p>
+|<p>Il feedback su questo fork associativo va al maintainer del fork (non a efacloud.org).</p>
 |</div>
 qMjfvd|
 |
@@ -474,8 +474,8 @@ ffsj9S|
 zmwOIb|
 |<p>Nel passo successivo, la tabella viene caricata e importata come mostrato. Confermare che l'importazione deve essere effettuata (non è possibile annullarla).</p>
 dH58zd|
-|<p>Per favore, fatemi sapere la vostra richiesta o un desiderio per le funzionalità di efaCloud. Cercherò di aiutarvi il prima possibile. Durante i periodi di vacanza ci possono essere dei ritardi, ma normalmente ci si può aspettare una risposta entro una settimana.</p>
-|<p>Sono anche felice di ricevere feedback su efaCloud, suggerimenti e richieste. Questo modulo va a 'efacloud.org'.</p>
+|<p>Per favore, fatemi sapere la vostra richiesta o un desiderio per le funzionalità di questo fork associativo di efaCloud. Cercherò di aiutarvi il prima possibile.</p>
+|<p>Questo modulo raggiunge il maintainer del fork (non il progetto upstream efacloud.org).</p>
 02b3TQ|
 |<p>L'importazione del file è stata effettuata. <br />Il protocollo per questo è:
 |</p>
@@ -1787,7 +1787,7 @@ zqMZlN|Agli utenti efaCloud può essere assegnato anche un privilegio di amminis
 zbSX9F|ID utente efaCloud
 6lYbjM|Password dell'utente efaCloud
 15iRSs|efaCloudUserID - oppure -
-PfwuLC|Attualmente efaWeb è solo una demo. L'ulteriore sviluppo dell'applicazione efaWeb dipende dal vostro feedback a "info@efacloud.org".
+PfwuLC|Attualmente efaWeb è solo una demo. L'ulteriore sviluppo dipende dal vostro feedback al maintainer del fork.
 5GosWb|efaWeb: Visualizzazione del diario di bordo
 fIyhiE|efaWeb: Visualizzazione del diario di bordo
 4JGwyS|efaWeb: inserire le corse nel diario di bordo della rimessa per barche n. 3
@@ -2944,7 +2944,7 @@ PlKD7C|
 Y3mUTK|
 bpH6Mx|
 zPPByG|
-2iK73T|La nostra associazione utilizza efaCloud e può essere nominata come associazione utilizzatrice su efacloud.org.
+2iK73T|La nostra associazione utilizza questo fork efaCloud e può essere nominata nelle release notes / GitHub del fork.
 DJV8m7|Uscita tabella efa
 MBZSgY|Output dell'ultimo file di log caricato
 5jvc1j|Sovraccarico per '%1'. Periodo di monitoraggio: %2 secondi, limite: %3 eventi, attesa finora: %4 secondi.
@@ -3299,7 +3299,7 @@ KM1cke|Rilevato sovraccarico del server, più azioni o errori di quelli consenti
 EJM8uI|Il server ha restituito il codice di stato 500
 fUNLos|
 LMP2yc|
-IEwtHj|Servizio / Feedback
+IEwtHj|Supporto (fork del club)
 RHGlRZ|Contesto della sessione: %1, corrente: %2
 K7p76O|
 n6IV9Y|
@@ -3545,7 +3545,7 @@ jMEMEQ|
 5nzLeq|testo
 dNEp9w|
 oslDj7|
-02SBJ9|Grazie per la vostra richiesta. Il server efacloud.org riporta:
+02SBJ9|Grazie per la vostra richiesta. Risultato:
 93vxJy|I permessi di %1 per<b>%2</b>sono stati modificati.</p><p>A partire dal prossimo accesso, si applicherà quanto segue:
 gmlDim|I permessi di %1 per<b>%2</b>sono stati modificati.</p><p>A partire dal prossimo accesso, si applicherà quanto segue:
 9tMKlx|La pagina '%1' deve essere richiamata con l'id del record da visualizzare.
@@ -4493,3 +4493,10 @@ BznhBV|
 yByDpt|File di zippaggio.
 KtXJLq|{parametro non valido con punto e virgola}
 c6AQAt|'%1' è scritto ...
+fK9sUp|Richiesta di supporto (fork)
+fK9sOk|La richiesta è stata inviata via e-mail al maintainer del fork.
+fK9sFl|Invio automatico dell'e-mail non riuscito. Scrivere direttamente a %1.
+fK9sTo|Le richieste vanno a %1 (%2).
+fK9sGh|Questo fork associativo è gestito da Thies Möller — non dal maintainer upstream di efacloud.org.
+fK9sHp|Supporto fork: %1 · issues: %2
+fK9sIs|Issue GitHub

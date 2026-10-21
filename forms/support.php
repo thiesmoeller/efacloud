@@ -22,6 +22,8 @@
 
 
 /**
+ * Club-fork support form. Sends to the fork maintainer — not upstream efacloud.org.
+ *
  * Based on the Tfyh_form class, please read instructions their to better understand this PHP-code part.
  * 
  * @author mgSoft
@@ -31,12 +33,16 @@
 $user_requested_file = __FILE__;
 include_once "../classes/init.php";
 include_once '../classes/tfyh_form.php';
+include_once '../classes/efa_fork.php';
+include_once '../classes/efa_version.php';
+include_once '../classes/tfyh_mail_handler.php';
 
 // === APPLICATION LOGIC ==============================================================
 // if validation fails, the same form will be displayed anew with error messgaes
 $todo = ($done == 0) ? 1 : $done;
 $form_errors = "";
 $form_layout = "../config/layouts/support";
+$post_result = "";
 
 // ======== Start with form filled in last step: check of the entered values.
 if ($done > 0) {
@@ -49,25 +55,53 @@ if ($done > 0) {
     if (strlen($form_errors) > 0) {
         // do nothing. This avoids any change, if form errors occured.
     } elseif ($done == 1) {
-        $url = 'https://www.efacloud.org/support/request.php';
-        $data = $entered_data;
+        $attachment = "";
         if (isset($entered_data["SendLogs"]) && (strlen($entered_data["SendLogs"]) > 0)) {
             $monitoring_report = "../log/" . $toolbox->logger->zip_logs();
-            $data["monitoring_report_zip"] = str_replace("=", "_", 
-                    str_replace("/", "-", 
-                            str_replace("+", "*", base64_encode(file_get_contents($monitoring_report)))));
+            if (is_readable($monitoring_report))
+                $attachment = $monitoring_report;
         }
-        
-        unset($data["SendLogs"]);
-        $options = array(
-                'http' => array('header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                        'method' => 'POST','content' => http_build_query($data)
-                )
-        );
-        $context = stream_context_create($options);
-        $post_result = file_get_contents($url, false, $context);
-        if ($post_result === false)
-            $post_result = i("w6LYgh|Transfer to efaCloud ser...");
+
+        $base_url = "";
+        if (isset($toolbox->config->cfg_app["app_url"]))
+            $base_url = strval($toolbox->config->cfg_app["app_url"]);
+        if (strlen($base_url) == 0 && isset($_SERVER["HTTP_HOST"])) {
+            $proto = (! empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ? "https" : "http";
+            if (! empty($_SERVER["HTTP_X_FORWARDED_PROTO"]))
+                $proto = $_SERVER["HTTP_X_FORWARDED_PROTO"];
+            $base_url = $proto . "://" . $_SERVER["HTTP_HOST"];
+        }
+
+        $subject = "[efaCloud fork] " . i("BVNSCJ|Support request") . " — " .
+                 trim($entered_data["Verein"] ?? "");
+        $body = i("fK9sUp|Fork support request") . "\n\n" .
+                 "Name: " . trim(($entered_data["Vorname"] ?? "") . " " . ($entered_data["Nachname"] ?? "")) .
+                 "\n" .
+                 "E-Mail: " . trim($entered_data["EMail"] ?? "") . "\n" .
+                 "Verein: " . trim($entered_data["Verein"] ?? "") . "\n" .
+                 "NamedUser: " . ((isset($entered_data["NamedUser"]) && strlen($entered_data["NamedUser"]) > 0)
+                         ? "yes" : "no") . "\n" .
+                 "Site: " . $base_url . "\n" .
+                 "Upstream: " . Efa_version::upstream() . "\n" .
+                 "Fork: " . Efa_version::fork() . "\n" .
+                 "Display: " . Efa_version::display_string() . "\n\n" .
+                 "----\n" .
+                 trim($entered_data["Anliegen"] ?? "") . "\n";
+
+        $mail_handler = new Tfyh_mail_handler($toolbox->config->get_cfg());
+        $reply_to = trim($entered_data["EMail"] ?? "");
+        $from = $mail_handler->system_mail_sender;
+        if (strlen(trim(strval($from))) == 0)
+            $from = Efa_fork::support_mailto_header();
+
+        $ok = $mail_handler->send_mail($from, $reply_to, Efa_fork::support_mailto_header(), "", "", 
+                $subject, $body, $attachment, "");
+        if ($ok) {
+            $post_result = i("fK9sOk|Your request was emailed...");
+        } else {
+            $post_result = i("fK9sFl|Automatic e-mail failed....", 
+                    htmlspecialchars(Efa_fork::support_email(), ENT_QUOTES));
+        }
         $todo = 2;
     }
 }
@@ -95,6 +129,10 @@ echo $toolbox->form_errors_to_html($form_errors);
 // ======== start with the display of either the next form, or the error messages.
 if ($todo == 1) {
     echo i("dH58zd|<p>Please let me know y...");
+    echo "<p class='app-meta'>" . i("fK9sTo|Requests go to %1 (%2).", 
+             htmlspecialchars(Efa_fork::support_name(), ENT_QUOTES), 
+             "<a href='" . htmlspecialchars(Efa_fork::support_mailto(), ENT_QUOTES) . "'>" .
+                     htmlspecialchars(Efa_fork::support_email(), ENT_QUOTES) . "</a>") . "</p>";
     // step 1. Show form.
     echo $form_to_fill->get_html();
     // insert help text as right hand menu for mobile access
