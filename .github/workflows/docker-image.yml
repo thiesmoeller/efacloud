@@ -110,7 +110,7 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
 
-      - name: Resolve digest and write job summary
+      - name: Resolve digest and require arm64 (CapRover)
         run: |
           set -euo pipefail
           SHORT_SHA="$(echo "${{ github.sha }}" | cut -c1-7)"
@@ -125,6 +125,12 @@ jobs:
             DIGEST_REF="${IMAGE}@${DIGEST}"
           fi
 
+          # CapRover on project-park is linux/arm64 — refuse to promote an amd64-only image.
+          INSPECT="$(docker buildx imagetools inspect "$PRIMARY")"
+          echo "$INSPECT"
+          echo "$INSPECT" | grep -E 'linux/amd64' >/dev/null
+          echo "$INSPECT" | grep -E 'linux/arm64' >/dev/null
+
           {
             echo "## efaCloud image published"
             echo ""
@@ -138,7 +144,7 @@ jobs:
             echo "| Branch tag | \`${IMAGE}:${SAFE_BRANCH}\` |"
             echo "| Commit | \`${FULL_SHA}\` |"
             echo ""
-            echo "Manifest list includes **amd64** and **arm64**. CapRover selects the host arch."
+            echo "Manifest list verified for **amd64** and **arm64** (CapRover host arch)."
             echo "Promote staging → production with the **same** \`sha-*\` tag or digest."
             echo "See \`docs/deploy/image-promote.md\`."
           } >> "$GITHUB_STEP_SUMMARY"

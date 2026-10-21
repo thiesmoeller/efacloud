@@ -16,7 +16,8 @@ RUN npm run build
 
 # Stage 3: efaCloud PHP application
 # Pin the security release for CVE-2026-109618 / CVE-2026-109619 (PHP2Shell).
-# Floating 8.2-apache can lag while Hub rebuilds; the gate below still rejects stale bases.
+# CapRover (project-park) is linux/arm64 — both amd64 and arm64 Hub layers must exist
+# before CI can push a multi-arch image. Floating 8.2-apache can lag; the gate rejects stale bases.
 FROM php:8.2.35-apache
 
 RUN php -r 'if (version_compare(PHP_VERSION, "8.2.35", "<")) { fwrite(STDERR, "PHP 8.2.35 or newer is required\n"); exit(1); }'
