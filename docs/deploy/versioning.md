@@ -31,3 +31,10 @@ Admin home compares **upstream** `public/version` to https://efacloud.org/src/sc
 ## Optional GHCR convenience tag
 
 `ghcr.io/thiesmoeller/efacloud:2.4.0_13-wrc.1` — still promote by digest / `sha-*`.
+
+## Support (fork, not upstream)
+
+In-app **Support / Feedback** (`forms/support.php`) emails the club-fork
+maintainer (`Efa_fork` → Thies Möller / `thies.moeller@gmail.com`). It does
+**not** POST to `efacloud.org/support/`. Help pages link to the same address and
+to GitHub issues on `thiesmoeller/efacloud`.

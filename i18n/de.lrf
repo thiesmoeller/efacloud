@@ -32,7 +32,7 @@ U1NXw3|
 |</ul>
 |</li>
 |</ul>
-|<p>Über Feedback an support(at)efacloud.org freue ich mich immer!</p>
+|<p>Feedback zu diesem Vereins-Fork bitte an den Fork-Maintainer (nicht an efacloud.org).</p>
 |</div>
 qMjfvd|
 |
@@ -579,12 +579,9 @@ zmwOIb|
 |werden soll (kein rückgängig möglich).</p>
 dH58zd|
 |<p>Bitte lass mich Dein Anliegen oder einen Wunsch an die
-|Funktionalität von efaCloud wissen. Ich versuche sobald wie möglich zu
-|helfen. In Urlaubszeiten kann es dabei schon mal zu Verzögerungen
-|kommen, normalerweise ist eine Antwort in etwa einer Woche zu
-|erwarten.</p>
-|<p>Ich freue mich auch über Feedback zu efaCloud, Anregungen und
-|Wünsche. Dieses Formular geht an 'efacloud.org'.</p>
+|Funktionalität dieses Vereins-Forks von efaCloud wissen. Ich versuche
+|so bald wie möglich zu helfen.</p>
+|<p>Dieses Formular geht an den Fork-Maintainer (nicht an das Upstream-Projekt efacloud.org).</p>
 02b3TQ|
 |<p>
 |Der Datei-Import wurde durchgeführt. <br />Das Protokoll dazu ist:
@@ -1906,7 +1903,7 @@ zqMZlN|efaCloud-Nutzer können auch eine efa-Admin-Berechtigung zugewiesen bekom
 zbSX9F|efaCloudBenutzer-ID
 6lYbjM|efaCloudUser Passwort
 15iRSs|efaCloudUserID - oder -
-PfwuLC|efaWeb ist zur Zeit ist nur eine Demo. Ob efaWeb Anwendung weiterentwickelt wird, hängt von Eurem Feedback an 'info@efacloud.org' ab.
+PfwuLC|efaWeb ist zur Zeit nur eine Demo. Ob efaWeb weiterentwickelt wird, hängt von Eurem Feedback an den Fork-Maintainer ab.
 5GosWb|efaWeb: Das Fahrtenbuch anzeigen
 fIyhiE|efaWeb: Das Fahrtenbuch anzeigen
 4JGwyS|efaWeb: Fahrten in das Fahrtenbuch für Bootshaus #3 eintragen
@@ -3067,7 +3064,7 @@ PlKD7C|andere
 Y3mUTK|andere
 bpH6Mx|andere
 zPPByG|andere
-2iK73T|Unser Verein nutzt efaCloud und darf auf efacloud.org als nutzender Verein benannt werden.
+2iK73T|Unser Verein nutzt diesen efaCloud-Fork und darf in Fork-Release-Notes / GitHub genannt werden.
 DJV8m7|efa Tabelle ausgeben
 MBZSgY|Ausgabe der zuletzt hochgeladenen Log-Datei
 5jvc1j|Überlastung bei '%1'. Überwachungszeitraum: %2 Sekunden, Grenzwert: %3 Ereignisse, bisher gewartet: %4 Sekunden.
@@ -3422,7 +3419,6 @@ KM1cke|Server Overload detected, more than the allowed actions or errors within 
 EJM8uI|Server hat Statuscode 500 zurückgegeben
 fUNLos|Server-Zeitstempel
 LMP2yc|Server-URL
-IEwtHj|Service / Feedback
 RHGlRZ|Sitzungskontext: %1, aktuell: %2
 K7p76O|Zeitüberschreitung bei Inaktivität der Sitzung
 n6IV9Y|Ende der Fahrtsdauer
@@ -3668,7 +3664,7 @@ jMEMEQ|Text Ansicht
 5nzLeq|Text
 dNEp9w|Text
 oslDj7|Vielen Dank für die Aktualisierung!
-02SBJ9|Vielen Dank für Ihre Anfrage. Der efacloud.org Server meldet:
+02SBJ9|Vielen Dank für Ihre Anfrage. Ergebnis:
 93vxJy|Die %1-Berechtigungen für <b>%2</b> wurden geändert.</p><p>Ab dem nächsten Login gilt für ihn:
 gmlDim|Die %1-Berechtigungen für <b>%2</b> wurden geändert.</p><p>Ab dem nächsten Login gilt für ihn:
 9tMKlx|Die Seite '%1' muss mit der Angabe der id des anzuzeigenden Datensatzes aufgerufen werden.
@@ -4643,3 +4639,11 @@ vW3nAd|Verwaltung
 bK2nHm|Zurück zum Start
 wH3mLc|Willkommen, %1
 bW4tOn|Boote unterwegs
+fK9sUp|Support-Anfrage (Fork)
+fK9sOk|Deine Anfrage wurde per E-Mail an den Fork-Maintainer gesendet.
+fK9sFl|Automatischer E-Mail-Versand fehlgeschlagen. Bitte schreib direkt an %1.
+fK9sTo|Anfragen gehen an %1 (%2).
+fK9sGh|Diesen Vereins-Fork pflegt Thies Möller — nicht der Upstream-Maintainer von efacloud.org.
+fK9sHp|Fork-Support: %1 · Issues: %2
+IEwtHj|Support (Vereins-Fork)
+fK9sIs|GitHub-Issues

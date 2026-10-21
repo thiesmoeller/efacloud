@@ -35,6 +35,7 @@ echo file_get_contents('../config/snippets/page_01_start');
 echo $menu->get_menu();
 echo file_get_contents('../config/snippets/page_02_nav_to_body');
 
+include_once "../classes/efa_fork.php";
 echo i("Z4iAHN|<!-- START OF content -...");
 $helpdocs = scandir("../helpdocs/" . $toolbox->config->language_code);
 foreach ($helpdocs as $helpdoc) {
@@ -43,5 +44,11 @@ foreach ($helpdocs as $helpdoc) {
     if (substr($helpdoc_name, 0, 1) != ".")
         echo "<li>" . $helpdoc_name . $info_link . "</li>";
 }
-echo i("C1HUuR|</ul><p>More informati...");
+echo "</ul><p>" . i("fK9sHp|Fork support: %1 · issue...", 
+         "<a href='" . htmlspecialchars(Efa_fork::support_mailto(), ENT_QUOTES) . "'>" .
+                 htmlspecialchars(Efa_fork::support_email(), ENT_QUOTES) . "</a>", 
+         "<a href='" . htmlspecialchars(Efa_fork::support_issues_url(), ENT_QUOTES) .
+                 "' target='_blank' rel='noopener noreferrer'>" .
+                 htmlspecialchars(i("fK9sIs|GitHub issues"), ENT_QUOTES) . "</a>") .
+         "</p></div>";
 end_script();

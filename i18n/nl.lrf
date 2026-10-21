@@ -29,7 +29,7 @@ U1NXw3|
 |</ul>
 |</li>
 |</ul>
-|<p>Ik ben altijd blij met feedback naar support(at)efacloud.org!</p>
+|<p>Feedback over deze verenigings-fork gaat naar de fork-maintainer (niet naar efacloud.org).</p>
 |</div>
 qMjfvd|
 |
@@ -468,8 +468,8 @@ ffsj9S|
 zmwOIb|
 |<p>In de volgende stap wordt de tabel geupload en geïmporteerd zoals afgebeeld. Bevestig dat de import moet worden uitgevoerd (geen undo mogelijk).</p>
 dH58zd|
-|<p>Laat mij uw verzoek of wens voor de functionaliteit van efaCloud weten. Ik zal proberen zo snel mogelijk te helpen. Tijdens vakantieperiodes kan er vertraging optreden, maar normaal gesproken kunt u binnen een week een antwoord verwachten.</p>
-|<p>Ik ontvang ook graag feedback over efaCloud, suggesties en verzoeken. Dit formulier gaat naar 'efacloud.org'.</p>
+|<p>Laat mij uw verzoek of wens voor de functionaliteit van deze verenigings-fork van efaCloud weten. Ik zal proberen zo snel mogelijk te helpen.</p>
+|<p>Dit formulier gaat naar de fork-maintainer (niet naar het upstream-project efacloud.org).</p>
 02b3TQ|
 |<p>De bestandsimport werd uitgevoerd. <br />Het protocol hiervoor is:**</p>
 x1uDKx|
@@ -1778,7 +1778,7 @@ zqMZlN|Aan efaCloud gebruikers kan ook een efa admin privilege worden toegekend,
 zbSX9F|efaCloudUser ID
 6lYbjM|efaCloudUser wachtwoord
 15iRSs|efaCloudUserID - of -.
-PfwuLC|efaWeb is momenteel alleen een demo. Of efaWeb applicatie verder wordt ontwikkeld hangt af van uw feedback aan 'info@efacloud.org'.
+PfwuLC|efaWeb is momenteel alleen een demo. Of efaWeb verder wordt ontwikkeld hangt af van uw feedback aan de fork-maintainer.
 5GosWb|efaWeb: Logboek weergeven
 fIyhiE|efaWeb: Logboek weergeven
 4JGwyS|efaWeb: Tochten invoeren in logboek voor boothuis #3
@@ -2935,7 +2935,7 @@ PlKD7C|
 Y3mUTK|
 bpH6Mx|
 zPPByG|
-2iK73T|Onze vereniging gebruikt efaCloud en kan als gebruikende vereniging op efacloud.org genoemd worden.
+2iK73T|Onze vereniging gebruikt deze efaCloud-fork en mag genoemd worden in fork-releasenotes / GitHub.
 DJV8m7|uitvoer efa-tabel
 MBZSgY|Uitvoer van het laatst geüploade logbestand
 5jvc1j|Overbelasting voor '%1'. Bewakingsperiode: %2 seconden, limiet: %3 gebeurtenissen, wachttijd tot nu toe: %4 seconden.
@@ -3290,7 +3290,7 @@ KM1cke|Server overload gedetecteerd, meer dan de toegestane acties of fouten in 
 EJM8uI|Server gaf status code 500 terug
 fUNLos|
 LMP2yc|
-IEwtHj|Dienst / Terugkoppeling
+IEwtHj|Support (verenigings-fork)
 RHGlRZ|Sessiecontext: %1, huidig: %2
 K7p76O|
 n6IV9Y|
@@ -3536,7 +3536,7 @@ jMEMEQ|
 5nzLeq|tekst
 dNEp9w|
 oslDj7|
-02SBJ9|Bedankt voor uw verzoek. De efacloud.org server rapporteert:
+02SBJ9|Bedankt voor uw verzoek. Resultaat:
 93vxJy|De %1 rechten voor<b>%2</b>zijn gewijzigd.</p><p>Vanaf de volgende login geldt voor hem het volgende:
 gmlDim|De %1 rechten voor<b>%2</b>zijn gewijzigd.</p><p>Vanaf de volgende login geldt voor hem het volgende:
 9tMKlx|Pagina '%1' moet worden aangeroepen met het id van het weer te geven record.
@@ -4484,3 +4484,10 @@ BznhBV|
 yByDpt|Bestanden zippen.
 KtXJLq|{Ongeldige parameter met puntkomma}
 c6AQAt|'%1' is geschreven ...
+fK9sUp|Supportverzoek (fork)
+fK9sOk|Uw verzoek is per e-mail naar de fork-maintainer gestuurd.
+fK9sFl|Automatische e-mail mislukt. Schrijf rechtstreeks naar %1.
+fK9sTo|Verzoeken gaan naar %1 (%2).
+fK9sGh|Deze verenigings-fork wordt onderhouden door Thies Möller — niet door de upstream-maintainer van efacloud.org.
+fK9sHp|Fork-support: %1 · issues: %2
+fK9sIs|GitHub-issues
