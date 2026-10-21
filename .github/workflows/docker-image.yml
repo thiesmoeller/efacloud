@@ -57,6 +57,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64
+          pull: true
           load: true
           push: false
           tags: ${{ env.IMAGE }}:smoke-local
@@ -77,6 +78,9 @@ jobs:
             test -f /var/www/html/classes/portal/Portal_session.php
             test -f /var/www/html/classes/stats/Stats_service.php
             test -f /etc/apache2/conf-enabled/efacloud.conf
+            php -v
+            apache2 -v
+            dpkg-query -W -f="\${binary:Package} \${Version}\n" apache2 apache2-bin
             . /etc/apache2/envvars
             apache2 -t
           '
@@ -98,6 +102,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: ${{ env.PLATFORMS }}
+          pull: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
